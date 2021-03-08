@@ -1,13 +1,10 @@
-package cr
+package sr
 
 import (
-	"encoding/xml"
+	"io"
 )
 
-type Record {
-	// Update applies when the record structure is used to build an update command.
-	Update
-
+type Record struct {
 	// Key of the record in DHT-space (XOR-space).
 	// This is NOT intended to be a CID or a PEER ID. These are not in XOR-space.
 	// The key is a function (usually hash) of the application level keys, e.g. CID or PEER ID.
@@ -18,10 +15,10 @@ type Record {
 	Dict
 }
 
-func (r Record) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	return XXX
+func (r Record) WritePretty(w io.Writer, level int) error {
+	panic("XXX")
 }
 
 func MergeRecords(x, y *Record) Node {
-	XXX
+	panic("XXX")
 }

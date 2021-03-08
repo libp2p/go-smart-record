@@ -1,14 +1,23 @@
-package cr
+package sr
+
+import (
+	"io"
+)
 
 // Dict is a set of uniquely-named child nodes.
 type Dict struct {
-	Children map[string]Node
+	Pairs []Pair // keys are unique
 }
 
-func (r Record) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	return XXX
+type Pair struct {
+	Key   Node
+	Value Node
+}
+
+func (d Dict) WritePretty(w io.Writer, level int) error {
+	panic("XXX")
 }
 
 func MergeDicts(x, y *Dict) Node {
-	XXX
+	panic("XXX")
 }

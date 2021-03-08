@@ -1,5 +1,5 @@
-package cr
+package sr
 
 func MergeNodes(x, y Node) Node {
-	XXX
+	panic("XXX")
 }

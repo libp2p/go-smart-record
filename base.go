@@ -1,13 +1,9 @@
-package cr
+package sr
 
 import (
-	"encoding/xml"
+	"io"
 )
 
-interface Node {
-	xml.Marshaler
-}
-
-type Update struct {
-	Command string // e.g. edit, add
+type Node interface {
+	WritePretty(w io.Writer, level int) error
 }
