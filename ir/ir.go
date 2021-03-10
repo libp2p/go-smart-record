@@ -1,4 +1,5 @@
-package sr
+// Package ir defines the Intermediate Representation (informally, in-memory representation) of smart records.
+package ir
 
 import (
 	"io"
@@ -11,5 +12,5 @@ type Node interface {
 // Smart represents a "smart" node.
 type Smart interface {
 	Node
-	AsDict() Dict
+	Dict() Dict
 }

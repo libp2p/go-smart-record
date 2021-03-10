@@ -1,15 +1,10 @@
-package sr
+package ir
 
 import (
 	"io"
 )
 
-// Dict is a set of uniquely-named child nodes.
-type Dict struct {
-	Tag   string
-	Pairs []Pair // maintain: keys are unique
-}
-
+// Pair holds a key/value pair.
 type Pair struct {
 	Key   Node
 	Value Node
@@ -28,6 +23,39 @@ func (p Pair) WritePretty(w io.Writer) error {
 		return err
 	}
 	return nil
+}
+
+// Pairs is a list of pairs.
+type Pairs []Pair
+
+func (ps Pairs) IndexOf(key Node) int {
+	for i, p := range ps {
+		if IsEqual(p.Key, key) {
+			return i
+		}
+	}
+	return -1
+}
+
+// MergePairsRight returns the union (wrt keys) of the two lists of pairs.
+// Ties are broken in favor of y, the right argument.
+func MergePairsRight(x, y Pairs) Pairs {
+	z := make(Pairs, len(x), len(x)+len(y))
+	copy(z, x)
+	for _, p := range y {
+		if i := z.IndexOf(p.Key); i < 0 {
+			z = append(z, p)
+		} else {
+			z[i] = p
+		}
+	}
+	return z
+}
+
+// Dict is a set of uniquely-named child nodes.
+type Dict struct {
+	Tag   string
+	Pairs Pairs // keys must be unique wrt IsEqual
 }
 
 func (d Dict) WritePretty(w io.Writer) error {
@@ -52,7 +80,11 @@ func (d Dict) WritePretty(w io.Writer) error {
 }
 
 func (d Dict) CopySet(key Node, value Node) Dict {
-	c := Dict{Tag: d.Tag, Pairs: make([]Pair, 0, len(d.Pairs)+1)}
+	return d.CopySetTag(d.Tag, key, value)
+}
+
+func (d Dict) CopySetTag(tag string, key Node, value Node) Dict {
+	c := Dict{Tag: tag, Pairs: make(Pairs, 0, len(d.Pairs)+1)}
 	found := false
 	for _, p := range d.Pairs {
 		if IsEqual(key, p.Key) {
@@ -78,7 +110,7 @@ func (d Dict) Get(key Node) Node {
 }
 
 func IsEqualDict(x, y Dict) bool {
-	XXX
+	panic("XXX")
 }
 
 func MergeDicts(x, y *Dict) Node {

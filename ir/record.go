@@ -1,4 +1,8 @@
-package sr
+package ir
+
+import (
+	"io"
+)
 
 // Record is a smart tag, representing data associated with a key.
 type Record struct {
@@ -7,12 +11,16 @@ type Record struct {
 	// The key is a function (usually hash) of the application level keys, e.g. CID or PEER ID.
 	Key string
 
-	// Dict holds the non-key fields of the record.
-	Dict
+	// User holds user fields.
+	User Dict
 }
 
-func (r Record) AsDict() Dict {
-	return r.Dict.CopySet(String{"key"}, String{r.Key})
+func (r Record) Dict() Dict {
+	return r.User.CopySetTag("record", String{"key"}, String{r.Key})
+}
+
+func (r Record) WritePretty(w io.Writer) error {
+	return r.Dict().WritePretty(w)
 }
 
 func MergeRecords(x, y *Record) Node {
