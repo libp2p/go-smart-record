@@ -1,5 +1,5 @@
 package sr
 
-func MergeNodes(x, y Node) Node {
+func Merge(x, y Node) Node {
 	panic("XXX")
 }
