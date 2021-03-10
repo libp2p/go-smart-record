@@ -9,6 +9,6 @@ type Multiaddress struct {
 	Dict
 }
 
-func (m Multiaddress) WritePretty(w io.Writer, level int) error {
+func (m Multiaddress) WritePretty(w io.Writer) error {
 	panic("XXX")
 }

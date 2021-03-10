@@ -9,6 +9,6 @@ type Peer struct {
 	Dict
 }
 
-func (p Peer) WritePretty(w io.Writer, level int) error {
+func (p Peer) WritePretty(w io.Writer) error {
 	panic("XXX")
 }

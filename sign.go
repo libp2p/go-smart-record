@@ -11,6 +11,6 @@ type Signed struct {
 	Dict
 }
 
-func (v Signed) WritePretty(w io.Writer, level int) error {
+func (v Signed) WritePretty(w io.Writer) error {
 	panic("XXX")
 }

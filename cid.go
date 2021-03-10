@@ -9,6 +9,6 @@ type Cid struct {
 	Dict
 }
 
-func (c Cid) WritePretty(w io.Writer, level int) error {
+func (c Cid) WritePretty(w io.Writer) error {
 	panic("XXX")
 }

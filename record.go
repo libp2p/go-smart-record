@@ -15,7 +15,7 @@ type Record struct {
 	Dict
 }
 
-func (r Record) WritePretty(w io.Writer, level int) error {
+func (r Record) WritePretty(w io.Writer) error {
 	panic("XXX")
 }
 

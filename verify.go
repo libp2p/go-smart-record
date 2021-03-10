@@ -9,7 +9,7 @@ type Verify struct {
 	Dict
 }
 
-func (v Verify) WritePretty(w io.Writer, level int) error {
+func (v Verify) WritePretty(w io.Writer) error {
 	panic("XXX")
 }
 
@@ -20,6 +20,6 @@ type Verified struct {
 	Dict
 }
 
-func (v Verified) WritePretty(w io.Writer, level int) error {
+func (v Verified) WritePretty(w io.Writer) error {
 	panic("XXX")
 }
