@@ -37,6 +37,22 @@ func (ps Pairs) IndexOf(key Node) int {
 	return -1
 }
 
+func AreEqualPairs(x, y Pairs) bool {
+	if len(x) != len(y) {
+		return false
+	}
+	for _, x := range x {
+		if i := y.IndexOf(x.Key); i < 0 {
+			return false
+		} else {
+			if !IsEqual(x.Value, y[i].Value) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 // MergePairsRight returns the union (wrt keys) of the two lists of pairs.
 // Ties are broken in favor of y, the right argument.
 func MergePairsRight(x, y Pairs) Pairs {
@@ -52,7 +68,7 @@ func MergePairsRight(x, y Pairs) Pairs {
 	return z
 }
 
-// Dict is a set of uniquely-named child nodes.
+// Dict is a set of uniquely-keyed values.
 type Dict struct {
 	Tag   string
 	Pairs Pairs // keys must be unique wrt IsEqual
@@ -110,7 +126,10 @@ func (d Dict) Get(key Node) Node {
 }
 
 func IsEqualDict(x, y Dict) bool {
-	panic("XXX")
+	if x.Tag != y.Tag {
+		return false
+	}
+	return AreEqualPairs(x.Pairs, y.Pairs)
 }
 
 func MergeDicts(x, y *Dict) Node {
