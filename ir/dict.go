@@ -81,12 +81,22 @@ func (d Dict) WritePretty(w io.Writer) error {
 	if _, err := w.Write([]byte{'{'}); err != nil {
 		return err
 	}
-	for _, p := range d.Pairs {
-		if err := p.WritePretty(w); err != nil {
+	u := IndentWriter(w)
+	if _, err := u.Write([]byte{'\n'}); err != nil {
+		return err
+	}
+	for i, p := range d.Pairs {
+		if err := p.WritePretty(u); err != nil {
 			return err
 		}
-		if _, err := w.Write([]byte("\n")); err != nil {
-			return err
+		if i+1 == len(d.Pairs) {
+			if _, err := w.Write([]byte("\n")); err != nil {
+				return err
+			}
+		} else {
+			if _, err := u.Write([]byte("\n")); err != nil {
+				return err
+			}
 		}
 	}
 	if _, err := w.Write([]byte{'}'}); err != nil {

@@ -11,7 +11,7 @@ func TestPretty(t *testing.T) {
 		Tag: "foo",
 		Pairs: Pairs{
 			{String{"bar"}, String{"baz"}},
-			{String{"bar2"}, String{"baz"}},
+			{String{"bar2"}, Int64{13}},
 		},
 	}
 	var w bytes.Buffer
