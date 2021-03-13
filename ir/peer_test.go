@@ -1,5 +1,6 @@
 package ir
 
+/*
 import (
 	"bytes"
 	"fmt"
@@ -26,3 +27,4 @@ func TestPeer(t *testing.T) {
 	fmt.Println(" ===== Sample Peer ======")
 	fmt.Println(w.String())
 }
+*/

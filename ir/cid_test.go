@@ -1,5 +1,6 @@
 package ir
 
+/*
 import (
 	"bytes"
 	"fmt"
@@ -27,3 +28,4 @@ func TestCid(t *testing.T) {
 	fmt.Println(" ===== Sample CID ======")
 	fmt.Println(w.String())
 }
+*/
