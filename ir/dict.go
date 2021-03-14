@@ -142,6 +142,9 @@ func IsEqualDict(x, y Dict) bool {
 	return AreEqualPairs(x.Pairs, y.Pairs)
 }
 
-func MergeDicts(x, y *Dict) Node {
+func MergeDict(ctx MergeContext, x, y Dict) Node {
+	if x.Tag != y.Tag {
+		return ctx.MergeConflict(x, y)
+	}
 	panic("XXX")
 }
