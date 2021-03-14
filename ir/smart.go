@@ -2,7 +2,7 @@ package ir
 
 // Smart is a "smart" tag.
 // A smart tag is syntactically equivalent to a Dict.
-// Semantically, a smart tag can have custom equality and merge logics
+// Semantically, a smart tag can have custom merge logic
 // that are different from those of a Dict.
 type Smart interface {
 	// Every smart tag is also a valid syntactic node.
@@ -18,5 +18,5 @@ type Smart interface {
 }
 
 func IsEqualSmart(x, y Smart) bool {
-	panic("XXX")
+	return IsEqualDict(x.Dict(), y.Dict())
 }
