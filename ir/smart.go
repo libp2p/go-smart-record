@@ -1,9 +1,8 @@
 package ir
 
-// Smart is a "smart" tag.
-// A smart tag is syntactically equivalent to a Dict.
+// Smart represents a "smart tag". A smart tag is syntactically a Dict.
 // Semantically, a smart tag can have custom merge logic
-// that are different from those of a Dict.
+// that is different from that of a Dict.
 type Smart interface {
 	// Every smart tag is also a valid syntactic node.
 	Node

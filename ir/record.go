@@ -23,6 +23,6 @@ func (r Record) WritePretty(w io.Writer) error {
 	return r.Dict().WritePretty(w)
 }
 
-func MergeRecords(x, y *Record) Node {
+func (r Record) MergeWith(ctx MergeContext, x Node) Node {
 	panic("XXX")
 }

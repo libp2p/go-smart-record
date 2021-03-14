@@ -17,3 +17,7 @@ func (p Peer) Dict() Dict {
 func (p Peer) WritePretty(w io.Writer) error {
 	return p.Dict().WritePretty(w)
 }
+
+func (p Peer) MergeWith(ctx MergeContext, x Node) Node {
+	panic("XXX")
+}

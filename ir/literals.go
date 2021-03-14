@@ -8,6 +8,7 @@ import (
 	"math/big"
 )
 
+// String is a node representing a string literal.
 type String struct {
 	Value string
 }

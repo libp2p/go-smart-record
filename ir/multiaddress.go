@@ -15,3 +15,7 @@ func (m Multiaddress) Dict() Dict {
 func (m Multiaddress) WritePretty(w io.Writer) error {
 	return m.Dict().WritePretty(w)
 }
+
+func (m Multiaddress) MergeWith(ctx MergeContext, x Node) Node {
+	panic("XXX")
+}

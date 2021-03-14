@@ -29,3 +29,7 @@ func (s Signed) Dict() Dict {
 		),
 	}
 }
+
+func (s Signed) MergeWith(ctx MergeContext, x Node) Node {
+	panic("XXX")
+}
