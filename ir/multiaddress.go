@@ -3,7 +3,7 @@ package ir
 import "io"
 
 type Multiaddress struct {
-	Multiaddress string
+	Multiaddress string // TODO: This should be of type multiaddr.Multiaddr
 	// User holds user fields.
 	User Dict
 }

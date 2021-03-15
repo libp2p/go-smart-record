@@ -7,11 +7,6 @@ func IsEqual(x, y Node) bool {
 		case String:
 			return IsEqualString(x1, y1)
 		}
-	case Int64:
-		switch y1 := y.(type) {
-		case Int64:
-			return IsEqualInt64(x1, y1)
-		}
 	case Number:
 		switch y1 := y.(type) {
 		case Number:

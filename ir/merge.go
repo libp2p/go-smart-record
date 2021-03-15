@@ -12,7 +12,7 @@ func Merge(ctx MergeContext, x, y Node) Node {
 		return ys.MergeWith(ctx, x)
 	}
 	switch x1 := x.(type) {
-	case String, Int64, Number, Blob: // literals merge without conflict if they are equal
+	case String, Number, Blob: // literals merge without conflict if they are equal
 		if IsEqual(x, y) {
 			return x
 		}

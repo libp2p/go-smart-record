@@ -5,8 +5,9 @@ import (
 	"github.com/libp2p/go-smart-record/ir"
 )
 
-// Machine captures the public interface of a virtual machine.
+// Machine captures the public interface of a smart record virtual machine.
 type Machine interface {
-	Merge(ir.Dict) error
+	Update(ir.Dict) error
+	Query(ir.Dict) error
 	Get() ir.Dict
 }

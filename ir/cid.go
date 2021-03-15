@@ -6,7 +6,7 @@ import (
 
 // Cid is a smart node, representing a valid CID.
 type Cid struct {
-	Cid string
+	Cid string // TODO: This should be of type cid.Cid
 
 	// User holds user fields.
 	User Dict

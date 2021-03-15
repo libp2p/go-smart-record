@@ -9,24 +9,34 @@ The vocabulary consists of two sets of nodes: syntactic and smart.
 	Syntactic nodes:
 		Dict
 		String
-		Number
-		Int64	(TODO: Are fixed precision literals appropriate?)
+		Int
+		Float
 		Blob
-
-		(TODO: What is the right set of literal types?)
 
 	Smart nodes:
 		Cid
 		Multiaddress
 		Peer
 		Record
-		Sign
+		Sign, Signed
 		Verify, Verified
+
+We use the following nomenclature:
+
+	Syntactic IR refers to documents comprising only syntactic nodes.
+	Semantic IR refers to documents comprising syntactic and smart nodes.
 
 SERIALIZATION
 
-	JSON --(XXX)--> Syntactic IR --(interpretation)--> Syntactic+Smart IR
+	Documents are serialization-agnostic: They can be de/serialized to any number
+	of standard formats (e.g. JSON, BSON, Protocol Buffers, Flat Buffers, etc.).
+	We use JSON as a running example. Serialization to JSON is also provided
+	by this library out-of-the-box, due to its applicability to HTTP REST interfaces.
 
-	JSON <--(XXX)-- Syntactic IR <--(generation)-- Syntactic+Smart IR
+
+
+	JSON --(unmarshal)--> Syntactic IR --(assemble)--> Semantic IR
+
+	JSON <--(marshal)-- Syntactic IR <--(disassemble)-- Semantic IR
 
 */
