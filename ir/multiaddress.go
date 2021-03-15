@@ -8,12 +8,12 @@ type Multiaddress struct {
 	User Dict
 }
 
-func (m Multiaddress) Dict() Dict {
+func (m Multiaddress) Disassemble() Dict {
 	return m.User.CopySetTag("multiaddress", String{m.Multiaddress}, String{m.Multiaddress})
 }
 
 func (m Multiaddress) WritePretty(w io.Writer) error {
-	return m.Dict().WritePretty(w)
+	return m.Disassemble().WritePretty(w)
 }
 
 func (m Multiaddress) MergeWith(ctx MergeContext, x Node) Node {

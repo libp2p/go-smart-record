@@ -12,12 +12,12 @@ type Cid struct {
 	User Dict
 }
 
-func (c Cid) Dict() Dict {
+func (c Cid) Disassemble() Dict {
 	return c.User.CopySetTag("cid", String{c.Cid}, String{c.Cid})
 }
 
 func (c Cid) WritePretty(w io.Writer) error {
-	return c.Dict().WritePretty(w)
+	return c.Disassemble().WritePretty(w)
 }
 
 func (c Cid) MergeWith(ctx MergeContext, x Node) Node {

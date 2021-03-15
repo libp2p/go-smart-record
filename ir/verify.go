@@ -10,12 +10,12 @@ type Verify struct {
 	User Dict
 }
 
-func (v Verify) Dict() Dict {
+func (v Verify) Disassemble() Dict {
 	return v.User.CopySetTag("verify", String{"statement"}, v.Statement)
 }
 
 func (v Verify) WritePretty(w io.Writer) error {
-	return v.Dict().WritePretty(w)
+	return v.Disassemble().WritePretty(w)
 }
 
 type Verified struct {
@@ -26,7 +26,7 @@ type Verified struct {
 	User Dict
 }
 
-func (v Verified) Dict() Dict {
+func (v Verified) Disassemble() Dict {
 	return Dict{
 		Tag: "verify",
 		Pairs: MergePairsRight(
@@ -41,5 +41,5 @@ func (v Verified) Dict() Dict {
 }
 
 func (v Verified) WritePretty(w io.Writer) error {
-	return v.Dict().WritePretty(w)
+	return v.Disassemble().WritePretty(w)
 }

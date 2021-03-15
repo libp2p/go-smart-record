@@ -10,12 +10,12 @@ type Peer struct {
 	User Dict
 }
 
-func (p Peer) Dict() Dict {
+func (p Peer) Disassemble() Dict {
 	return p.User.CopySetTag("peer", String{"id"}, String{p.ID})
 }
 
 func (p Peer) WritePretty(w io.Writer) error {
-	return p.Dict().WritePretty(w)
+	return p.Disassemble().WritePretty(w)
 }
 
 func (p Peer) MergeWith(ctx MergeContext, x Node) Node {

@@ -11,7 +11,7 @@ type Smart interface {
 	// Every smart tag has a syntactic representation.
 	// A syntactic representation includes Dict and literal nodes alone.
 	// Equality of smart tags is definitionally equality of their syntactic representations.
-	Dict() Dict
+	Disassemble() Dict
 
 	// MergeWith returns the result of merging this smart tag with the given node.
 	// If x is smart as well, it should be the case that x.MergeWith(y) = y.MergeWith(x).
@@ -20,5 +20,5 @@ type Smart interface {
 
 // Equality of smart tags is definitionally equality of their syntactic representations.
 func IsEqualSmart(x, y Smart) bool {
-	return IsEqualDict(x.Dict(), y.Dict())
+	return IsEqualDict(x.Disassemble(), y.Disassemble())
 }

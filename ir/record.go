@@ -15,12 +15,12 @@ type Record struct {
 	User Dict
 }
 
-func (r Record) Dict() Dict {
+func (r Record) Disassemble() Dict {
 	return r.User.CopySetTag("record", String{"key"}, String{r.Key})
 }
 
 func (r Record) WritePretty(w io.Writer) error {
-	return r.Dict().WritePretty(w)
+	return r.Disassemble().WritePretty(w)
 }
 
 func (r Record) MergeWith(ctx MergeContext, x Node) Node {

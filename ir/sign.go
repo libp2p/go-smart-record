@@ -13,10 +13,10 @@ type Signed struct {
 }
 
 func (s Signed) WritePretty(w io.Writer) error {
-	return s.Dict().WritePretty(w)
+	return s.Disassemble().WritePretty(w)
 }
 
-func (s Signed) Dict() Dict {
+func (s Signed) Disassemble() Dict {
 	return Dict{
 		Tag: "verify",
 		Pairs: MergePairsRight(
