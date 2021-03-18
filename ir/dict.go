@@ -47,63 +47,6 @@ func (p *Pair) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-/*
-func (p *Pair) UnmarshalJSON2(b []byte) error {
-	// Get types for key and value
-	var objMap map[string]map[string]*json.RawMessage
-	err := json.Unmarshal(b, &objMap)
-	if err != nil {
-		return err
-	}
-	var k, v int
-	json.Unmarshal(*objMap["key"]["type"], &k)
-	json.Unmarshal(*objMap["value"]["type"], &v)
-
-	// TODO: Here we check the type and then we use the unmarshal directly
-	// We may need to assign types.
-	// Unmarshal according to type
-	if k == StringType {
-		// var key String
-		// err := json.Unmarshal(*objMap["key"]["value"], &key)
-		// if err != nil {
-		//         return err
-		// }
-		p.Key, err = UnmarshalType(StringType, *objMap["key"]["value"])
-		if err != nil {
-			return err
-		}
-	}
-
-	if v == StringType {
-		var value String
-		err := json.Unmarshal(*objMap["value"]["value"], &value)
-		if err != nil {
-			return err
-		}
-		p.Value = value
-	}
-
-	if k == BlobType {
-		var key Blob
-		err := json.Unmarshal(*objMap["key"]["value"], &key)
-		if err != nil {
-			return err
-		}
-		p.Key = key
-	}
-
-	if v == BlobType {
-		var value Blob
-		err := json.Unmarshal(*objMap["value"]["value"], &value)
-		if err != nil {
-			return err
-		}
-		p.Value = value
-	}
-
-	return nil
-}*/
-
 // Pairs is a list of pairs.
 type Pairs []Pair
 
