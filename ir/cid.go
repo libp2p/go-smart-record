@@ -1,6 +1,7 @@
 package ir
 
 import (
+	"fmt"
 	"io"
 )
 
@@ -22,4 +23,8 @@ func (c Cid) WritePretty(w io.Writer) error {
 
 func (c Cid) MergeWith(ctx MergeContext, x Node) Node {
 	panic("XXX")
+}
+
+func (c Cid) UnmarshalJSON(data []byte) error {
+	return fmt.Errorf("Cid Unmarshal not implemented")
 }

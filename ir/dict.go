@@ -1,13 +1,14 @@
 package ir
 
 import (
+	"encoding/json"
 	"io"
 )
 
 // Pair holds a key/value pair.
 type Pair struct {
-	Key   Node
-	Value Node
+	Key   Node `json:"key"`
+	Value Node `json:"value"`
 }
 
 func (p Pair) WritePretty(w io.Writer) error {
@@ -24,6 +25,84 @@ func (p Pair) WritePretty(w io.Writer) error {
 	}
 	return nil
 }
+
+func (p *Pair) UnmarshalJSON(b []byte) error {
+
+	var objMap map[string]map[string]*json.RawMessage
+	err := json.Unmarshal(b, &objMap)
+	if err != nil {
+		return err
+	}
+	var kType, vType int
+	json.Unmarshal(*objMap["key"]["type"], &kType)
+	json.Unmarshal(*objMap["value"]["type"], &vType)
+	p.Key, err = UnmarshalType(MarshalType(kType), *objMap["key"]["value"])
+	if err != nil {
+		return err
+	}
+	p.Value, err = UnmarshalType(MarshalType(vType), *objMap["value"]["value"])
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+/*
+func (p *Pair) UnmarshalJSON2(b []byte) error {
+	// Get types for key and value
+	var objMap map[string]map[string]*json.RawMessage
+	err := json.Unmarshal(b, &objMap)
+	if err != nil {
+		return err
+	}
+	var k, v int
+	json.Unmarshal(*objMap["key"]["type"], &k)
+	json.Unmarshal(*objMap["value"]["type"], &v)
+
+	// TODO: Here we check the type and then we use the unmarshal directly
+	// We may need to assign types.
+	// Unmarshal according to type
+	if k == StringType {
+		// var key String
+		// err := json.Unmarshal(*objMap["key"]["value"], &key)
+		// if err != nil {
+		//         return err
+		// }
+		p.Key, err = UnmarshalType(StringType, *objMap["key"]["value"])
+		if err != nil {
+			return err
+		}
+	}
+
+	if v == StringType {
+		var value String
+		err := json.Unmarshal(*objMap["value"]["value"], &value)
+		if err != nil {
+			return err
+		}
+		p.Value = value
+	}
+
+	if k == BlobType {
+		var key Blob
+		err := json.Unmarshal(*objMap["key"]["value"], &key)
+		if err != nil {
+			return err
+		}
+		p.Key = key
+	}
+
+	if v == BlobType {
+		var value Blob
+		err := json.Unmarshal(*objMap["value"]["value"], &value)
+		if err != nil {
+			return err
+		}
+		p.Value = value
+	}
+
+	return nil
+}*/
 
 // Pairs is a list of pairs.
 type Pairs []Pair
@@ -132,6 +211,27 @@ func (d Dict) Get(key Node) Node {
 			return p.Value
 		}
 	}
+	return nil
+}
+
+func (d Dict) MarshalJSON() (b []byte, e error) {
+	// Temporal type to avoid recursion
+	type tmp Dict
+	ts := tmp(d)
+
+	return json.Marshal(&ts)
+}
+
+func (d *Dict) UnmarshalJSON(data []byte) error {
+	// Temporal type to avoid recursion
+	type tmp Dict
+	var ts tmp
+
+	err := json.Unmarshal(data, &ts)
+	if err != nil {
+		return err
+	}
+	*d = Dict(ts)
 	return nil
 }
 
