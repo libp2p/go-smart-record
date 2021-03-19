@@ -2,6 +2,11 @@ package ir
 
 func IsEqual(x, y Node) bool {
 	switch x1 := x.(type) {
+	case Bool:
+		switch y1 := y.(type) {
+		case Bool:
+			return IsEqualBool(x1, y1)
+		}
 	case String:
 		switch y1 := y.(type) {
 		case String:
