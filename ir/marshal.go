@@ -14,6 +14,7 @@ const (
 	PeerType
 	IntType
 	FloatType
+	BoolType
 )
 
 func UnmarshalType(tp MarshalType, b []byte) (Node, error) {
@@ -41,6 +42,13 @@ func UnmarshalType(tp MarshalType, b []byte) (Node, error) {
 		return n, nil
 	case FloatType:
 		var n Float
+		err := json.Unmarshal(b, &n)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case BoolType:
+		var n Bool
 		err := json.Unmarshal(b, &n)
 		if err != nil {
 			return nil, err

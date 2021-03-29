@@ -17,6 +17,7 @@ func TestMarshale2e(t *testing.T) {
 			{String{"bar22"}, Int{big.NewInt(567)}},
 			{String{"bar2"}, Blob{[]byte("asdf")}},
 			{Blob{[]byte("asdf")}, Int{big.NewInt(567)}},
+			{Bool{true}, Int{big.NewInt(567)}},
 		}}
 	// Encode
 	var b bytes.Buffer
@@ -46,6 +47,25 @@ func TestMarshalString(t *testing.T) {
 		t.Fatal(err)
 	}
 	o := String{}
+	byteData := b.Bytes()
+	r := bytes.NewReader(byteData)
+	err = Unmarshal(r, &o)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !IsEqual(n, o) {
+		t.Fatal("Error unmarshalling string", n, o)
+	}
+}
+
+func TestMarshalBool(t *testing.T) {
+	n := Bool{true}
+	var b bytes.Buffer
+	err := Marshal(&b, n)
+	if err != nil {
+		t.Fatal(err)
+	}
+	o := Bool{}
 	byteData := b.Bytes()
 	r := bytes.NewReader(byteData)
 	err = Unmarshal(r, &o)
@@ -105,10 +125,10 @@ func TestMarshalNumber(t *testing.T) {
 	if !IsEqual(n, o) {
 		t.Fatal("Error unmarshalling Int", n, o)
 	}
-	// TODO: Need to fix flot Marshaling. Not equal right now
-	// if !IsEqual(f, of) {
-	//         t.Fatal("Error unmarshalling Float", f, of)
-	// }
+	if !IsEqual(f, of) {
+		t.Fatal("Error unmarshalling Float", f, of)
+	}
+
 }
 
 func TestMarshalPairs(t *testing.T) {
