@@ -3,7 +3,6 @@ package ir
 import (
 	"bytes"
 	"fmt"
-	"math/big"
 	"testing"
 )
 
@@ -12,7 +11,7 @@ func TestPretty(t *testing.T) {
 		Tag: "foo",
 		Pairs: Pairs{
 			{String{"bar"}, String{"baz"}},
-			{String{"bar2"}, Int{big.NewInt(567)}},
+			{String{"bar2"}, NewInt64(567)},
 		},
 	}
 	var w bytes.Buffer

@@ -37,6 +37,9 @@ func (ps Pairs) IndexOf(key Node) int {
 	return -1
 }
 
+// AreEqualPairs compairs to lists of key/values for set-wise equality (order independent).
+// TODO: This implementation is efficient for small sets. For large set, we may have to transition
+// to a map-based implementation of a dictionary.
 func AreEqualPairs(x, y Pairs) bool {
 	if len(x) != len(y) {
 		return false
@@ -72,6 +75,10 @@ func MergePairsRight(x, y Pairs) Pairs {
 type Dict struct {
 	Tag   string
 	Pairs Pairs // keys must be unique wrt IsEqual
+}
+
+func (d Dict) Len() int {
+	return len(d.Pairs)
 }
 
 func (d Dict) WritePretty(w io.Writer) error {
@@ -142,9 +149,33 @@ func IsEqualDict(x, y Dict) bool {
 	return AreEqualPairs(x.Pairs, y.Pairs)
 }
 
-func MergeDict(ctx MergeContext, x, y Dict) Node {
+func MergeDict(ctx MergeContext, x, y Dict) (Node, error) {
 	if x.Tag != y.Tag {
 		return ctx.MergeConflict(x, y)
 	}
-	panic("XXX")
+	x, y = orderByLength(x, y) // x is smaller, y is larger
+	m := Dict{
+		Tag:   x.Tag,
+		Pairs: make(Pairs, len(y.Pairs), len(x.Pairs)+len(y.Pairs)),
+	}
+	copy(m.Pairs, y.Pairs)
+	for _, p := range x.Pairs {
+		if i := m.Pairs.IndexOf(p.Key); i < 0 {
+			m.Pairs = append(m.Pairs, p)
+		} else {
+			var err error
+			m.Pairs[i].Value, err = Merge(ctx, p.Value, m.Pairs[i].Value)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return m, nil
+}
+
+func orderByLength(x, y Dict) (shorter, longer Dict) {
+	if x.Len() <= y.Len() {
+		return x, y
+	}
+	return y, x
 }
