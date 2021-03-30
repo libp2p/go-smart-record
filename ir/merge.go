@@ -1,10 +1,21 @@
 package ir
 
+import "fmt"
+
 type MergeContext interface {
-	MergeConflict(Node, Node) Node
+	// MergeConflict merges two nodes that cannot be merged using the default merge semantics
+	// of dictionaries and primitive value types.
+	// MergeConflict should throw a panic, when it is unable to merge.
+	MergeConflict(Node, Node) (Node, error)
 }
 
-func Merge(ctx MergeContext, x, y Node) Node {
+type DefaultMergeContext struct{}
+
+func (DefaultMergeContext) MergeConflict(Node, Node) (Node, error) {
+	return nil, fmt.Errorf("cannot resolve a merge conflict")
+}
+
+func Merge(ctx MergeContext, x, y Node) (Node, error) {
 	if xs, ok := x.(Smart); ok {
 		return xs.MergeWith(ctx, y)
 	}
@@ -14,7 +25,7 @@ func Merge(ctx MergeContext, x, y Node) Node {
 	switch x1 := x.(type) {
 	case Bool, String, Number, Blob: // literals merge without conflict if they are equal
 		if IsEqual(x, y) {
-			return x
+			return x, nil
 		}
 	case Dict:
 		switch y1 := y.(type) {

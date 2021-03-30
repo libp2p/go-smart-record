@@ -16,6 +16,10 @@ type Int struct {
 	*big.Int
 }
 
+func NewInt64(v int64) Int {
+	return Int{big.NewInt(v)}
+}
+
 func (n Int) TypeIsNumber() {}
 
 func (n Int) WritePretty(w io.Writer) (err error) {

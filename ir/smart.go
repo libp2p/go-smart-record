@@ -15,7 +15,7 @@ type Smart interface {
 
 	// MergeWith returns the result of merging this smart tag with the given node.
 	// If x is smart as well, it should be the case that x.MergeWith(y) = y.MergeWith(x).
-	MergeWith(ctx MergeContext, x Node) Node
+	MergeWith(ctx MergeContext, x Node) (Node, error)
 }
 
 // Equality of smart tags is definitionally equality of their syntactic representations.
