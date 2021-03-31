@@ -8,6 +8,7 @@ import (
 
 type MarshalType int
 
+// List of types
 const (
 	StringType = iota
 	BlobType
@@ -17,6 +18,7 @@ const (
 	BoolType
 )
 
+// UnmarshalType list of supported types
 func UnmarshalType(tp MarshalType, b []byte) (Node, error) {
 	switch tp {
 	case StringType:
@@ -58,11 +60,13 @@ func UnmarshalType(tp MarshalType, b []byte) (Node, error) {
 	return nil, fmt.Errorf("Wrong type")
 }
 
+// Marshal syntactic representation
 func Marshal(w io.Writer, in Node) error {
 	enc := json.NewEncoder(w)
 	return enc.Encode(in)
 }
 
+// Unmarshal syntactic representation
 func Unmarshal(r io.Reader, out Node) error {
 	dec := json.NewDecoder(r)
 	for {

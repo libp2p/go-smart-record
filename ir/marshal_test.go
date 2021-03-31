@@ -3,7 +3,6 @@ package ir
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"math/big"
 	"testing"
 )
@@ -27,6 +26,7 @@ func TestMarshale2e(t *testing.T) {
 	}
 	byteData := b.Bytes()
 
+	// Decode
 	r := bytes.NewReader(byteData)
 	out := Dict{}
 	err = Unmarshal(r, &out)
@@ -36,7 +36,6 @@ func TestMarshale2e(t *testing.T) {
 
 	var w bytes.Buffer
 	n.WritePretty(&w)
-	fmt.Println(w.String())
 }
 
 func TestMarshalString(t *testing.T) {
@@ -68,6 +67,22 @@ func TestMarshalBool(t *testing.T) {
 	o := Bool{}
 	byteData := b.Bytes()
 	r := bytes.NewReader(byteData)
+	err = Unmarshal(r, &o)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !IsEqual(n, o) {
+		t.Fatal("Error unmarshalling string", n, o)
+	}
+
+	n = Bool{false}
+	err = Marshal(&b, n)
+	if err != nil {
+		t.Fatal(err)
+	}
+	o = Bool{}
+	byteData = b.Bytes()
+	r = bytes.NewReader(byteData)
 	err = Unmarshal(r, &o)
 	if err != nil {
 		t.Fatal(err)
@@ -135,6 +150,8 @@ func TestMarshalPairs(t *testing.T) {
 	n := Pairs{
 		{String{"bar"}, String{"baz"}},
 		{String{"bar2"}, String{"bar2123"}},
+		{Blob{[]byte("asdf")}, Int{big.NewInt(567)}},
+		{Bool{true}, Int{big.NewInt(567)}},
 	}
 	no := Pairs{}
 	// Encode

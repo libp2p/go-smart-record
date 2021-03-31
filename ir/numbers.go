@@ -75,12 +75,14 @@ func unmarshalFloat(p []byte, n *Float) error {
 	if string(p) == "null" {
 		return nil
 	}
-	var z big.Float
-	_, ok := z.SetString(strings.Replace(string(p), "\"", "", -1))
-	if !ok {
-		return fmt.Errorf("not a valid big integer float: %s", p)
+	// Using precision 53 to accommodate for big.NewFloat which uses 53 preciosion by default.
+	// If we change this marshalling behavior to use MarshalText we need to change to 64 precision.
+	// Check: https://github.com/golang/go/issues/45309
+	z, _, err := big.ParseFloat(strings.Replace(string(p), "\"", "", -1), 10, 53, big.ToNearestEven)
+	if err != nil {
+		return err
 	}
-	n.Float = &z
+	n.Float = z
 	return nil
 }
 func (n *Float) UnmarshalJSON(b []byte) error {
