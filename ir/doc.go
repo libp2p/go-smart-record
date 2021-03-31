@@ -8,8 +8,7 @@ The vocabulary consists of two types of nodes: syntactic and smart.
 
 	Syntactic nodes, by their Go type:
 		Dict
-		TODO: Bool
-		TODO: DateTime
+		Bool
 		String
 		Int
 		Float
