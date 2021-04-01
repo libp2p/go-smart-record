@@ -6,16 +6,16 @@ import (
 	"io"
 )
 
-type MarshalType int
+type MarshalType string
 
 // List of types
 const (
-	StringType = iota
-	BlobType
-	PeerType
-	IntType
-	FloatType
-	BoolType
+	StringType = "String"
+	BlobType   = "Blob"
+	PeerType   = "Peer"
+	IntType    = "Int"
+	FloatType  = "Float"
+	BoolType   = "Bool"
 )
 
 // UnmarshalType list of supported types

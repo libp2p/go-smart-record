@@ -33,7 +33,7 @@ func (p *Pair) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	var kType, vType int
+	var kType, vType string
 	json.Unmarshal(*objMap["key"]["type"], &kType)
 	json.Unmarshal(*objMap["value"]["type"], &vType)
 	p.Key, err = UnmarshalType(MarshalType(kType), *objMap["key"]["value"])

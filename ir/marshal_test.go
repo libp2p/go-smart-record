@@ -33,7 +33,9 @@ func TestMarshale2e(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	if !IsEqual(n, out) {
+		t.Fatal("Error unmarshalling Dict")
+	}
 	var w bytes.Buffer
 	n.WritePretty(&w)
 }
@@ -162,5 +164,8 @@ func TestMarshalPairs(t *testing.T) {
 	err = json.Unmarshal(valueBytes, &no)
 	if err != nil {
 		panic(err)
+	}
+	if !AreEqualPairs(n, no) {
+		t.Fatal("Error marshalling pairs")
 	}
 }
