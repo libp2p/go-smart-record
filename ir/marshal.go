@@ -12,7 +12,6 @@ type MarshalType string
 const (
 	StringType = "String"
 	BlobType   = "Blob"
-	PeerType   = "Peer"
 	IntType    = "Int"
 	FloatType  = "Float"
 	BoolType   = "Bool"

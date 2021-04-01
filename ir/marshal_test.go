@@ -115,32 +115,36 @@ func TestMarshalBlob(t *testing.T) {
 
 func TestMarshalNumber(t *testing.T) {
 	n := Int{big.NewInt(123)}
-	f := Float{big.NewFloat(123.123)}
 	var b bytes.Buffer
 	err := Marshal(&b, n)
 	byteData := b.Bytes()
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = Marshal(&b, f)
-	if err != nil {
-		t.Fatal(err)
-	}
-	fbyteData := b.Bytes()
 	o := Int{}
-	of := Float{}
 	r := bytes.NewReader(byteData)
 	err = Unmarshal(r, &o)
 	if err != nil {
 		t.Fatal(err)
 	}
+	if !IsEqual(n, o) {
+		t.Fatal("Error unmarshalling Int", n, o)
+	}
+
+	// We must use 64 precision to perform the right comparison.
+	// UnmarshalText generates a 64 precision float.
+	// Check: https://github.com/golang/go/issues/45309
+	f := Float{big.NewFloat(123.123).SetPrec(64)}
+	of := Float{}
+	err = Marshal(&b, f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fbyteData := b.Bytes()
 	r = bytes.NewReader(fbyteData)
 	err = Unmarshal(r, &of)
 	if err != nil {
 		t.Fatal(err)
-	}
-	if !IsEqual(n, o) {
-		t.Fatal("Error unmarshalling Int", n, o)
 	}
 	if !IsEqual(f, of) {
 		t.Fatal("Error unmarshalling Float", f, of)
@@ -150,9 +154,9 @@ func TestMarshalNumber(t *testing.T) {
 
 func TestMarshalPairs(t *testing.T) {
 	n := Pairs{
+		{Blob{[]byte("asdf")}, Int{big.NewInt(567)}},
 		{String{"bar"}, String{"baz"}},
 		{String{"bar2"}, String{"bar2123"}},
-		{Blob{[]byte("asdf")}, Int{big.NewInt(567)}},
 		{Bool{true}, Int{big.NewInt(567)}},
 	}
 	no := Pairs{}

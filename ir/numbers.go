@@ -2,10 +2,8 @@ package ir
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"math/big"
-	"strings"
 )
 
 type Number interface {
@@ -59,37 +57,35 @@ func IsEqualNumber(x, y Number) bool {
 }
 
 func unmarshalInt(p []byte, n *Int) error {
-	if string(p) == "null" {
-		return nil
+	z := new(big.Int)
+	err := z.UnmarshalText(p)
+	if err != nil {
+		return err
 	}
-	var z big.Int
-	_, ok := z.SetString(strings.Replace(string(p), "\"", "", -1), 10)
-	if !ok {
-		return fmt.Errorf("not a valid big integer int: %s", p)
-	}
-	n.Int = &z
+	n.Int = z
 	return nil
 }
 
 func unmarshalFloat(p []byte, n *Float) error {
-	if string(p) == "null" {
-		return nil
-	}
-	// Using precision 53 to accommodate for big.NewFloat which uses 53 preciosion by default.
-	// If we change this marshalling behavior to use MarshalText we need to change to 64 precision.
-	// Check: https://github.com/golang/go/issues/45309
-	z, _, err := big.ParseFloat(strings.Replace(string(p), "\"", "", -1), 10, 53, big.ToNearestEven)
+	z := new(big.Float)
+	err := z.UnmarshalText(p)
 	if err != nil {
 		return err
 	}
 	n.Float = z
 	return nil
 }
+
 func (n *Float) UnmarshalJSON(b []byte) error {
 	var objMap map[string]*json.RawMessage
 	err := json.Unmarshal(b, &objMap)
 	if err != nil {
-		err = unmarshalFloat(b, n)
+		bn := []byte{}
+		err = json.Unmarshal(b, &bn)
+		if err != nil {
+			return err
+		}
+		err = unmarshalFloat(bn, n)
 
 		if err != nil {
 			return err
@@ -97,7 +93,12 @@ func (n *Float) UnmarshalJSON(b []byte) error {
 	} else {
 
 		if _, ok := objMap["type"]; ok {
-			err = unmarshalFloat(*objMap["value"], n)
+			c := struct {
+				Type  MarshalType `json:"type"`
+				Value []byte      `json:"value"`
+			}{}
+			err := json.Unmarshal(b, &c)
+			unmarshalFloat(c.Value, n)
 			if err != nil {
 				return err
 			}
@@ -111,7 +112,12 @@ func (n *Int) UnmarshalJSON(b []byte) error {
 	var objMap map[string]*json.RawMessage
 	err := json.Unmarshal(b, &objMap)
 	if err != nil {
-		err = unmarshalInt(b, n)
+		bn := []byte{}
+		err = json.Unmarshal(b, &bn)
+		if err != nil {
+			return err
+		}
+		err = unmarshalInt(bn, n)
 
 		if err != nil {
 			return err
@@ -119,7 +125,12 @@ func (n *Int) UnmarshalJSON(b []byte) error {
 	} else {
 
 		if _, ok := objMap["type"]; ok {
-			err = unmarshalInt(*objMap["value"], n)
+			c := struct {
+				Type  MarshalType `json:"type"`
+				Value []byte      `json:"value"`
+			}{}
+			err := json.Unmarshal(b, &c)
+			unmarshalInt(c.Value, n)
 			if err != nil {
 				return err
 			}
@@ -130,17 +141,25 @@ func (n *Int) UnmarshalJSON(b []byte) error {
 }
 
 func (n Int) MarshalJSON() (b []byte, e error) {
+	bn, err := n.MarshalText()
+	if err != nil {
+		return nil, err
+	}
 	c := struct {
 		Type  MarshalType `json:"type"`
-		Value string      `json:"value"`
-	}{Type: IntType, Value: n.String()}
+		Value []byte      `json:"value"`
+	}{Type: IntType, Value: bn}
 	return json.Marshal(&c)
 }
 
 func (n Float) MarshalJSON() (b []byte, e error) {
+	bn, err := n.MarshalText()
+	if err != nil {
+		return nil, err
+	}
 	c := struct {
 		Type  MarshalType `json:"type"`
-		Value string      `json:"value"`
-	}{Type: FloatType, Value: n.String()}
+		Value []byte      `json:"value"`
+	}{Type: IntType, Value: bn}
 	return json.Marshal(&c)
 }
