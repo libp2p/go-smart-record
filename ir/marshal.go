@@ -8,7 +8,7 @@ import (
 
 type MarshalType string
 
-// List of types
+// List of syntactic types supported
 const (
 	StringType = "String"
 	BlobType   = "Blob"
@@ -17,7 +17,9 @@ const (
 	BoolType   = "Bool"
 )
 
-// UnmarshalType list of supported types
+// UnmarshalType does the unmarshalling of the type
+// once the wrapper has been process and the Node type has
+// been identified.
 func UnmarshalType(tp MarshalType, b []byte) (Node, error) {
 	switch tp {
 	case StringType:

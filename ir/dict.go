@@ -26,6 +26,9 @@ func (p Pair) WritePretty(w io.Writer) error {
 	return nil
 }
 
+// UnmarshalJSON unmarshals Pair types. It performs a first pre-processing
+// to identify the type of the key and value dicts, and passes these values
+// to UnmarshalType, which is responsible for the actual unmarshalling of the value.
 func (p *Pair) UnmarshalJSON(b []byte) error {
 
 	var objMap map[string]map[string]*json.RawMessage
@@ -164,6 +167,9 @@ func (d Dict) Get(key Node) Node {
 	return nil
 }
 
+// MarshalJSON dictionaries. It automatically
+// detect the Nodes type and calls the convenient
+// marshaller.
 func (d Dict) MarshalJSON() (b []byte, e error) {
 	// Temporal type to avoid recursion
 	type tmp Dict
@@ -172,6 +178,9 @@ func (d Dict) MarshalJSON() (b []byte, e error) {
 	return json.Marshal(&ts)
 }
 
+// UnmarshalJSON dictionaries. It uses the Pair unmarshaller
+// under the hood to identify the type of nodes and conveniently
+// marshal them.
 func (d *Dict) UnmarshalJSON(data []byte) error {
 	// Temporal type to avoid recursion
 	type tmp Dict
