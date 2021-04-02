@@ -60,11 +60,17 @@ func (RecordAssembler) Assemble(ctx ir.AssemblerContext, src ir.Dict) (ir.Node, 
 	if !ok {
 		return nil, fmt.Errorf("record key is not a string")
 	}
+	// extract just the user keys from the record
 	u := src.Copy()
 	u.Tag = ""
 	u.Remove(ir.String{"key"})
+	// recursively assemble user keys
+	w, err := ctx.Grammar.Assemble(ctx, u)
+	if err != nil {
+		return nil, fmt.Errorf("user keys inside record cannot be assembled (%v)", err)
+	}
 	return Record{
 		Key:  k.Value,
-		User: u,
+		User: w.(ir.Dict),
 	}, nil
 }

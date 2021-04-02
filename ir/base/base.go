@@ -3,8 +3,8 @@ package base
 
 import "github.com/libp2p/go-smart-record/ir"
 
-// BaseAssembler is an assembler for the base vocabulary of smart tags supported by a record.
-var BaseAssembler = ir.SequenceAssembler{
+// BaseGrammar is an assembler for the base vocabulary of smart tags supported by a record.
+var BaseGrammar = ir.SequenceAssembler{
 	// insert the assemblers of smart tags here
 	RecordAssembler{},
 }

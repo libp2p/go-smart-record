@@ -10,7 +10,8 @@ import (
 // NOTE: The right general long-term design for AssemblerContext is to make it an interface.
 // This is currently not necassitated by our uses, so such improvements are deferred for when needed.
 type AssemblerContext struct {
-	Keys map[string]interface{}
+	Grammar Assembler
+	Keys    map[string]interface{}
 }
 
 // Assembler is an object that can "parse" a syntactic tree (given as a dictionary)
