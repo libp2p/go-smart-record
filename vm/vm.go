@@ -6,8 +6,53 @@ import (
 )
 
 // Machine captures the public interface of a smart record virtual machine.
+// NOTE: Keys must be the same type as ir.Record Key (at least for now)
 type Machine interface {
-	Update(ir.Dict) error
-	Query(ir.Dict) error
-	Get() ir.Dict
+	Update(k string, d ir.Dict) error        // Updates the record in key k with a dict
+	Query(selector ir.Dict) (ir.Dict, error) // Queries a record using a selector dict.
+	Get(k string) ir.Record                  // Gets the whole record stored in a key (debug purposes for now)
+
+}
+
+// VM implements the Machine interface and keeps the map of records in its state.
+type VM struct {
+	ctx ir.MergeContext     // MergeContext the VM uses to resolve conflicts
+	s   map[string]*ir.Dict // State of the VM storing the map of records.
+}
+
+func NewVM(ctx ir.MergeContext) *VM {
+	return &VM{
+		ctx: ctx,
+		s:   make(map[string]*ir.Dict),
+	}
+}
+
+// Update updates the record in key with the provided dict
+func (v *VM) Update(k string, d ir.Dict) error {
+
+	// Directly store d if there is nothing in the key
+	if v.s[k] == nil {
+		v.s[k] = &d
+		return nil
+	} else {
+		// Merge existing dict with the stored one if there's already
+		// something in the key
+		n, err := ir.MergeDict(v.ctx, *v.s[k], d)
+		if err != nil {
+			return nil
+		}
+		*v.s[k] = n.(ir.Dict)
+	}
+	return nil
+}
+
+func Query(selector ir.Dict) error {
+	// Traverse the selector and check if it exists in the stored dict for the key
+	// If the path exists return it, if not do nothing
+	panic("Not implemented")
+}
+
+// Gets the whole record stored in a key
+func (v *VM) Get(k string) ir.Dict {
+	return *v.s[k]
 }
