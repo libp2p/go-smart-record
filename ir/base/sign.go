@@ -32,6 +32,6 @@ func (s Signed) Disassemble() ir.Dict {
 	}
 }
 
-func (s Signed) MergeWith(ctx ir.MergeContext, x ir.Node) ir.Node {
+func (s Signed) MergeWith(ctx ir.MergeContext, x ir.Node) (ir.Node, error) {
 	panic("XXX")
 }

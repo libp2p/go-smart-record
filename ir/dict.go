@@ -110,25 +110,45 @@ func (d Dict) WritePretty(w io.Writer) error {
 	return nil
 }
 
+func (d Dict) Copy() Dict {
+	c := d
+	p := make(Pairs, len(c.Pairs))
+	copy(p, c.Pairs)
+	c.Pairs = p
+	return c
+}
+
 func (d Dict) CopySet(key Node, value Node) Dict {
 	return d.CopySetTag(d.Tag, key, value)
 }
 
 func (d Dict) CopySetTag(tag string, key Node, value Node) Dict {
-	c := Dict{Tag: tag, Pairs: make(Pairs, 0, len(d.Pairs)+1)}
+	c := d.Copy()
+	c.Tag = tag
 	found := false
-	for _, p := range d.Pairs {
+	for i, p := range c.Pairs {
 		if IsEqual(key, p.Key) {
-			c.Pairs = append(c.Pairs, Pair{key, value})
+			c.Pairs[i] = Pair{key, value}
 			found = true
-		} else {
-			c.Pairs = append(c.Pairs, p)
+			break
 		}
 	}
 	if !found {
 		c.Pairs = append(c.Pairs, Pair{key, value})
 	}
 	return c
+}
+
+func (d *Dict) Remove(key Node) Node {
+	i := d.Pairs.IndexOf(key)
+	if i < 0 {
+		return nil
+	}
+	old := d.Pairs[i]
+	n := len(d.Pairs)
+	d.Pairs[i], d.Pairs[n-1] = d.Pairs[n-1], d.Pairs[i]
+	d.Pairs = d.Pairs[:n-1]
+	return old
 }
 
 func (d Dict) Get(key Node) Node {
@@ -151,6 +171,10 @@ func MergeDict(ctx MergeContext, x, y Dict) (Node, error) {
 	if x.Tag != y.Tag {
 		return ctx.MergeConflict(x, y)
 	}
+	return MergeDictIgnoreTag(ctx, x, y)
+}
+
+func MergeDictIgnoreTag(ctx MergeContext, x, y Dict) (Node, error) {
 	x, y = orderDictByLength(x, y) // x is smaller, y is larger
 	m := Dict{
 		Tag:   x.Tag,

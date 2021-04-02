@@ -20,6 +20,6 @@ func (p Peer) WritePretty(w io.Writer) error {
 	return p.Disassemble().WritePretty(w)
 }
 
-func (p Peer) MergeWith(ctx ir.MergeContext, x ir.Node) ir.Node {
+func (p Peer) MergeWith(ctx ir.MergeContext, x ir.Node) (ir.Node, error) {
 	panic("XXX")
 }

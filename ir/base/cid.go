@@ -22,6 +22,6 @@ func (c Cid) WritePretty(w io.Writer) error {
 	return c.Disassemble().WritePretty(w)
 }
 
-func (c Cid) MergeWith(ctx ir.MergeContext, x ir.Node) ir.Node {
+func (c Cid) MergeWith(ctx ir.MergeContext, x ir.Node) (ir.Node, error) {
 	panic("XXX")
 }

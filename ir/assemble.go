@@ -26,12 +26,10 @@ type Assembler interface {
 
 // SequenceAssembler is, in common parlance, a parser combinator. Or, in our nomenclature, an "assembler combinator".
 // SequenceAssembler tries to assemble the input, using each of its subordinate assemblers in turn until one of them succeeds.
-type SequenceAssembler struct {
-	Sequence []Assembler
-}
+type SequenceAssembler []Assembler
 
 func (asm SequenceAssembler) Assemble(ctx AssemblerContext, src Dict) (Node, error) {
-	for _, a := range asm.Sequence {
+	for _, a := range asm {
 		out, err := a.Assemble(ctx, src)
 		if err == nil {
 			return out, nil
