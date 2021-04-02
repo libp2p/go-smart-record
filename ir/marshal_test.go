@@ -3,6 +3,7 @@ package ir
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"testing"
 )
@@ -16,8 +17,15 @@ func TestMarshale2e(t *testing.T) {
 			{String{"bar22"}, Int{big.NewInt(567)}},
 			{String{"bar2"}, Blob{[]byte("asdf")}},
 			{Blob{[]byte("asdf")}, Int{big.NewInt(567)}},
-			{Bool{true}, Int{big.NewInt(567)}},
-		}}
+			{String{"bar"}, Dict{
+				Tag: "foo2",
+				Pairs: Pairs{
+					{Bool{true}, Int{big.NewInt(567)}},
+				},
+			}},
+		},
+	}
+
 	// Encode
 	var b bytes.Buffer
 	err := Marshal(&b, n)
@@ -34,10 +42,18 @@ func TestMarshale2e(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !IsEqual(n, out) {
+		fmt.Println(IsEqual(n, out))
+		fmt.Println("== IN ==")
+		var w bytes.Buffer
+		n.WritePretty(&w)
+		fmt.Println(w.String())
+
+		fmt.Println("== OUT ==")
+		w.Reset()
+		out.WritePretty(&w)
+		fmt.Println(w.String())
 		t.Fatal("Error unmarshalling Dict")
 	}
-	var w bytes.Buffer
-	n.WritePretty(&w)
 }
 
 func TestMarshalString(t *testing.T) {
@@ -172,4 +188,36 @@ func TestMarshalPairs(t *testing.T) {
 	if !AreEqualPairs(n, no) {
 		t.Fatal("Error marshalling pairs")
 	}
+}
+
+func TestMarshalDict(t *testing.T) {
+	n := Dict{
+		Tag: "foo2",
+		Pairs: Pairs{
+			{Bool{true}, Int{big.NewInt(567)}},
+		},
+	}
+	// Encode
+	var b bytes.Buffer
+	err := Marshal(&b, n)
+	if err != nil {
+		t.Fatal(err)
+	}
+	byteData := b.Bytes()
+	fmt.Println("Marshalled Dict", string(byteData))
+
+	// Decode
+	r := bytes.NewReader(byteData)
+	out := Dict{}
+	err = Unmarshal(r, &out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !IsEqual(n, out) {
+		var w bytes.Buffer
+		out.WritePretty(&w)
+		fmt.Println(w.String())
+		t.Fatal("Error unmarshalling Dict")
+	}
+
 }

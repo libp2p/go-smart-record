@@ -175,18 +175,28 @@ func (d Dict) MarshalJSON() (b []byte, e error) {
 	type tmp Dict
 	ts := tmp(d)
 
-	return json.Marshal(&ts)
+	c := struct {
+		Type  MarshalType `json:"type"`
+		Value tmp         `json:"value"`
+	}{Type: DictType, Value: ts}
+	return json.Marshal(&c)
 }
 
 // UnmarshalJSON dictionaries. It uses the Pair unmarshaller
 // under the hood to identify the type of nodes and conveniently
 // marshal them.
 func (d *Dict) UnmarshalJSON(data []byte) error {
+	var objMap map[string]*json.RawMessage
+	err := json.Unmarshal(data, &objMap)
+	if _, ok := objMap["type"]; ok {
+		data = *objMap["value"]
+	}
+
 	// Temporal type to avoid recursion
 	type tmp Dict
 	var ts tmp
 
-	err := json.Unmarshal(data, &ts)
+	err = json.Unmarshal(data, &ts)
 	if err != nil {
 		return err
 	}
