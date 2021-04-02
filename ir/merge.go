@@ -1,6 +1,8 @@
 package ir
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type MergeContext interface {
 	// MergeConflict merges two nodes that cannot be merged using the default merge semantics

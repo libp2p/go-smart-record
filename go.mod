@@ -1,4 +1,4 @@
-module github.com/libp2p/go-composable-record
+module github.com/libp2p/go-smart-record
 
 go 1.14
 
