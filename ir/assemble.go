@@ -39,8 +39,3 @@ func (asm SequenceAssembler) Assemble(ctx AssemblerContext, src Dict) (Node, err
 	}
 	return nil, fmt.Errorf("no assembler in the sequence recognized the input")
 }
-
-// StandardAssembler is an assembler for the "standard" vocabulary of smart tags supported by a record.
-var StandardAssembler = SequenceAssembler{
-	// insert the assemblers of default smart tags here
-}
