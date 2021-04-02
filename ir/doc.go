@@ -7,12 +7,13 @@ The IR is a "vocabulary" of nodes which can be used to construct "documents".
 The vocabulary consists of two types of nodes: syntactic and smart.
 
 	Syntactic nodes, by their Go type:
-		Dict
 		Bool
 		String
 		Int
 		Float
 		Blob
+		Dict
+		Set
 
 	Smart nodes, by their Go type:
 		Cid
