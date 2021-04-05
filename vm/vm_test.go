@@ -64,8 +64,45 @@ func TestExistingUpdate(t *testing.T) {
 	}
 }
 
-func TestQueryWrongSelector(t *testing.T) {
+func TestQueryWrongSelectors(t *testing.T) {
 	// TODO: Make tests with incorrectly formed selectors, etc.
+	ctx := ir.DefaultMergeContext{}
+	vm := NewVM(ctx)
+
+	sameKeys := ir.Dict{
+		Tag: "foo",
+		Pairs: ir.Pairs{
+			ir.Pair{Key: ir.String{Value: "foo"}, Value: ir.String{Value: "ssss"}},
+			ir.Pair{Key: ir.String{Value: "foo"}, Value: ir.Dict{
+				Tag: "foo.2",
+				Pairs: ir.Pairs{
+					ir.Pair{Key: ir.String{Value: "asdf"}, Value: ir.String{Value: "asfd"}},
+				},
+			},
+			}},
+	}
+
+	selector1 := ir.Dict{
+		Tag: "foo",
+		Pairs: ir.Pairs{
+			ir.Pair{Key: ir.String{Value: "p2"}, Value: ir.Dict{Tag: "foo.2"}},
+		},
+	}
+
+	// Add to the key
+	err := vm.Update("234", sameKeys)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	out, err := vm.Query("234", selector1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ir.IsEqual(ir.Dict{Tag: "foo"}, out) {
+		t.Fatal("Error querying key", "in:", sameKeys, "out:", out)
+	}
+
 }
 
 func TestQuery(t *testing.T) {

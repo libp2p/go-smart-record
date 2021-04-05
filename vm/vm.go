@@ -68,6 +68,13 @@ func queryDict(src ir.Dict, selector ir.Dict) (ir.Dict, error) {
 	if src.Tag == selector.Tag {
 		out.Tag = selector.Tag
 		for _, p := range selector.Pairs {
+			// Check if selector and source are the same type
+			// and is not a wildcard (i.e. value of selector == nil).
+			srcP := src.Get(p.Key)
+			if p.Value != nil && !ir.IsEqualType(p.Value, srcP) {
+				continue
+			}
+
 			switch p.Value.(type) {
 			case ir.Dict:
 				srcDict := src.Get(p.Key).(ir.Dict)

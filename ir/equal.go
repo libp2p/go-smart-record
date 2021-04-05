@@ -40,3 +40,44 @@ func IsEqual(x, y Node) bool {
 	}
 	return false
 }
+
+func IsEqualType(x, y Node) bool {
+	switch x.(type) {
+	case Bool:
+		switch y.(type) {
+		case Bool:
+			return true
+		}
+	case String:
+		switch y.(type) {
+		case String:
+			return true
+		}
+	case Number:
+		switch y.(type) {
+		case Number:
+			return true
+		}
+	case Blob:
+		switch y.(type) {
+		case Blob:
+			return true
+		}
+	case Dict:
+		switch y.(type) {
+		case Dict:
+			return true
+		}
+	case Set:
+		switch y.(type) {
+		case Set:
+			return true
+		}
+	case Smart:
+		switch y.(type) {
+		case Smart:
+			return true
+		}
+	}
+	return false
+}
