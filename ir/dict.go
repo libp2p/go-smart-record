@@ -37,10 +37,8 @@ func (ps Pairs) IndexOf(key Node) int {
 	return -1
 }
 
-// AreEqualPairs compairs to lists of key/values for set-wise equality (order independent).
-// TODO: This implementation is efficient for small sets. For large set, we may have to transition
-// to a map-based implementation of a dictionary.
-func AreEqualPairs(x, y Pairs) bool {
+// AreSamePairs compairs to lists of key/values for set-wise equality (order independent).
+func AreSamePairs(x, y Pairs) bool {
 	if len(x) != len(y) {
 		return false
 	}
@@ -85,7 +83,7 @@ func (d Dict) WritePretty(w io.Writer) error {
 	if _, err := w.Write([]byte(d.Tag)); err != nil {
 		return err
 	}
-	if _, err := w.Write([]byte{'{'}); err != nil {
+	if _, err := w.Write([]byte{'('}); err != nil {
 		return err
 	}
 	u := IndentWriter(w)
@@ -106,10 +104,18 @@ func (d Dict) WritePretty(w io.Writer) error {
 			}
 		}
 	}
-	if _, err := w.Write([]byte{'}'}); err != nil {
+	if _, err := w.Write([]byte{')'}); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (d Dict) Copy() Dict {
+	c := d
+	p := make(Pairs, len(c.Pairs))
+	copy(p, c.Pairs)
+	c.Pairs = p
+	return c
 }
 
 func (d Dict) CopySet(key Node, value Node) Dict {
@@ -117,20 +123,32 @@ func (d Dict) CopySet(key Node, value Node) Dict {
 }
 
 func (d Dict) CopySetTag(tag string, key Node, value Node) Dict {
-	c := Dict{Tag: tag, Pairs: make(Pairs, 0, len(d.Pairs)+1)}
+	c := d.Copy()
+	c.Tag = tag
 	found := false
-	for _, p := range d.Pairs {
+	for i, p := range c.Pairs {
 		if IsEqual(key, p.Key) {
-			c.Pairs = append(c.Pairs, Pair{key, value})
+			c.Pairs[i] = Pair{key, value}
 			found = true
-		} else {
-			c.Pairs = append(c.Pairs, p)
+			break
 		}
 	}
 	if !found {
 		c.Pairs = append(c.Pairs, Pair{key, value})
 	}
 	return c
+}
+
+func (d *Dict) Remove(key Node) Node {
+	i := d.Pairs.IndexOf(key)
+	if i < 0 {
+		return nil
+	}
+	old := d.Pairs[i]
+	n := len(d.Pairs)
+	d.Pairs[i], d.Pairs[n-1] = d.Pairs[n-1], d.Pairs[i]
+	d.Pairs = d.Pairs[:n-1]
+	return old
 }
 
 func (d Dict) Get(key Node) Node {
@@ -146,14 +164,18 @@ func IsEqualDict(x, y Dict) bool {
 	if x.Tag != y.Tag {
 		return false
 	}
-	return AreEqualPairs(x.Pairs, y.Pairs)
+	return AreSamePairs(x.Pairs, y.Pairs)
 }
 
 func MergeDict(ctx MergeContext, x, y Dict) (Node, error) {
 	if x.Tag != y.Tag {
 		return ctx.MergeConflict(x, y)
 	}
-	x, y = orderByLength(x, y) // x is smaller, y is larger
+	return MergeDictIgnoreTag(ctx, x, y)
+}
+
+func MergeDictIgnoreTag(ctx MergeContext, x, y Dict) (Node, error) {
+	x, y = orderDictByLength(x, y) // x is smaller, y is larger
 	m := Dict{
 		Tag:   x.Tag,
 		Pairs: make(Pairs, len(y.Pairs), len(x.Pairs)+len(y.Pairs)),
@@ -173,7 +195,7 @@ func MergeDict(ctx MergeContext, x, y Dict) (Node, error) {
 	return m, nil
 }
 
-func orderByLength(x, y Dict) (shorter, longer Dict) {
+func orderDictByLength(x, y Dict) (shorter, longer Dict) {
 	if x.Len() <= y.Len() {
 		return x, y
 	}
