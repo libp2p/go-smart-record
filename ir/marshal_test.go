@@ -185,7 +185,7 @@ func TestMarshalPairs(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	if !AreEqualPairs(n, no) {
+	if !AreSamePairs(n, no) {
 		t.Fatal("Error marshalling pairs")
 	}
 }
