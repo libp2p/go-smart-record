@@ -34,6 +34,11 @@ func Merge(ctx MergeContext, x, y Node) (Node, error) {
 		case Dict:
 			return MergeDict(ctx, x1, y1)
 		}
+	case Set:
+		switch y1 := y.(type) {
+		case Set:
+			return MergeSet(ctx, x1, y1)
+		}
 	}
 	return ctx.MergeConflict(x, y) // defer unresolvable conflicts to the context
 }
