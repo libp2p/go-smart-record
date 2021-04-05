@@ -12,12 +12,12 @@ func TestMarshale2e(t *testing.T) {
 	n := Dict{
 		Tag: "foo",
 		Pairs: Pairs{
-			{String{"bar"}, String{"baz"}},
+			{String{"bar1"}, String{"baz"}},
 			{Int{big.NewInt(567)}, String{"baz"}},
-			{String{"bar22"}, Int{big.NewInt(567)}},
-			{String{"bar2"}, Blob{[]byte("asdf")}},
+			{String{"bar2"}, Int{big.NewInt(567)}},
+			{String{"bar3"}, Blob{[]byte("asdf")}},
 			{Blob{[]byte("asdf")}, Int{big.NewInt(567)}},
-			{String{"bar"}, Dict{
+			{String{"bar4"}, Dict{
 				Tag: "foo2",
 				Pairs: Pairs{
 					{Bool{true}, Int{big.NewInt(567)}},
@@ -204,7 +204,6 @@ func TestMarshalDict(t *testing.T) {
 		t.Fatal(err)
 	}
 	byteData := b.Bytes()
-	fmt.Println("Marshalled Dict", string(byteData))
 
 	// Decode
 	r := bytes.NewReader(byteData)
