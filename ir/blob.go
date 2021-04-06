@@ -2,8 +2,8 @@ package ir
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 )
@@ -17,40 +17,22 @@ func (b Blob) WritePretty(w io.Writer) error {
 	return err
 }
 
-func (b Blob) MarshalJSON() (bdata []byte, e error) {
-	// Temporal type to avoid recursion
-	type tmp Blob
-	ts := tmp(b)
-
-	c := struct {
-		Type  MarshalType `json:"type"`
-		Value tmp         `json:"value"`
-	}{Type: BlobType, Value: ts}
-	return json.Marshal(&c)
+func (b Blob) encodeJSON() (interface{}, error) {
+	return struct {
+		Type  marshalType `json:"type"`
+		Value []byte      `json:"value"`
+	}{Type: BlobType, Value: b.Bytes}, nil
 }
 
 func IsEqualBlob(x, y Blob) bool {
 	return bytes.Compare(x.Bytes, y.Bytes) == 0
 }
 
-func (b *Blob) UnmarshalJSON(bdata []byte) error {
-	type tmp Blob
-	ts := tmp(*b)
-
-	var objMap map[string]*json.RawMessage
-	err := json.Unmarshal(bdata, &objMap)
+func decodeBlob(s map[string]interface{}) (Node, error) {
+	// Unmarshaller inteprets []byte as string, we need to decode base64
+	sDec, err := base64.StdEncoding.DecodeString(string(s["value"].(string)))
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	if _, ok := objMap["type"]; !ok {
-		err = json.Unmarshal(bdata, &ts)
-	} else {
-		err = json.Unmarshal(*objMap["value"], &ts)
-	}
-	if err != nil {
-		return err
-	}
-	*b = Blob(ts)
-	return nil
+	return Blob{sDec}, nil
 }

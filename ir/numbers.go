@@ -1,7 +1,7 @@
 package ir
 
 import (
-	"encoding/json"
+	"encoding/base64"
 	"io"
 	"math/big"
 )
@@ -56,110 +56,52 @@ func IsEqualNumber(x, y Number) bool {
 	panic("bug: unknown number type")
 }
 
-func unmarshalInt(p []byte, n *Int) error {
+func (n Int) encodeJSON() (interface{}, error) {
+	bn, err := n.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	return struct {
+		Type  marshalType `json:"type"`
+		Value []byte      `json:"value"`
+	}{Type: IntType, Value: bn}, nil
+}
+
+func (n Float) encodeJSON() (interface{}, error) {
+	bn, err := n.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	return struct {
+		Type  marshalType `json:"type"`
+		Value []byte      `json:"value"`
+	}{Type: FloatType, Value: bn}, nil
+}
+
+func decodeInt(s map[string]interface{}) (Node, error) {
 	z := new(big.Int)
-	err := z.UnmarshalText(p)
+	// Unmarshaller inteprets []byte as string, we need to decode base64
+	sDec, err := base64.StdEncoding.DecodeString(string(s["value"].(string)))
 	if err != nil {
-		return err
+		return nil, err
 	}
-	n.Int = z
-	return nil
+	err = z.UnmarshalText(sDec)
+	if err != nil {
+		return nil, err
+	}
+	return Int{z}, nil
 }
 
-func unmarshalFloat(p []byte, n *Float) error {
+func decodeFloat(s map[string]interface{}) (Node, error) {
 	z := new(big.Float)
-	err := z.UnmarshalText(p)
-	if err != nil {
-		return err
-	}
-	n.Float = z
-	return nil
-}
-
-func (n *Float) UnmarshalJSON(b []byte) error {
-	var objMap map[string]*json.RawMessage
-	err := json.Unmarshal(b, &objMap)
-	if err != nil {
-		bn := []byte{}
-		err = json.Unmarshal(b, &bn)
-		if err != nil {
-			return err
-		}
-		err = unmarshalFloat(bn, n)
-
-		if err != nil {
-			return err
-		}
-	} else {
-
-		if _, ok := objMap["type"]; ok {
-			c := struct {
-				Type  MarshalType `json:"type"`
-				Value []byte      `json:"value"`
-			}{}
-			err := json.Unmarshal(b, &c)
-			unmarshalFloat(c.Value, n)
-			if err != nil {
-				return err
-			}
-		}
-
-	}
-	return nil
-}
-
-func (n *Int) UnmarshalJSON(b []byte) error {
-	var objMap map[string]*json.RawMessage
-	err := json.Unmarshal(b, &objMap)
-	if err != nil {
-		bn := []byte{}
-		err = json.Unmarshal(b, &bn)
-		if err != nil {
-			return err
-		}
-		err = unmarshalInt(bn, n)
-
-		if err != nil {
-			return err
-		}
-	} else {
-
-		if _, ok := objMap["type"]; ok {
-			c := struct {
-				Type  MarshalType `json:"type"`
-				Value []byte      `json:"value"`
-			}{}
-			err := json.Unmarshal(b, &c)
-			unmarshalInt(c.Value, n)
-			if err != nil {
-				return err
-			}
-		}
-
-	}
-	return nil
-}
-
-func (n Int) MarshalJSON() (b []byte, e error) {
-	bn, err := n.MarshalText()
+	// Unmarshaller inteprets []byte as string, we need to decode base64
+	sDec, err := base64.StdEncoding.DecodeString(string(s["value"].(string)))
 	if err != nil {
 		return nil, err
 	}
-	c := struct {
-		Type  MarshalType `json:"type"`
-		Value []byte      `json:"value"`
-	}{Type: IntType, Value: bn}
-	return json.Marshal(&c)
-}
-
-func (n Float) MarshalJSON() (b []byte, e error) {
-	bn, err := n.MarshalText()
+	err = z.UnmarshalText(sDec)
 	if err != nil {
 		return nil, err
 	}
-	c := struct {
-		Type  MarshalType `json:"type"`
-		Value []byte      `json:"value"`
-	}{Type: IntType, Value: bn}
-	return json.Marshal(&c)
+	return Float{z}, nil
 }

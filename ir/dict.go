@@ -1,7 +1,6 @@
 package ir
 
 import (
-	"encoding/json"
 	"io"
 )
 
@@ -26,29 +25,7 @@ func (p Pair) WritePretty(w io.Writer) error {
 	return nil
 }
 
-// UnmarshalJSON unmarshals Pair types. It performs a first pre-processing
-// to identify the type of the key and value dicts, and passes these values
-// to UnmarshalType, which is responsible for the actual unmarshalling of the value.
-func (p *Pair) UnmarshalJSON(b []byte) error {
-
-	var objMap map[string]map[string]*json.RawMessage
-	err := json.Unmarshal(b, &objMap)
-	if err != nil {
-		return err
-	}
-	var kType, vType string
-	json.Unmarshal(*objMap["key"]["type"], &kType)
-	json.Unmarshal(*objMap["value"]["type"], &vType)
-	p.Key, err = UnmarshalType(MarshalType(kType), *objMap["key"]["value"])
-	if err != nil {
-		return err
-	}
-	p.Value, err = UnmarshalType(MarshalType(vType), *objMap["value"]["value"])
-	if err != nil {
-		return err
-	}
-	return nil
-}
+func (p Pair) encodeJSON() (interface{}, error) { return nil, nil }
 
 // Pairs is a list of pairs.
 type Pairs []Pair
@@ -185,41 +162,65 @@ func (d Dict) Get(key Node) Node {
 	return nil
 }
 
-// MarshalJSON dictionaries. It automatically
-// detect the Nodes type and calls the convenient
-// marshaller.
-func (d Dict) MarshalJSON() (b []byte, e error) {
-	// Temporal type to avoid recursion
-	type tmp Dict
-	ts := tmp(d)
-
-	c := struct {
-		Type  MarshalType `json:"type"`
-		Value tmp         `json:"value"`
-	}{Type: DictType, Value: ts}
-	return json.Marshal(&c)
+// jsonPair is used to encode Pairs with JSON
+type jsonPair struct {
+	Key   interface{}
+	Value interface{}
 }
 
-// UnmarshalJSON dictionaries. It uses the Pair unmarshaller
-// under the hood to identify the type of nodes and conveniently
-// marshal them.
-func (d *Dict) UnmarshalJSON(data []byte) error {
-	var objMap map[string]*json.RawMessage
-	err := json.Unmarshal(data, &objMap)
-	if _, ok := objMap["type"]; ok {
-		data = *objMap["value"]
+func (d Dict) encodeJSON() (interface{}, error) {
+	r := struct {
+		Type  marshalType   `json:"type"`
+		Tag   string        `json:"tag"`
+		Pairs []interface{} `json:"pairs"`
+	}{Type: DictType, Tag: d.Tag, Pairs: []interface{}{}}
+
+	for _, p := range d.Pairs {
+		k, err := p.Key.encodeJSON()
+		if err != nil {
+			return nil, err
+		}
+		v, err := p.Value.encodeJSON()
+		if err != nil {
+			return nil, err
+		}
+		r.Pairs = append(r.Pairs, jsonPair{
+			Key:   k,
+			Value: v,
+		})
+	}
+	return r, nil
+
+}
+
+func decodeDict(s map[string]interface{}) (Node, error) {
+	r := Dict{
+		Tag:   s["tag"].(string),
+		Pairs: []Pair{},
 	}
 
-	// Temporal type to avoid recursion
-	type tmp Dict
-	var ts tmp
-
-	err = json.Unmarshal(data, &ts)
-	if err != nil {
-		return err
+	pairs := s["pairs"].([]interface{})
+	for _, pi := range pairs {
+		p := pi.(map[string]interface{})
+		// Get pair values
+		pk := p["Key"].(map[string]interface{})
+		pv := p["Value"].(map[string]interface{})
+		// Decode them
+		sk, err := decodeMultiplex(pk)
+		if err != nil {
+			return nil, err
+		}
+		sv, err := decodeMultiplex(pv)
+		if err != nil {
+			return nil, err
+		}
+		r.Pairs = append(r.Pairs,
+			Pair{
+				Key:   sk,
+				Value: sv,
+			})
 	}
-	*d = Dict(ts)
-	return nil
+	return r, nil
 }
 
 func IsEqualDict(x, y Dict) bool {

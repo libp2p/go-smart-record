@@ -2,7 +2,6 @@ package ir
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"testing"
@@ -27,20 +26,16 @@ func TestMarshale2e(t *testing.T) {
 	}
 
 	// Encode
-	var b bytes.Buffer
-	err := Marshal(&b, n)
+	b, err := Marshal(n)
 	if err != nil {
 		t.Fatal(err)
 	}
-	byteData := b.Bytes()
-
 	// Decode
-	r := bytes.NewReader(byteData)
-	out := Dict{}
-	err = Unmarshal(r, &out)
+	out, err := Unmarshal(b)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if !IsEqual(n, out) {
 		fmt.Println(IsEqual(n, out))
 		fmt.Println("== IN ==")
@@ -58,18 +53,15 @@ func TestMarshale2e(t *testing.T) {
 
 func TestMarshalString(t *testing.T) {
 	n := String{"testing!"}
-	var b bytes.Buffer
-	err := Marshal(&b, n)
+	b, err := Marshal(n)
 	if err != nil {
 		t.Fatal(err)
 	}
-	o := String{}
-	byteData := b.Bytes()
-	r := bytes.NewReader(byteData)
-	err = Unmarshal(r, &o)
+	o, err := Unmarshal(b)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if !IsEqual(n, o) {
 		t.Fatal("Error unmarshalling string", n, o)
 	}
@@ -77,15 +69,11 @@ func TestMarshalString(t *testing.T) {
 
 func TestMarshalBool(t *testing.T) {
 	n := Bool{true}
-	var b bytes.Buffer
-	err := Marshal(&b, n)
+	b, err := Marshal(n)
 	if err != nil {
 		t.Fatal(err)
 	}
-	o := Bool{}
-	byteData := b.Bytes()
-	r := bytes.NewReader(byteData)
-	err = Unmarshal(r, &o)
+	o, err := Unmarshal(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,14 +82,11 @@ func TestMarshalBool(t *testing.T) {
 	}
 
 	n = Bool{false}
-	err = Marshal(&b, n)
+	b, err = Marshal(n)
 	if err != nil {
 		t.Fatal(err)
 	}
-	o = Bool{}
-	byteData = b.Bytes()
-	r = bytes.NewReader(byteData)
-	err = Unmarshal(r, &o)
+	o, err = Unmarshal(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,15 +97,11 @@ func TestMarshalBool(t *testing.T) {
 
 func TestMarshalBlob(t *testing.T) {
 	n := Blob{[]byte("testing!")}
-	var b bytes.Buffer
-	err := Marshal(&b, n)
+	b, err := Marshal(n)
 	if err != nil {
 		t.Fatal(err)
 	}
-	o := Blob{}
-	byteData := b.Bytes()
-	r := bytes.NewReader(byteData)
-	err = Unmarshal(r, &o)
+	o, err := Unmarshal(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,15 +112,11 @@ func TestMarshalBlob(t *testing.T) {
 
 func TestMarshalNumber(t *testing.T) {
 	n := Int{big.NewInt(123)}
-	var b bytes.Buffer
-	err := Marshal(&b, n)
-	byteData := b.Bytes()
+	b, err := Marshal(n)
 	if err != nil {
 		t.Fatal(err)
 	}
-	o := Int{}
-	r := bytes.NewReader(byteData)
-	err = Unmarshal(r, &o)
+	o, err := Unmarshal(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,14 +128,11 @@ func TestMarshalNumber(t *testing.T) {
 	// UnmarshalText generates a 64 precision float.
 	// Check: https://github.com/golang/go/issues/45309
 	f := Float{big.NewFloat(123.123).SetPrec(64)}
-	of := Float{}
-	err = Marshal(&b, f)
+	b, err = Marshal(f)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fbyteData := b.Bytes()
-	r = bytes.NewReader(fbyteData)
-	err = Unmarshal(r, &of)
+	of, err := Unmarshal(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,28 +142,6 @@ func TestMarshalNumber(t *testing.T) {
 
 }
 
-func TestMarshalPairs(t *testing.T) {
-	n := Pairs{
-		{Blob{[]byte("asdf")}, Int{big.NewInt(567)}},
-		{String{"bar"}, String{"baz"}},
-		{String{"bar2"}, String{"bar2123"}},
-		{Bool{true}, Int{big.NewInt(567)}},
-	}
-	no := Pairs{}
-	// Encode
-	valueBytes, err := json.Marshal(n)
-	if err != nil {
-		panic(err)
-	}
-	err = json.Unmarshal(valueBytes, &no)
-	if err != nil {
-		panic(err)
-	}
-	if !AreSamePairs(n, no) {
-		t.Fatal("Error marshalling pairs")
-	}
-}
-
 func TestMarshalDict(t *testing.T) {
 	n := Dict{
 		Tag: "foo2",
@@ -197,26 +149,40 @@ func TestMarshalDict(t *testing.T) {
 			{Bool{true}, Int{big.NewInt(567)}},
 		},
 	}
-	// Encode
-	var b bytes.Buffer
-	err := Marshal(&b, n)
+	b, err := Marshal(n)
 	if err != nil {
 		t.Fatal(err)
 	}
-	byteData := b.Bytes()
-
-	// Decode
-	r := bytes.NewReader(byteData)
-	out := Dict{}
-	err = Unmarshal(r, &out)
+	out, err := Unmarshal(b)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !IsEqual(n, out) {
-		var w bytes.Buffer
-		out.WritePretty(&w)
-		fmt.Println(w.String())
 		t.Fatal("Error unmarshalling Dict")
+	}
+
+}
+
+func TestMarshalSet(t *testing.T) {
+	n1 := Bool{true}
+	n2 := String{"testing!"}
+	n3 := Int{big.NewInt(567)}
+
+	n := Set{
+		Tag:      "foo2",
+		Elements: []Node{n1, n2, n3},
+	}
+
+	b, err := Marshal(n)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := Unmarshal(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !IsEqual(n, out) {
+		t.Fatal("Error unmarshalling Set")
 	}
 
 }
