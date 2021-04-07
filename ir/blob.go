@@ -29,8 +29,12 @@ func IsEqualBlob(x, y Blob) bool {
 }
 
 func decodeBlob(s map[string]interface{}) (Node, error) {
+	r, ok := s["value"].(string)
+	if !ok {
+		return nil, fmt.Errorf("decoding typ is not Blob")
+	}
 	// Unmarshaller inteprets []byte as string, we need to decode base64
-	sDec, err := base64.StdEncoding.DecodeString(string(s["value"].(string)))
+	sDec, err := base64.StdEncoding.DecodeString(r)
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package ir
 
 import (
 	"encoding/base64"
+	"fmt"
 	"io"
 	"math/big"
 )
@@ -80,8 +81,12 @@ func (n Float) encodeJSON() (interface{}, error) {
 
 func decodeInt(s map[string]interface{}) (Node, error) {
 	z := new(big.Int)
+	r, ok := s["value"].(string)
+	if !ok {
+		return nil, fmt.Errorf("wrong int decoding type")
+	}
 	// Unmarshaller inteprets []byte as string, we need to decode base64
-	sDec, err := base64.StdEncoding.DecodeString(string(s["value"].(string)))
+	sDec, err := base64.StdEncoding.DecodeString(r)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +99,12 @@ func decodeInt(s map[string]interface{}) (Node, error) {
 
 func decodeFloat(s map[string]interface{}) (Node, error) {
 	z := new(big.Float)
+	r, ok := s["value"].(string)
+	if !ok {
+		return nil, fmt.Errorf("wrong float decoding type")
+	}
 	// Unmarshaller inteprets []byte as string, we need to decode base64
-	sDec, err := base64.StdEncoding.DecodeString(string(s["value"].(string)))
+	sDec, err := base64.StdEncoding.DecodeString(r)
 	if err != nil {
 		return nil, err
 	}

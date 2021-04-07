@@ -1,7 +1,6 @@
 package base
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/libp2p/go-smart-record/ir"
@@ -25,8 +24,4 @@ func (c Cid) WritePretty(w io.Writer) error {
 
 func (c Cid) MergeWith(ctx ir.MergeContext, x ir.Node) (ir.Node, error) {
 	panic("XXX")
-}
-
-func (c Cid) UnmarshalJSON(data []byte) error {
-	return fmt.Errorf("Cid Unmarshal not implemented")
 }

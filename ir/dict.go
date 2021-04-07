@@ -1,6 +1,7 @@
 package ir
 
 import (
+	"fmt"
 	"io"
 )
 
@@ -24,8 +25,6 @@ func (p Pair) WritePretty(w io.Writer) error {
 	}
 	return nil
 }
-
-func (p Pair) encodeJSON() (interface{}, error) { return nil, nil }
 
 // Pairs is a list of pairs.
 type Pairs []Pair
@@ -141,16 +140,15 @@ func (d Dict) CopySetTag(tag string, key Node, value Node) Dict {
 	return c
 }
 
-func (d *Dict) Remove(key Node) Node {
+func (d *Dict) Remove(key Node) bool {
 	i := d.Pairs.IndexOf(key)
 	if i < 0 {
-		return nil
+		return false
 	}
-	old := d.Pairs[i]
 	n := len(d.Pairs)
 	d.Pairs[i], d.Pairs[n-1] = d.Pairs[n-1], d.Pairs[i]
 	d.Pairs = d.Pairs[:n-1]
-	return old
+	return true
 }
 
 func (d Dict) Get(key Node) Node {
@@ -201,16 +199,25 @@ func decodeDict(s map[string]interface{}) (Node, error) {
 
 	pairs := s["pairs"].([]interface{})
 	for _, pi := range pairs {
-		p := pi.(map[string]interface{})
+		p, ok := pi.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("pair is wrong type")
+		}
 		// Get pair values
-		pk := p["Key"].(map[string]interface{})
-		pv := p["Value"].(map[string]interface{})
+		pk, ok := p["Key"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("key in pair is wrong type")
+		}
+		pv, ok := p["Value"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("value in pair is wrong type")
+		}
 		// Decode them
-		sk, err := decodeMultiplex(pk)
+		sk, err := decodeNode(pk)
 		if err != nil {
 			return nil, err
 		}
-		sv, err := decodeMultiplex(pv)
+		sv, err := decodeNode(pv)
 		if err != nil {
 			return nil, err
 		}

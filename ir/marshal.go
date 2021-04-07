@@ -18,10 +18,10 @@ const (
 	SetType    = "Set"
 )
 
-// decodeMultiplex does the unmarshalling of the type
+// decodeNode does the unmarshalling of the type
 // once the wrapper has been process and the Node type has
 // been identified.
-func decodeMultiplex(v interface{}) (Node, error) {
+func decodeNode(v interface{}) (Node, error) {
 	s, ok := v.(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("bad decoding format")
@@ -59,5 +59,5 @@ func Marshal(n Node) ([]byte, error) {
 func Unmarshal(r []byte) (Node, error) {
 	var v map[string]interface{}
 	json.Unmarshal(r, &v)
-	return decodeMultiplex(v)
+	return decodeNode(v)
 }

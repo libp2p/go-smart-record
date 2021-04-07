@@ -26,5 +26,9 @@ func (b Bool) encodeJSON() (interface{}, error) {
 }
 
 func decodeBool(s map[string]interface{}) (Node, error) {
-	return Bool{s["value"].(bool)}, nil
+	r, ok := s["value"].(bool)
+	if !ok {
+		return nil, fmt.Errorf("decoded value not Bool")
+	}
+	return Bool{r}, nil
 }

@@ -74,8 +74,11 @@ func decodeSet(s map[string]interface{}) (Node, error) {
 		return nil, fmt.Errorf("bad Nodes decoding format")
 	}
 	for _, n := range nodes {
-		pv := n.(map[string]interface{})
-		nv, err := decodeMultiplex(pv)
+		pv, ok := n.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("node in set element is wrong type")
+		}
+		nv, err := decodeNode(pv)
 		if err != nil {
 			return nil, err
 		}

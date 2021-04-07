@@ -27,5 +27,9 @@ func (s String) encodeJSON() (interface{}, error) {
 }
 
 func decodeString(s map[string]interface{}) (Node, error) {
-	return String{s["value"].(string)}, nil
+	r, ok := s["value"].(string)
+	if !ok {
+		return nil, fmt.Errorf("decoded value not String")
+	}
+	return String{r}, nil
 }
