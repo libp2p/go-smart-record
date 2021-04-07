@@ -18,3 +18,18 @@ func (s String) WritePretty(w io.Writer) error {
 func IsEqualString(x, y String) bool {
 	return x.Value == y.Value
 }
+
+func (s String) encodeJSON() (interface{}, error) {
+	return struct {
+		Type  marshalType `json:"type"`
+		Value string      `json:"value"`
+	}{Type: StringType, Value: s.Value}, nil
+}
+
+func decodeString(s map[string]interface{}) (Node, error) {
+	r, ok := s["value"].(string)
+	if !ok {
+		return nil, fmt.Errorf("decoded value not String")
+	}
+	return String{r}, nil
+}
