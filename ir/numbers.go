@@ -1,6 +1,8 @@
 package ir
 
 import (
+	"encoding/base64"
+	"fmt"
 	"io"
 	"math/big"
 )
@@ -53,4 +55,62 @@ func IsEqualNumber(x, y Number) bool {
 		}
 	}
 	panic("bug: unknown number type")
+}
+
+func (n Int) encodeJSON() (interface{}, error) {
+	bn, err := n.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	return struct {
+		Type  marshalType `json:"type"`
+		Value []byte      `json:"value"`
+	}{Type: IntType, Value: bn}, nil
+}
+
+func (n Float) encodeJSON() (interface{}, error) {
+	bn, err := n.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	return struct {
+		Type  marshalType `json:"type"`
+		Value []byte      `json:"value"`
+	}{Type: FloatType, Value: bn}, nil
+}
+
+func decodeInt(s map[string]interface{}) (Node, error) {
+	z := new(big.Int)
+	r, ok := s["value"].(string)
+	if !ok {
+		return nil, fmt.Errorf("wrong int decoding type")
+	}
+	// Unmarshaller inteprets []byte as string, we need to decode base64
+	sDec, err := base64.StdEncoding.DecodeString(r)
+	if err != nil {
+		return nil, err
+	}
+	err = z.UnmarshalText(sDec)
+	if err != nil {
+		return nil, err
+	}
+	return Int{z}, nil
+}
+
+func decodeFloat(s map[string]interface{}) (Node, error) {
+	z := new(big.Float)
+	r, ok := s["value"].(string)
+	if !ok {
+		return nil, fmt.Errorf("wrong float decoding type")
+	}
+	// Unmarshaller inteprets []byte as string, we need to decode base64
+	sDec, err := base64.StdEncoding.DecodeString(r)
+	if err != nil {
+		return nil, err
+	}
+	err = z.UnmarshalText(sDec)
+	if err != nil {
+		return nil, err
+	}
+	return Float{z}, nil
 }

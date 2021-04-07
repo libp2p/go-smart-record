@@ -1,13 +1,14 @@
 package ir
 
 import (
+	"fmt"
 	"io"
 )
 
 // Pair holds a key/value pair.
 type Pair struct {
-	Key   Node
-	Value Node
+	Key   Node `json:"key"`
+	Value Node `json:"value"`
 }
 
 func (p Pair) WritePretty(w io.Writer) error {
@@ -148,7 +149,7 @@ func (d *Dict) Remove(key Node) Node {
 	n := len(d.Pairs)
 	d.Pairs[i], d.Pairs[n-1] = d.Pairs[n-1], d.Pairs[i]
 	d.Pairs = d.Pairs[:n-1]
-	return old
+	return old.Value
 }
 
 func (d Dict) Get(key Node) Node {
@@ -158,6 +159,76 @@ func (d Dict) Get(key Node) Node {
 		}
 	}
 	return nil
+}
+
+// jsonPair is used to encode Pairs with JSON
+type jsonPair struct {
+	Key   interface{}
+	Value interface{}
+}
+
+func (d Dict) encodeJSON() (interface{}, error) {
+	r := struct {
+		Type  marshalType   `json:"type"`
+		Tag   string        `json:"tag"`
+		Pairs []interface{} `json:"pairs"`
+	}{Type: DictType, Tag: d.Tag, Pairs: []interface{}{}}
+
+	for _, p := range d.Pairs {
+		k, err := p.Key.encodeJSON()
+		if err != nil {
+			return nil, err
+		}
+		v, err := p.Value.encodeJSON()
+		if err != nil {
+			return nil, err
+		}
+		r.Pairs = append(r.Pairs, jsonPair{
+			Key:   k,
+			Value: v,
+		})
+	}
+	return r, nil
+
+}
+
+func decodeDict(s map[string]interface{}) (Node, error) {
+	r := Dict{
+		Tag:   s["tag"].(string),
+		Pairs: []Pair{},
+	}
+
+	pairs := s["pairs"].([]interface{})
+	for _, pi := range pairs {
+		p, ok := pi.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("pair is wrong type")
+		}
+		// Get pair values
+		pk, ok := p["Key"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("key in pair is wrong type")
+		}
+		pv, ok := p["Value"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("value in pair is wrong type")
+		}
+		// Decode them
+		sk, err := decodeNode(pk)
+		if err != nil {
+			return nil, err
+		}
+		sv, err := decodeNode(pv)
+		if err != nil {
+			return nil, err
+		}
+		r.Pairs = append(r.Pairs,
+			Pair{
+				Key:   sk,
+				Value: sv,
+			})
+	}
+	return r, nil
 }
 
 func IsEqualDict(x, y Dict) bool {

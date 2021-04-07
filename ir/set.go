@@ -1,6 +1,7 @@
 package ir
 
 import (
+	"fmt"
 	"io"
 )
 
@@ -43,6 +44,47 @@ func (s Set) WritePretty(w io.Writer) error {
 		return err
 	}
 	return nil
+}
+
+func (s Set) encodeJSON() (interface{}, error) {
+	r := struct {
+		Type     marshalType   `json:"type"`
+		Tag      string        `json:"tag"`
+		Elements []interface{} `json:"elements"`
+	}{Type: SetType, Tag: s.Tag, Elements: []interface{}{}}
+
+	for _, n := range s.Elements {
+		no, err := n.encodeJSON()
+		if err != nil {
+			return nil, err
+		}
+		r.Elements = append(r.Elements, no)
+	}
+	return r, nil
+
+}
+
+func decodeSet(s map[string]interface{}) (Node, error) {
+	r := Set{
+		Tag:      s["tag"].(string),
+		Elements: []Node{},
+	}
+	nodes, ok := s["elements"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("bad Nodes decoding format")
+	}
+	for _, n := range nodes {
+		pv, ok := n.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("node in set element is wrong type")
+		}
+		nv, err := decodeNode(pv)
+		if err != nil {
+			return nil, err
+		}
+		r.Elements = append(r.Elements, nv)
+	}
+	return r, nil
 }
 
 func IsEqualSet(x, y Set) bool {
