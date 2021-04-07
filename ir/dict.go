@@ -140,15 +140,16 @@ func (d Dict) CopySetTag(tag string, key Node, value Node) Dict {
 	return c
 }
 
-func (d *Dict) Remove(key Node) bool {
+func (d *Dict) Remove(key Node) Node {
 	i := d.Pairs.IndexOf(key)
 	if i < 0 {
-		return false
+		return nil
 	}
+	old := d.Pairs[i]
 	n := len(d.Pairs)
 	d.Pairs[i], d.Pairs[n-1] = d.Pairs[n-1], d.Pairs[i]
 	d.Pairs = d.Pairs[:n-1]
-	return true
+	return old.Value
 }
 
 func (d Dict) Get(key Node) Node {
