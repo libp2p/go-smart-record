@@ -6,14 +6,15 @@ import (
 
 	//ds "github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-smart-record/ir"
+	"github.com/libp2p/go-smart-record/ir/base"
 )
 
 // Machine captures the public interface of a smart record virtual machine.
 // NOTE: Keys must be the same type as ir.Record Key (at least for now)
 type Machine interface {
-	Update(k string, d ir.Dict) error                  // Updates the record in key k with a dict
-	Query(k string, selector ir.Dict) (ir.Dict, error) // Queries a record using a selector dict.
-	Get(k string) ir.Dict                              // Gets the whole record stored in a key (debug purposes for now)
+	Update(k string, d ir.Dict) error                   // Updates the record in key k with a dict
+	Query(k string, selector Selector) (ir.Dict, error) // Queries a record using a selector dict.
+	Get(k string) ir.Dict                               // Gets the whole record stored in a key (debug purposes for now)
 
 }
 
@@ -35,25 +36,26 @@ func NewVM(ctx ir.MergeContext, asm ir.Assembler) *VM {
 
 // Update updates the record in key with the provided dict
 func (v *VM) Update(k string, s ir.Dict) error {
-	// Start assemble process with an empty root context
-	ds, err := v.asm.Assemble(ir.AssemblerContext{}, s)
+	// Start assemble process with the parent VM assemblerContext
+	ds, err := v.asm.Assemble(ir.AssemblerContext{Grammar: v.asm}, s)
 	if err != nil {
 		return err
 	}
-	// Check if the result of the assembler is a dict ready to store.
-	d, ok := ds.(ir.Dict)
+	// Check if the result of the assembler is a record ready to store.
+	d, ok := ds.(base.Record)
 	if !ok {
-		return fmt.Errorf("assembler didn't generate a dict")
+		return fmt.Errorf("assembler didn't generate a record")
 	}
-
 	// Directly store d if there is nothing in the key
 	if v.s[k] == nil {
-		v.s[k] = &d
+		v.s[k] = &d.User
 		return nil
 	} else {
 		// Merge existing dict with the stored one if there's already
 		// something in the key
-		n, err := ir.MergeDict(v.ctx, *v.s[k], d)
+		// TODO: Assembling may be needed before merging to re-generate
+		// smart tags. Defering this decision to when the BaseGrammar is ready.
+		n, err := ir.MergeDict(v.ctx, *v.s[k], d.User)
 		if err != nil {
 			return nil
 		}
@@ -64,20 +66,24 @@ func (v *VM) Update(k string, s ir.Dict) error {
 
 // Query receives a dict selector as input and traverses the dict in the key
 // to return the corresponding values
+// NOTE: This a just a toy implementation for showcase purposes. This won't be
+// the final implemenation, you can disregard it right away. We need to
+// first figure out how selectors would work.
 func (v *VM) Query(k string, selector Selector) (ir.Dict, error) {
 	src := v.s[k]
 	if src == nil {
 		return ir.Dict{}, fmt.Errorf("empty key in state")
 	}
 
-	// Traverse the selector and check if it exists in the stored dict for the key
-	// If the path exists return it, if not do nothing
-	return selector.Run(SelectorContext{}, src)
+	d, err := selector.Run(SelectorContext{}, *src)
+	if err != nil {
+		return ir.Dict{}, err
+	}
+	return base.Record{Key: k, User: d}.Disassemble(), nil
 
 }
 
 // Gets the whole record stored in a key
 func (v *VM) Get(k string) ir.Dict {
-	// TODO: Disassemble before returning the dict
-	return *v.s[k]
+	return base.Record{Key: k, User: *v.s[k]}.Disassemble()
 }
