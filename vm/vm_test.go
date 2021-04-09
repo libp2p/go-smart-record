@@ -29,6 +29,11 @@ func TestEmptyUpdate(t *testing.T) {
 	if !ir.IsEqual(in, out) {
 		t.Fatal("Record not updated in empty key", in, out)
 	}
+
+	out = vm.Get("randomKey")
+	if !ir.IsEqual(out, base.Record{Key: "randomKey"}.Disassemble()) {
+		t.Fatal("Returned non emtpy record", out)
+	}
 }
 
 // TODO: Add more tests for different merging scenarios.

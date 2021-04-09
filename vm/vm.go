@@ -85,5 +85,8 @@ func (v *VM) Query(k string, selector Selector) (ir.Dict, error) {
 
 // Gets the whole record stored in a key
 func (v *VM) Get(k string) ir.Dict {
+	if v.s[k] == nil {
+		return base.Record{Key: k}.Disassemble()
+	}
 	return base.Record{Key: k, User: *v.s[k]}.Disassemble()
 }
