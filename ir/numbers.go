@@ -79,6 +79,13 @@ func (n Float) encodeJSON() (interface{}, error) {
 	}{Type: FloatType, Value: bn}, nil
 }
 
+func (n Int) Encoding() Encoder {
+	return n
+}
+
+func (n Float) Encoding() Encoder {
+	return n
+}
 func decodeInt(s map[string]interface{}) (Node, error) {
 	z := new(big.Int)
 	r, ok := s["value"].(string)

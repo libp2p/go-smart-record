@@ -24,6 +24,10 @@ func (b Blob) encodeJSON() (interface{}, error) {
 	}{Type: BlobType, Value: b.Bytes}, nil
 }
 
+func (b Blob) Encoding() Encoder {
+	return b
+}
+
 func IsEqualBlob(x, y Blob) bool {
 	return bytes.Compare(x.Bytes, y.Bytes) == 0
 }

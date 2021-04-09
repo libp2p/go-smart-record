@@ -26,6 +26,10 @@ func (s String) encodeJSON() (interface{}, error) {
 	}{Type: StringType, Value: s.Value}, nil
 }
 
+func (s String) Encoding() Encoder {
+	return s
+}
+
 func decodeString(s map[string]interface{}) (Node, error) {
 	r, ok := s["value"].(string)
 	if !ok {

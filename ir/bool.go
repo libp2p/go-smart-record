@@ -25,6 +25,10 @@ func (b Bool) encodeJSON() (interface{}, error) {
 	}{Type: BoolType, Value: b.Value}, nil
 }
 
+func (b Bool) Encoding() Encoder {
+	return b
+}
+
 func decodeBool(s map[string]interface{}) (Node, error) {
 	r, ok := s["value"].(bool)
 	if !ok {
