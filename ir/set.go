@@ -15,6 +15,10 @@ func (s Set) Len() int {
 	return len(s.Elements)
 }
 
+func (s Set) Encoding() Encoder {
+	return s
+}
+
 func (s Set) WritePretty(w io.Writer) error {
 	if _, err := w.Write([]byte(s.Tag)); err != nil {
 		return err
@@ -54,7 +58,7 @@ func (s Set) encodeJSON() (interface{}, error) {
 	}{Type: SetType, Tag: s.Tag, Elements: []interface{}{}}
 
 	for _, n := range s.Elements {
-		no, err := n.encodeJSON()
+		no, err := n.Encoding().encodeJSON()
 		if err != nil {
 			return nil, err
 		}

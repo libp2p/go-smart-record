@@ -175,11 +175,11 @@ func (d Dict) encodeJSON() (interface{}, error) {
 	}{Type: DictType, Tag: d.Tag, Pairs: []interface{}{}}
 
 	for _, p := range d.Pairs {
-		k, err := p.Key.encodeJSON()
+		k, err := p.Key.Encoding().encodeJSON()
 		if err != nil {
 			return nil, err
 		}
-		v, err := p.Value.encodeJSON()
+		v, err := p.Value.Encoding().encodeJSON()
 		if err != nil {
 			return nil, err
 		}
@@ -229,6 +229,10 @@ func decodeDict(s map[string]interface{}) (Node, error) {
 			})
 	}
 	return r, nil
+}
+
+func (d Dict) Encoding() Encoder {
+	return d
 }
 
 func IsEqualDict(x, y Dict) bool {

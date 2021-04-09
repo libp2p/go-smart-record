@@ -74,3 +74,7 @@ func (RecordAssembler) Assemble(ctx ir.AssemblerContext, src ir.Dict) (ir.Node, 
 		User: w.(ir.Dict),
 	}, nil
 }
+
+func (r Record) Encoding() ir.Encoder {
+	return nil
+}

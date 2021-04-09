@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+type Encoder interface {
+	encodeJSON() (interface{}, error)
+}
+
 type marshalType string
 
 // List of syntactic types supported
@@ -48,7 +52,7 @@ func decodeNode(v interface{}) (Node, error) {
 
 // Marshal syntactic representation
 func Marshal(n Node) ([]byte, error) {
-	c, err := n.encodeJSON()
+	c, err := n.Encoding().encodeJSON()
 	if err != nil {
 		return nil, err
 	}
