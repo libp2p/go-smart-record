@@ -4,21 +4,26 @@ import (
 	"testing"
 
 	"github.com/libp2p/go-smart-record/ir"
+	"github.com/libp2p/go-smart-record/ir/base"
 )
 
 func TestEmptyUpdate(t *testing.T) {
 	ctx := ir.DefaultMergeContext{}
-	vm := NewVM(ctx)
+	asm := base.BaseGrammar
+	vm := NewVM(ctx, asm)
 
 	in := ir.Dict{
-		Tag: "foo",
+		Tag: "record",
 		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "asdf"}, Value: ir.String{Value: "asfd"}},
+			ir.Pair{Key: ir.String{Value: "key"}, Value: ir.String{Value: "234"}},
 			ir.Pair{Key: ir.String{Value: "fff"}, Value: ir.String{Value: "ff2"}},
 		},
 	}
 
-	vm.Update("234", in)
+	err := vm.Update("234", in)
+	if err != nil {
+		t.Fatal(err)
+	}
 	out := vm.Get("234")
 	if !ir.IsEqual(in, out) {
 		t.Fatal("Record not updated in empty key", in, out)
@@ -28,7 +33,8 @@ func TestEmptyUpdate(t *testing.T) {
 // TODO: Add more tests for different merging scenarios.
 func TestExistingUpdate(t *testing.T) {
 	ctx := ir.DefaultMergeContext{}
-	vm := NewVM(ctx)
+	asm := base.BaseGrammar
+	vm := NewVM(ctx, asm)
 
 	in1 := ir.Dict{
 		Tag: "foo",
@@ -67,7 +73,8 @@ func TestExistingUpdate(t *testing.T) {
 func TestQueryWrongSelectors(t *testing.T) {
 	// TODO: Make tests with incorrectly formed selectors, etc.
 	ctx := ir.DefaultMergeContext{}
-	vm := NewVM(ctx)
+	asm := base.BaseGrammar
+	vm := NewVM(ctx, asm)
 
 	sameKeys := ir.Dict{
 		Tag: "foo",
@@ -107,7 +114,8 @@ func TestQueryWrongSelectors(t *testing.T) {
 
 func TestQuery(t *testing.T) {
 	ctx := ir.DefaultMergeContext{}
-	vm := NewVM(ctx)
+	asm := base.BaseGrammar
+	vm := NewVM(ctx, asm)
 
 	in := ir.Dict{
 		Tag: "foo",
