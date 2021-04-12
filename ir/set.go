@@ -46,7 +46,7 @@ func (s Set) WritePretty(w io.Writer) error {
 	return nil
 }
 
-func (s Set) encodeJSON() (interface{}, error) {
+func (s Set) EncodeJSON() (interface{}, error) {
 	r := struct {
 		Type     marshalType   `json:"type"`
 		Tag      string        `json:"tag"`
@@ -54,7 +54,7 @@ func (s Set) encodeJSON() (interface{}, error) {
 	}{Type: SetType, Tag: s.Tag, Elements: []interface{}{}}
 
 	for _, n := range s.Elements {
-		no, err := n.encodeJSON()
+		no, err := n.EncodeJSON()
 		if err != nil {
 			return nil, err
 		}

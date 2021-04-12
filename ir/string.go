@@ -19,7 +19,7 @@ func IsEqualString(x, y String) bool {
 	return x.Value == y.Value
 }
 
-func (s String) encodeJSON() (interface{}, error) {
+func (s String) EncodeJSON() (interface{}, error) {
 	return struct {
 		Type  marshalType `json:"type"`
 		Value string      `json:"value"`

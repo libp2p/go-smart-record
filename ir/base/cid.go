@@ -14,6 +14,10 @@ type Cid struct {
 	User ir.Dict
 }
 
+func (c Cid) EncodeJSON() (interface{}, error) {
+	return c.Disassemble().EncodeJSON()
+}
+
 func (c Cid) Disassemble() ir.Dict {
 	return c.User.CopySetTag("cid", ir.String{c.Cid}, ir.String{c.Cid})
 }
