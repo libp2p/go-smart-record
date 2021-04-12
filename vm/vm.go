@@ -3,6 +3,7 @@ package vm
 
 import (
 	"fmt"
+	"sync"
 
 	//ds "github.com/ipfs/go-datastore"
 	"github.com/libp2p/go-smart-record/ir"
@@ -24,6 +25,7 @@ type VM struct {
 	//ds  ds.Datastore    // TODO: Add a datastore instead of using map[string] for the VM state
 	s   map[string]*ir.Dict // State of the VM storing the map of records.
 	asm ir.Assembler        // Assemble to use in the VM.
+	lk  sync.RWMutex        // Lock to enable multiple access
 }
 
 func NewVM(ctx ir.MergeContext, asm ir.Assembler) *VM {
@@ -36,6 +38,8 @@ func NewVM(ctx ir.MergeContext, asm ir.Assembler) *VM {
 
 // Update updates the record in key with the provided dict
 func (v *VM) Update(k string, s ir.Dict) error {
+	v.lk.Lock()
+	defer v.lk.Unlock()
 	// Start assemble process with the parent VM assemblerContext
 	ds, err := v.asm.Assemble(ir.AssemblerContext{Grammar: v.asm}, s)
 	if err != nil {
@@ -70,6 +74,8 @@ func (v *VM) Update(k string, s ir.Dict) error {
 // the final implemenation, you can disregard it right away. We need to
 // first figure out how selectors would work.
 func (v *VM) Query(k string, selector Selector) (ir.Dict, error) {
+	v.lk.RLock()
+	defer v.lk.RUnlock()
 	src := v.s[k]
 	if src == nil {
 		return ir.Dict{}, fmt.Errorf("empty key in state")
@@ -85,6 +91,8 @@ func (v *VM) Query(k string, selector Selector) (ir.Dict, error) {
 
 // Gets the whole record stored in a key
 func (v *VM) Get(k string) ir.Dict {
+	v.lk.RLock()
+	defer v.lk.RUnlock()
 	if v.s[k] == nil {
 		return base.Record{Key: k}.Disassemble()
 	}
