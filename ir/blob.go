@@ -17,15 +17,11 @@ func (b Blob) WritePretty(w io.Writer) error {
 	return err
 }
 
-func (b Blob) encodeJSON() (interface{}, error) {
+func (b Blob) EncodeJSON() (interface{}, error) {
 	return struct {
 		Type  marshalType `json:"type"`
 		Value []byte      `json:"value"`
 	}{Type: BlobType, Value: b.Bytes}, nil
-}
-
-func (b Blob) Encoding() Encoder {
-	return b
 }
 
 func IsEqualBlob(x, y Blob) bool {

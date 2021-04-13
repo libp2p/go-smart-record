@@ -167,7 +167,7 @@ type jsonPair struct {
 	Value interface{}
 }
 
-func (d Dict) encodeJSON() (interface{}, error) {
+func (d Dict) EncodeJSON() (interface{}, error) {
 	r := struct {
 		Type  marshalType   `json:"type"`
 		Tag   string        `json:"tag"`
@@ -175,11 +175,11 @@ func (d Dict) encodeJSON() (interface{}, error) {
 	}{Type: DictType, Tag: d.Tag, Pairs: []interface{}{}}
 
 	for _, p := range d.Pairs {
-		k, err := p.Key.Encoding().encodeJSON()
+		k, err := p.Key.EncodeJSON()
 		if err != nil {
 			return nil, err
 		}
-		v, err := p.Value.Encoding().encodeJSON()
+		v, err := p.Value.EncodeJSON()
 		if err != nil {
 			return nil, err
 		}
@@ -229,10 +229,6 @@ func decodeDict(s map[string]interface{}) (Node, error) {
 			})
 	}
 	return r, nil
-}
-
-func (d Dict) Encoding() Encoder {
-	return d
 }
 
 func IsEqualDict(x, y Dict) bool {

@@ -12,6 +12,10 @@ type Verify struct {
 	User ir.Dict
 }
 
+func (v Verify) EncodeJSON() (interface{}, error) {
+	return v.Disassemble().EncodeJSON()
+}
+
 func (v Verify) Disassemble() ir.Dict {
 	return v.User.CopySetTag("verify", ir.String{"statement"}, v.Statement)
 }
@@ -26,6 +30,10 @@ type Verified struct {
 	Signature ir.Blob
 	// User holds user fields.
 	User ir.Dict
+}
+
+func (v Verified) EncodeJSON() (interface{}, error) {
+	return v.Disassemble().EncodeJSON()
 }
 
 func (v Verified) Disassemble() ir.Dict {

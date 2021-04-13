@@ -52,7 +52,7 @@ func decodeNode(v interface{}) (Node, error) {
 
 // Marshal syntactic representation
 func Marshal(n Node) ([]byte, error) {
-	c, err := n.Encoding().encodeJSON()
+	c, err := n.EncodeJSON()
 	if err != nil {
 		return nil, err
 	}

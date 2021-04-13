@@ -12,6 +12,10 @@ type Multiaddress struct {
 	User ir.Dict
 }
 
+func (m Multiaddress) EncodeJSON() (interface{}, error) {
+	return m.Disassemble().EncodeJSON()
+}
+
 func (m Multiaddress) Disassemble() ir.Dict {
 	return m.User.CopySetTag("multiaddress", ir.String{m.Multiaddress}, ir.String{m.Multiaddress})
 }

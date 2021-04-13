@@ -6,8 +6,7 @@ import (
 
 type Node interface {
 	WritePretty(w io.Writer) error
-	Encoding() Encoder // Exposes encoder only in syntactic nodes
-	//encodeJSON() (interface{}, error)
+	EncodeJSON() (interface{}, error)
 }
 
 type Nodes []Node

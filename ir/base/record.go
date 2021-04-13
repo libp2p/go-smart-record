@@ -18,6 +18,10 @@ type Record struct {
 	User ir.Dict
 }
 
+func (r Record) EncodeJSON() (interface{}, error) {
+	return r.Disassemble().EncodeJSON()
+}
+
 func (r Record) Disassemble() ir.Dict {
 	return r.User.CopySetTag("record", ir.String{"key"}, ir.String{r.Key})
 }
@@ -48,7 +52,11 @@ func (r Record) MergeWith(ctx ir.MergeContext, x ir.Node) (ir.Node, error) {
 
 type RecordAssembler struct{}
 
-func (RecordAssembler) Assemble(ctx ir.AssemblerContext, src ir.Dict) (ir.Node, error) {
+func (RecordAssembler) Assemble(ctx ir.AssemblerContext, srcNode ir.Node) (ir.Node, error) {
+	src, ok := srcNode.(ir.Dict)
+	if !ok {
+		return nil, fmt.Errorf("non-dictionary nodes are not syntactic records")
+	}
 	if src.Tag != "record" {
 		return nil, fmt.Errorf("not a record tag")
 	}

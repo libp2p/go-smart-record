@@ -19,15 +19,11 @@ func IsEqualString(x, y String) bool {
 	return x.Value == y.Value
 }
 
-func (s String) encodeJSON() (interface{}, error) {
+func (s String) EncodeJSON() (interface{}, error) {
 	return struct {
 		Type  marshalType `json:"type"`
 		Value string      `json:"value"`
 	}{Type: StringType, Value: s.Value}, nil
-}
-
-func (s String) Encoding() Encoder {
-	return s
 }
 
 func decodeString(s map[string]interface{}) (Node, error) {

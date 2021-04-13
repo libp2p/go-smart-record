@@ -9,11 +9,6 @@ import (
 var BaseGrammar = ir.SequenceAssembler{
 	// insert the assemblers of smart tags here
 	RecordAssembler{},
-	SyntacticAssembler{},
-}
-
-type SyntacticAssembler struct{}
-
-func (SyntacticAssembler) Assemble(ctx ir.AssemblerContext, src ir.Dict) (ir.Node, error) {
-	return src, nil
+	// if no smart tag parses the input, keep it as is (in the form of syntactic nodes)
+	ir.SyntacticGrammar,
 }

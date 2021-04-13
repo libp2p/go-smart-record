@@ -57,7 +57,7 @@ func IsEqualNumber(x, y Number) bool {
 	panic("bug: unknown number type")
 }
 
-func (n Int) encodeJSON() (interface{}, error) {
+func (n Int) EncodeJSON() (interface{}, error) {
 	bn, err := n.MarshalText()
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (n Int) encodeJSON() (interface{}, error) {
 	}{Type: IntType, Value: bn}, nil
 }
 
-func (n Float) encodeJSON() (interface{}, error) {
+func (n Float) EncodeJSON() (interface{}, error) {
 	bn, err := n.MarshalText()
 	if err != nil {
 		return nil, err
@@ -79,13 +79,6 @@ func (n Float) encodeJSON() (interface{}, error) {
 	}{Type: FloatType, Value: bn}, nil
 }
 
-func (n Int) Encoding() Encoder {
-	return n
-}
-
-func (n Float) Encoding() Encoder {
-	return n
-}
 func decodeInt(s map[string]interface{}) (Node, error) {
 	z := new(big.Int)
 	r, ok := s["value"].(string)

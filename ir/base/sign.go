@@ -18,6 +18,10 @@ func (s Signed) WritePretty(w io.Writer) error {
 	return s.Disassemble().WritePretty(w)
 }
 
+func (s Signed) EncodeJSON() (interface{}, error) {
+	return s.Disassemble().EncodeJSON()
+}
+
 func (s Signed) Disassemble() ir.Dict {
 	return ir.Dict{
 		Tag: "verify",
