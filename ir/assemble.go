@@ -1,6 +1,8 @@
 package ir
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // AssemblerContext holds general contextual data for the stage of the assembly process.
 // It provides a standard mechanism for assemblers to pass context to subordinate assemblers
