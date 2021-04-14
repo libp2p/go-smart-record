@@ -5,10 +5,6 @@ import (
 	"fmt"
 )
 
-type Encoder interface {
-	encodeJSON() (interface{}, error)
-}
-
 type marshalType string
 
 // List of syntactic types supported
