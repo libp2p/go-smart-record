@@ -73,8 +73,6 @@ func newSmartRecordManager(ctx context.Context, h host.Host, options ...Option) 
 		e.host.SetStreamHandler(p, e.handleNewStream)
 	}
 
-	// Create processes that will be listening to new records.
-	// TODO: Is this really needed?
 	return e, nil
 }
 
