@@ -18,27 +18,29 @@ func main() {
 	ctx := context.Background()
 
 	fmt.Println("[*] Starting hosts")
-	h1, err := libp2p.New(ctx)
+
+	// Variable to host h2 smartRecord manager used to
+	// expose its interface.
+	var sm env.SmartRecordManager
+	// Option to create smart record in hosts
+	sr := func(h host.Host) (env.SmartRecordManager, error) {
+		var err error
+		sm, err = env.NewSmartRecordManager(ctx, h)
+		return sm, err
+	}
+	smartRecordsOpt := libp2p.SmartRecord(sr)
+
+	// Instantiating hosts
+	h1, err := libp2p.New(ctx, smartRecordsOpt)
 	if err != nil {
 		panic(err)
 	}
-	h2, err := libp2p.New(ctx)
+	h2, err := libp2p.New(ctx, smartRecordsOpt)
 	if err != nil {
 		panic(err)
 	}
 	defer h1.Close()
 	defer h2.Close()
-
-	fmt.Println("[*] Starting smart record envs for hosts")
-	_, err = env.NewSmartRecordManager(ctx, h1)
-	if err != nil {
-		panic(err)
-	}
-
-	e2, err := env.NewSmartRecordManager(ctx, h2)
-	if err != nil {
-		panic(err)
-	}
 
 	// Wait until hosts are ready
 	time.Sleep(3 * time.Second)
@@ -50,6 +52,7 @@ func main() {
 		panic(err)
 	}
 
+	// Record to update
 	fmt.Println("[*] Updating new record")
 	ind := ir.Dict{
 		Pairs: ir.Pairs{
@@ -61,13 +64,16 @@ func main() {
 	r := base.Record{Key: k, User: ind}
 	in := r.Disassemble()
 
-	err = e2.Update(ctx, k, h1.ID(), in)
+	// Update record
+	err = sm.Update(ctx, k, h1.ID(), in)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("[*] Update successful")
+
+	// Get Record stored
 	fmt.Println("[*] Getting updated record from peer")
-	out, err := e2.Get(ctx, k, h1.ID())
+	out, err := sm.Get(ctx, k, h1.ID())
 	if err != nil {
 		panic(err)
 	}

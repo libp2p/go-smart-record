@@ -13,6 +13,7 @@ import (
 	"github.com/libp2p/go-smart-record/ir"
 	pb "github.com/libp2p/go-smart-record/protocol/pb"
 	"github.com/libp2p/go-smart-record/vm"
+	sm "github.com/libp2p/go-smart-record/vm"
 )
 
 var log = logging.Logger("smart-records")
@@ -57,7 +58,7 @@ func newSmartRecordManager(ctx context.Context, h host.Host, options ...Option) 
 		proc:      goprocessctx.WithContext(ctx),
 		host:      h,
 		self:      h.ID(),
-		vm:        vm.NewVM(cfg.mergeContext, cfg.assembler),
+		vm:        sm.NewVM(cfg.mergeContext, cfg.assembler),
 		protocols: protocols,
 
 		senderManager: &messageSenderImpl{
