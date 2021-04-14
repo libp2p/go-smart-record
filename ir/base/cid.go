@@ -29,7 +29,3 @@ func (c Cid) WritePretty(w io.Writer) error {
 func (c Cid) MergeWith(ctx ir.MergeContext, x ir.Node) (ir.Node, error) {
 	panic("XXX")
 }
-
-func (c Cid) Encoding() ir.Encoder {
-	return nil
-}

@@ -27,7 +27,3 @@ func (p Peer) WritePretty(w io.Writer) error {
 func (p Peer) MergeWith(ctx ir.MergeContext, x ir.Node) (ir.Node, error) {
 	panic("XXX")
 }
-
-func (p Peer) Encoding() ir.Encoder {
-	return nil
-}
