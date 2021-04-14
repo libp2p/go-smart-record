@@ -20,7 +20,7 @@ type Machine interface {
 }
 
 // VM implements the Machine interface and keeps the map of records in its state.
-type VM struct {
+type vm struct {
 	ctx ir.MergeContext // MergeContext the VM uses to resolve conflicts
 	//ds  ds.Datastore    // TODO: Add a datastore instead of using map[string] for the VM state
 	s   map[string]*ir.Dict // State of the VM storing the map of records.
@@ -28,8 +28,14 @@ type VM struct {
 	lk  sync.RWMutex        // Lock to enable multiple access
 }
 
-func NewVM(ctx ir.MergeContext, asm ir.Assembler) *VM {
-	return &VM{
+// NewVM creates a new smart record Machine
+func NewVM(ctx ir.MergeContext, asm ir.Assembler) Machine {
+	return newVM(ctx, asm)
+}
+
+//newVM instantiates a new VM with a mergeContext and an assembler
+func newVM(ctx ir.MergeContext, asm ir.Assembler) *vm {
+	return &vm{
 		ctx: ctx,
 		s:   make(map[string]*ir.Dict),
 		asm: asm,
@@ -37,7 +43,7 @@ func NewVM(ctx ir.MergeContext, asm ir.Assembler) *VM {
 }
 
 // Update updates the record in key with the provided dict
-func (v *VM) Update(k string, s ir.Dict) error {
+func (v *vm) Update(k string, s ir.Dict) error {
 	v.lk.Lock()
 	defer v.lk.Unlock()
 	// Start assemble process with the parent VM assemblerContext
@@ -73,7 +79,7 @@ func (v *VM) Update(k string, s ir.Dict) error {
 // NOTE: This a just a toy implementation for showcase purposes. This won't be
 // the final implemenation, you can disregard it right away. We need to
 // first figure out how selectors would work.
-func (v *VM) Query(k string, selector Selector) (ir.Dict, error) {
+func (v *vm) Query(k string, selector Selector) (ir.Dict, error) {
 	v.lk.RLock()
 	defer v.lk.RUnlock()
 	src := v.s[k]
@@ -90,7 +96,7 @@ func (v *VM) Query(k string, selector Selector) (ir.Dict, error) {
 }
 
 // Gets the whole record stored in a key
-func (v *VM) Get(k string) ir.Dict {
+func (v *vm) Get(k string) ir.Dict {
 	v.lk.RLock()
 	defer v.lk.RUnlock()
 	if v.s[k] == nil {
