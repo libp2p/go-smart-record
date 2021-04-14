@@ -23,8 +23,7 @@ func (s SyntacticDictSelector) Run(ctx SelectorContext, src ir.Dict) (ir.Dict, e
 func queryDict(src ir.Dict, selector ir.Dict) (ir.Dict, error) {
 	// Check if selector or src equals nil
 	out := ir.Dict{}
-	//if src.Tag == selector.Tag {
-	//out.Tag = selector.Tag
+
 	for _, p := range selector.Pairs {
 		// Check if selector and source are the same type
 		// and is not a wildcard (i.e. value of selector == nil).
@@ -59,6 +58,5 @@ func queryDict(src ir.Dict, selector ir.Dict) (ir.Dict, error) {
 			out = out.CopySet(p.Key, value)
 		}
 	}
-	//}
 	return out, nil
 }
