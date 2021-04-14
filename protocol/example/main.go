@@ -30,12 +30,12 @@ func main() {
 	defer h2.Close()
 
 	fmt.Println("[*] Starting smart record envs for hosts")
-	_, err = env.New(ctx, h1)
+	_, err = env.NewSmartRecordManager(ctx, h1)
 	if err != nil {
 		panic(err)
 	}
 
-	e2, err := env.New(ctx, h2)
+	e2, err := env.NewSmartRecordManager(ctx, h2)
 	if err != nil {
 		panic(err)
 	}

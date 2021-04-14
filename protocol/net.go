@@ -49,7 +49,7 @@ func writeMsg(w io.Writer, mes *pb.Message) error {
 }
 
 // handleNewStream implements the network.StreamHandler
-func (e *SmartRecordManager) handleNewStream(s network.Stream) {
+func (e *smartRecordManager) handleNewStream(s network.Stream) {
 	if e.handleNewMessage(s) {
 		// If we exited without error, close gracefully.
 		_ = s.Close()
@@ -60,7 +60,7 @@ func (e *SmartRecordManager) handleNewStream(s network.Stream) {
 }
 
 // Returns true on orderly completion of writes (so we can Close the stream conveniently).
-func (e *SmartRecordManager) handleNewMessage(s network.Stream) bool {
+func (e *smartRecordManager) handleNewMessage(s network.Stream) bool {
 	ctx := e.ctx
 	r := msgio.NewVarintReaderSize(s, network.MessageSizeMax)
 

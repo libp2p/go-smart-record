@@ -13,7 +13,7 @@ import (
 // smartRecordHandler specifies the signature of functions that handle DHT messages.
 type smartRecordHandler func(context.Context, peer.ID, *pb.Message) (*pb.Message, error)
 
-func (e *SmartRecordManager) handlerForMsgType(t pb.Message_MessageType) smartRecordHandler {
+func (e *smartRecordManager) handlerForMsgType(t pb.Message_MessageType) smartRecordHandler {
 	switch t {
 	case pb.Message_GET:
 		return e.handleGet
@@ -26,7 +26,7 @@ func (e *SmartRecordManager) handlerForMsgType(t pb.Message_MessageType) smartRe
 	return nil
 }
 
-func (e *SmartRecordManager) handleGet(ctx context.Context, p peer.ID, msg *pb.Message) (*pb.Message, error) {
+func (e *smartRecordManager) handleGet(ctx context.Context, p peer.ID, msg *pb.Message) (*pb.Message, error) {
 	k := msg.GetKey()
 	if len(k) == 0 {
 		return nil, errors.New("handleGet: no key was provided")
@@ -49,7 +49,7 @@ func (e *SmartRecordManager) handleGet(ctx context.Context, p peer.ID, msg *pb.M
 	return resp, nil
 }
 
-func (e *SmartRecordManager) handleUpdate(ctx context.Context, p peer.ID, msg *pb.Message) (*pb.Message, error) {
+func (e *smartRecordManager) handleUpdate(ctx context.Context, p peer.ID, msg *pb.Message) (*pb.Message, error) {
 
 	k := msg.GetKey()
 	if len(k) == 0 {
@@ -91,7 +91,7 @@ func (e *SmartRecordManager) handleUpdate(ctx context.Context, p peer.ID, msg *p
 	return resp, nil
 }
 
-func (e *SmartRecordManager) handleQuery(ctx context.Context, p peer.ID, msg *pb.Message) (_ *pb.Message, err error) {
+func (e *smartRecordManager) handleQuery(ctx context.Context, p peer.ID, msg *pb.Message) (_ *pb.Message, err error) {
 	// TODO: For now query is the same as get. We don't understand selectors yet.
 	return e.handleGet(ctx, p, msg)
 }

@@ -21,7 +21,16 @@ const (
 	srProtocol protocol.ID = "/smart-record/0.0.1"
 )
 
-type SmartRecordManager struct {
+// SmartRecordManager interface to manage smart records
+type SmartRecordManager interface {
+	Get(ctx context.Context, k string, p peer.ID) (*ir.Dict, error)
+	Update(ctx context.Context, k string, p peer.ID, rec ir.Dict) error
+	Query(ctx context.Context, k string, p peer.ID, selector ir.Dict) (*ir.Dict, error)
+}
+
+// smartRecordManager handles the exchange of messages
+// with peers to interact with smart-records
+type smartRecordManager struct {
 	ctx       context.Context
 	proc      goprocess.Process
 	host      host.Host
@@ -32,18 +41,18 @@ type SmartRecordManager struct {
 	senderManager *messageSenderImpl
 }
 
-// New creates a new DHT with the specified host and options.
-// Please note that being connected to a DHT peer does not necessarily imply that it's also in the DHT Routing Table.
-// If the Routing Table has more than "minRTRefreshThreshold" peers, we consider a peer as a Routing Table candidate ONLY when
-// we successfully get a query response from it OR if it send us a query.
-func New(ctx context.Context, h host.Host, options ...Option) (*SmartRecordManager, error) {
+func NewSmartRecordManager(ctx context.Context, h host.Host, options ...Option) (SmartRecordManager, error) {
+	return newSmartRecordManager(ctx, h, options...)
+}
+
+func newSmartRecordManager(ctx context.Context, h host.Host, options ...Option) (*smartRecordManager, error) {
 	var cfg config
 	if err := cfg.apply(append([]Option{defaults}, options...)...); err != nil {
 		return nil, err
 	}
 	protocols := []protocol.ID{srProtocol}
 
-	e := &SmartRecordManager{
+	e := &smartRecordManager{
 		ctx:       ctx,
 		proc:      goprocessctx.WithContext(ctx),
 		host:      h,
@@ -68,7 +77,7 @@ func New(ctx context.Context, h host.Host, options ...Option) (*SmartRecordManag
 	return e, nil
 }
 
-func (e *SmartRecordManager) Get(ctx context.Context, k string, p peer.ID) (*ir.Dict, error) {
+func (e *smartRecordManager) Get(ctx context.Context, k string, p peer.ID) (*ir.Dict, error) {
 	// Send a new request and wait for response
 	req := &pb.Message{
 		Type: pb.Message_GET,
@@ -92,7 +101,7 @@ func (e *SmartRecordManager) Get(ctx context.Context, k string, p peer.ID) (*ir.
 
 }
 
-func (e *SmartRecordManager) Update(ctx context.Context, k string, p peer.ID, rec ir.Dict) error {
+func (e *smartRecordManager) Update(ctx context.Context, k string, p peer.ID, rec ir.Dict) error {
 	// Send a new request and wait for response
 	recB, err := ir.Marshal(rec)
 	if err != nil {
@@ -117,7 +126,7 @@ func (e *SmartRecordManager) Update(ctx context.Context, k string, p peer.ID, re
 	return nil
 }
 
-func (e *SmartRecordManager) Query(ctx context.Context, k string, p peer.ID) (*ir.Dict, error) {
+func (e *smartRecordManager) Query(ctx context.Context, k string, p peer.ID, selector ir.Dict) (*ir.Dict, error) {
 	// NOTE: For now Query and Get are the same because we don't
 	// understand selectors (yet)
 	return e.Get(ctx, k, p)
