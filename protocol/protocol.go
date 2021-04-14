@@ -21,7 +21,7 @@ const (
 	srProtocol protocol.ID = "/smart-record/0.0.1"
 )
 
-type SmartRecordEnv struct {
+type SmartRecordManager struct {
 	ctx       context.Context
 	proc      goprocess.Process
 	host      host.Host
@@ -36,14 +36,14 @@ type SmartRecordEnv struct {
 // Please note that being connected to a DHT peer does not necessarily imply that it's also in the DHT Routing Table.
 // If the Routing Table has more than "minRTRefreshThreshold" peers, we consider a peer as a Routing Table candidate ONLY when
 // we successfully get a query response from it OR if it send us a query.
-func New(ctx context.Context, h host.Host, options ...Option) (*SmartRecordEnv, error) {
+func New(ctx context.Context, h host.Host, options ...Option) (*SmartRecordManager, error) {
 	var cfg config
 	if err := cfg.apply(append([]Option{defaults}, options...)...); err != nil {
 		return nil, err
 	}
 	protocols := []protocol.ID{srProtocol}
 
-	e := &SmartRecordEnv{
+	e := &SmartRecordManager{
 		ctx:       ctx,
 		proc:      goprocessctx.WithContext(ctx),
 		host:      h,
@@ -68,7 +68,7 @@ func New(ctx context.Context, h host.Host, options ...Option) (*SmartRecordEnv, 
 	return e, nil
 }
 
-func (e *SmartRecordEnv) Get(ctx context.Context, k string, p peer.ID) (*ir.Dict, error) {
+func (e *SmartRecordManager) Get(ctx context.Context, k string, p peer.ID) (*ir.Dict, error) {
 	// Send a new request and wait for response
 	req := &pb.Message{
 		Type: pb.Message_GET,
@@ -92,7 +92,7 @@ func (e *SmartRecordEnv) Get(ctx context.Context, k string, p peer.ID) (*ir.Dict
 
 }
 
-func (e *SmartRecordEnv) Update(ctx context.Context, k string, p peer.ID, rec ir.Dict) error {
+func (e *SmartRecordManager) Update(ctx context.Context, k string, p peer.ID, rec ir.Dict) error {
 	// Send a new request and wait for response
 	recB, err := ir.Marshal(rec)
 	if err != nil {
@@ -117,7 +117,7 @@ func (e *SmartRecordEnv) Update(ctx context.Context, k string, p peer.ID, rec ir
 	return nil
 }
 
-func (e *SmartRecordEnv) Query(ctx context.Context, k string, p peer.ID) (*ir.Dict, error) {
+func (e *SmartRecordManager) Query(ctx context.Context, k string, p peer.ID) (*ir.Dict, error) {
 	// NOTE: For now Query and Get are the same because we don't
 	// understand selectors (yet)
 	return e.Get(ctx, k, p)
