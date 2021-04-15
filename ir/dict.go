@@ -243,9 +243,6 @@ func (d Dict) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 	if !ok {
 		return nil, fmt.Errorf("cannot update with a non-dict")
 	}
-	// if wd.Tag != d.Tag {
-	// 	return nil, fmt.Errorf("cannot change dictionary tag")
-	// }
 	u := d.Copy()
 	u.Tag = wd.Tag
 	for _, p := range wd.Pairs {

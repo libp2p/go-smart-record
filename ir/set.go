@@ -108,9 +108,6 @@ func (s Set) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 	if !ok {
 		return nil, fmt.Errorf("cannot update with a non-set")
 	}
-	// if ws.Tag != s.Tag {
-	// 	return nil, fmt.Errorf("cannot change set tag")
-	// }
 	u := s.Copy()
 	u.Tag = ws.Tag
 	for _, e := range ws.Elements {
