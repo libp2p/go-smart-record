@@ -54,22 +54,39 @@ func main() {
 
 	// Record to update
 	fmt.Println("[*] Updating new record")
-	ind := ir.Dict{
+	ind1 := ir.Dict{
 		Pairs: ir.Pairs{
 			ir.Pair{Key: ir.String{Value: "key"}, Value: ir.String{Value: "234"}},
-			ir.Pair{Key: ir.String{Value: "fff"}, Value: ir.String{Value: "ff2"}},
+			ir.Pair{Key: ir.String{Value: "QmXBar"}, Value: ir.String{Value: "/ip4/multiaddr1"}},
+			ir.Pair{Key: ir.String{Value: "QmXFor"}, Value: ir.String{Value: "/ip4/multiaddr2"}},
+		},
+	}
+	ind2 := ir.Dict{
+		Pairs: ir.Pairs{
+			ir.Pair{Key: ir.String{Value: "key"}, Value: ir.String{Value: "234"}},
+			ir.Pair{Key: ir.String{Value: "QmXBar2"}, Value: ir.String{Value: "/ip4/multiaddr3"}},
+			ir.Pair{Key: ir.String{Value: "QmXFoo2"}, Value: ir.String{Value: "/ip4/multiaddr4"}},
 		},
 	}
 	k := "234"
-	r := base.Record{Key: k, User: ind}
-	in := r.Disassemble()
+	r1 := base.Record{Key: k, User: ind1}
+	in1 := r1.Disassemble()
+	r2 := base.Record{Key: k, User: ind2}
+	in2 := r2.Disassemble()
 
 	// Update record
-	err = sm.Update(ctx, k, h1.ID(), in)
+	err = sm.Update(ctx, k, h1.ID(), in1)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("[*] Update successful")
+	fmt.Println("[*] Update 1 successful")
+
+	// Update record
+	err = sm.Update(ctx, k, h1.ID(), in2)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("[*] Update 2 successful")
 
 	// Get Record stored
 	fmt.Println("[*] Getting updated record from peer")
