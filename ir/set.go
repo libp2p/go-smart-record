@@ -11,6 +11,15 @@ type Set struct {
 	Elements Nodes
 }
 
+func (s Set) Copy() Set {
+	e := make(Nodes, len(s.Elements))
+	copy(e, s.Elements)
+	return Set{
+		Tag:      s.Tag,
+		Elements: e,
+	}
+}
+
 func (s Set) Len() int {
 	return len(s.Elements)
 }
@@ -94,27 +103,20 @@ func IsEqualSet(x, y Set) bool {
 	return AreSameNodes(x.Elements, y.Elements)
 }
 
-func MergeSet(ctx MergeContext, x, y Set) (Node, error) {
-	if x.Tag != y.Tag {
-		return ctx.MergeConflict(x, y)
+func (s Set) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
+	ws, ok := with.(Set)
+	if !ok {
+		return nil, fmt.Errorf("cannot update with a non-set")
 	}
-	x, y = orderSetByLength(x, y) // x is smaller, y is larger
-	m := Set{
-		Tag:      x.Tag,
-		Elements: make(Nodes, len(y.Elements), len(x.Elements)+len(y.Elements)),
-	}
-	copy(m.Elements, y.Elements)
-	for _, p := range x.Elements {
-		if i := m.Elements.IndexOf(p); i < 0 {
-			m.Elements = append(m.Elements, p)
+	// if ws.Tag != s.Tag {
+	// 	return nil, fmt.Errorf("cannot change set tag")
+	// }
+	u := s.Copy()
+	u.Tag = ws.Tag
+	for _, e := range ws.Elements {
+		if i := u.Elements.IndexOf(e); i < 0 {
+			u.Elements = append(u.Elements, e)
 		}
 	}
-	return m, nil
-}
-
-func orderSetByLength(x, y Set) (shorter, longer Set) {
-	if x.Len() <= y.Len() {
-		return x, y
-	}
-	return y, x
+	return u, nil
 }

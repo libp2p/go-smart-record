@@ -14,6 +14,14 @@ func (b Bool) WritePretty(w io.Writer) (err error) {
 	return err
 }
 
+func (b Bool) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
+	w, ok := with.(Bool)
+	if !ok {
+		return nil, fmt.Errorf("cannot update with a non-bool")
+	}
+	return w, nil
+}
+
 func IsEqualBool(x, y Bool) bool {
 	return x.Value == y.Value
 }

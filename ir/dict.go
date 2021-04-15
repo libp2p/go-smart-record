@@ -55,9 +55,9 @@ func AreSamePairs(x, y Pairs) bool {
 	return true
 }
 
-// MergePairsRight returns the union (wrt keys) of the two lists of pairs.
+// MergePairs returns the union (wrt keys) of the two lists of pairs.
 // Ties are broken in favor of y, the right argument.
-func MergePairsRight(x, y Pairs) Pairs {
+func MergePairs(x, y Pairs) Pairs {
 	z := make(Pairs, len(x), len(x)+len(y))
 	copy(z, x)
 	for _, p := range y {
@@ -238,37 +238,26 @@ func IsEqualDict(x, y Dict) bool {
 	return AreSamePairs(x.Pairs, y.Pairs)
 }
 
-func MergeDict(ctx MergeContext, x, y Dict) (Node, error) {
-	if x.Tag != y.Tag {
-		return ctx.MergeConflict(x, y)
+func (d Dict) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
+	wd, ok := with.(Dict)
+	if !ok {
+		return nil, fmt.Errorf("cannot update with a non-dict")
 	}
-	return MergeDictIgnoreTag(ctx, x, y)
-}
-
-func MergeDictIgnoreTag(ctx MergeContext, x, y Dict) (Node, error) {
-	x, y = orderDictByLength(x, y) // x is smaller, y is larger
-	m := Dict{
-		Tag:   x.Tag,
-		Pairs: make(Pairs, len(y.Pairs), len(x.Pairs)+len(y.Pairs)),
-	}
-	copy(m.Pairs, y.Pairs)
-	for _, p := range x.Pairs {
-		if i := m.Pairs.IndexOf(p.Key); i < 0 {
-			m.Pairs = append(m.Pairs, p)
+	// if wd.Tag != d.Tag {
+	// 	return nil, fmt.Errorf("cannot change dictionary tag")
+	// }
+	u := d.Copy()
+	u.Tag = wd.Tag
+	for _, p := range wd.Pairs {
+		if i := u.Pairs.IndexOf(p.Key); i < 0 {
+			u.Pairs = append(u.Pairs, p)
 		} else {
-			var err error
-			m.Pairs[i].Value, err = Merge(ctx, p.Value, m.Pairs[i].Value)
-			if err != nil {
-				return nil, err
+			if v, err := u.Pairs[i].Value.UpdateWith(ctx, p.Value); err != nil {
+				return nil, fmt.Errorf("cannout update value (%v)", err)
+			} else {
+				u.Pairs[i].Value = v
 			}
 		}
 	}
-	return m, nil
-}
-
-func orderDictByLength(x, y Dict) (shorter, longer Dict) {
-	if x.Len() <= y.Len() {
-		return x, y
-	}
-	return y, x
+	return u, nil
 }

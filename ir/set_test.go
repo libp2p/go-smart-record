@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestMergeSetDiffTag(t *testing.T) {
+func TestUpdateSetDiffTag(t *testing.T) {
 	s1 := Set{
 		Tag:      "aaa",
 		Elements: Nodes{},
@@ -13,13 +13,13 @@ func TestMergeSetDiffTag(t *testing.T) {
 		Tag:      "bbb",
 		Elements: Nodes{},
 	}
-	mctx := DefaultMergeContext{}
-	if _, err := Merge(mctx, s1, s2); err == nil {
-		t.Errorf("expecting a merge conflict")
+	mctx := DefaultUpdateContext{}
+	if _, err := Update(mctx, s1, s2); err != nil {
+		t.Errorf("update (%v)", err)
 	}
 }
 
-func TestMergeSetSameTag(t *testing.T) {
+func TestUpdateSetSameTag(t *testing.T) {
 	s1 := Set{
 		Tag: "aaa",
 		Elements: Nodes{
@@ -42,8 +42,8 @@ func TestMergeSetSameTag(t *testing.T) {
 			String{"w"},
 		},
 	}
-	mctx := DefaultMergeContext{}
-	m, err := Merge(mctx, s1, s2)
+	mctx := DefaultUpdateContext{}
+	m, err := Update(mctx, s1, s2)
 	if err != nil {
 		t.Errorf("expecting no merge conflict, got %v", err)
 	}

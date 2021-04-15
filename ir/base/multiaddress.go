@@ -23,7 +23,3 @@ func (m Multiaddress) Disassemble() ir.Dict {
 func (m Multiaddress) WritePretty(w io.Writer) error {
 	return m.Disassemble().WritePretty(w)
 }
-
-func (m Multiaddress) MergeWith(ctx ir.MergeContext, x ir.Node) (ir.Node, error) {
-	panic("XXX")
-}

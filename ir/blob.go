@@ -24,6 +24,14 @@ func (b Blob) EncodeJSON() (interface{}, error) {
 	}{Type: BlobType, Value: b.Bytes}, nil
 }
 
+func (b Blob) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
+	w, ok := with.(Blob)
+	if !ok {
+		return nil, fmt.Errorf("cannot update with a non-blob")
+	}
+	return w, nil
+}
+
 func IsEqualBlob(x, y Blob) bool {
 	return bytes.Compare(x.Bytes, y.Bytes) == 0
 }

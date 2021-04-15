@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestMergeDictDiffTag(t *testing.T) {
+func TestUpdateDictDiffTag(t *testing.T) {
 	d1 := Dict{
 		Tag:   "aaa",
 		Pairs: Pairs{},
@@ -13,13 +13,13 @@ func TestMergeDictDiffTag(t *testing.T) {
 		Tag:   "bbb",
 		Pairs: Pairs{},
 	}
-	mctx := DefaultMergeContext{}
-	if _, err := Merge(mctx, d1, d2); err == nil {
-		t.Errorf("expecting a merge conflict")
+	mctx := DefaultUpdateContext{}
+	if _, err := Update(mctx, d1, d2); err != nil {
+		t.Errorf("update (%v)", err)
 	}
 }
 
-func TestMergeDictDisjointPairs(t *testing.T) {
+func TestUpdateDictDisjointPairs(t *testing.T) {
 	d1 := Dict{
 		Tag:   "aaa",
 		Pairs: Pairs{{String{"x"}, NewInt64(1)}},
@@ -35,8 +35,8 @@ func TestMergeDictDisjointPairs(t *testing.T) {
 			{String{"y"}, NewInt64(1)},
 		},
 	}
-	mctx := DefaultMergeContext{}
-	m, err := Merge(mctx, d1, d2)
+	mctx := DefaultUpdateContext{}
+	m, err := Update(mctx, d1, d2)
 	if err != nil {
 		t.Errorf("expecting no merge conflict, got %v", err)
 	}
@@ -45,7 +45,7 @@ func TestMergeDictDisjointPairs(t *testing.T) {
 	}
 }
 
-func TestMergeDictOverlappingPairs(t *testing.T) {
+func TestUpdateDictOverlappingPairs(t *testing.T) {
 	d1 := Dict{
 		Tag: "aaa",
 		Pairs: Pairs{
@@ -68,8 +68,8 @@ func TestMergeDictOverlappingPairs(t *testing.T) {
 			{String{"w"}, NewInt64(1)},
 		},
 	}
-	mctx := DefaultMergeContext{}
-	m, err := Merge(mctx, d1, d2)
+	mctx := DefaultUpdateContext{}
+	m, err := Update(mctx, d1, d2)
 	if err != nil {
 		t.Errorf("expecting no merge conflict, got %v", err)
 	}

@@ -1,6 +1,7 @@
 package base
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/libp2p/go-smart-record/ir"
@@ -25,7 +26,7 @@ func (s Signed) EncodeJSON() (interface{}, error) {
 func (s Signed) Disassemble() ir.Dict {
 	return ir.Dict{
 		Tag: "verify",
-		Pairs: ir.MergePairsRight(
+		Pairs: ir.MergePairs(
 			s.User.Pairs,
 			ir.Pairs{
 				{Key: ir.String{"by"}, Value: s.By},
@@ -36,6 +37,10 @@ func (s Signed) Disassemble() ir.Dict {
 	}
 }
 
-func (s Signed) MergeWith(ctx ir.MergeContext, x ir.Node) (ir.Node, error) {
-	panic("XXX")
+func (s Signed) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {
+	w, ok := with.(Signed)
+	if !ok {
+		return nil, fmt.Errorf("cannot update with a non-signed")
+	}
+	return w, nil
 }

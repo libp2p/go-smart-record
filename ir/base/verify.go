@@ -1,6 +1,7 @@
 package base
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/libp2p/go-smart-record/ir"
@@ -39,7 +40,7 @@ func (v Verified) EncodeJSON() (interface{}, error) {
 func (v Verified) Disassemble() ir.Dict {
 	return ir.Dict{
 		Tag: "verify",
-		Pairs: ir.MergePairsRight(
+		Pairs: ir.MergePairs(
 			v.User.Pairs,
 			ir.Pairs{
 				{Key: ir.String{"by"}, Value: v.By},
@@ -52,4 +53,12 @@ func (v Verified) Disassemble() ir.Dict {
 
 func (v Verified) WritePretty(w io.Writer) error {
 	return v.Disassemble().WritePretty(w)
+}
+
+func (v Verified) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {
+	w, ok := with.(Signed)
+	if !ok {
+		return nil, fmt.Errorf("cannot update with a non-verified")
+	}
+	return w, nil
 }

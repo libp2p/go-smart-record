@@ -7,6 +7,7 @@ import (
 type Node interface {
 	WritePretty(w io.Writer) error
 	EncodeJSON() (interface{}, error)
+	UpdateWith(ctx UpdateContext, with Node) (Node, error)
 }
 
 type Nodes []Node

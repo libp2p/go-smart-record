@@ -26,6 +26,14 @@ func (n Int) WritePretty(w io.Writer) (err error) {
 	return err
 }
 
+func (n Int) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
+	wn, ok := with.(Int)
+	if !ok {
+		return nil, fmt.Errorf("cannot update with different primitive type")
+	}
+	return wn, nil
+}
+
 type Float struct {
 	*big.Float
 }
@@ -35,6 +43,14 @@ func (n Float) TypeIsNumber() {}
 func (n Float) WritePretty(w io.Writer) (err error) {
 	_, err = w.Write([]byte(n.Float.String()))
 	return err
+}
+
+func (n Float) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
+	wn, ok := with.(Float)
+	if !ok {
+		return nil, fmt.Errorf("cannot update with different primitive type")
+	}
+	return wn, nil
 }
 
 func IsEqualNumber(x, y Number) bool {

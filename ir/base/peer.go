@@ -1,6 +1,7 @@
 package base
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/libp2p/go-smart-record/ir"
@@ -24,6 +25,10 @@ func (p Peer) WritePretty(w io.Writer) error {
 	return p.Disassemble().WritePretty(w)
 }
 
-func (p Peer) MergeWith(ctx ir.MergeContext, x ir.Node) (ir.Node, error) {
-	panic("XXX")
+func (p Peer) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {
+	w, ok := with.(Peer)
+	if !ok {
+		return nil, fmt.Errorf("cannot update with a non-peer")
+	}
+	return w, nil
 }

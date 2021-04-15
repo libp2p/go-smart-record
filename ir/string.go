@@ -33,3 +33,11 @@ func decodeString(s map[string]interface{}) (Node, error) {
 	}
 	return String{r}, nil
 }
+
+func (s String) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
+	w, ok := with.(String)
+	if !ok {
+		return nil, fmt.Errorf("cannot update with a non-string")
+	}
+	return w, nil
+}
