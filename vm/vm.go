@@ -2,6 +2,7 @@
 package vm
 
 import (
+	"fmt"
 	"sync"
 
 	peer "github.com/libp2p/go-libp2p-peer"
@@ -50,12 +51,53 @@ func newVM(ctx ir.UpdateContext, asm ir.Assembler) *vm {
 
 // Get the whole record stored in a key
 func (v *vm) Get(k string) Record {
-	// TODO: Implementation
-	return Record{Key: "Sample", Value: RecordValue{}}
+	v.lk.RLock()
+	defer v.lk.RUnlock()
+	if v.keys[k] == nil {
+		return Record{Key: k, Value: RecordValue{}}
+	}
+	return *v.keys[k]
 }
 
 // Update the dictionary in the writer's private space
+// NOTE: We currently store an assembled version of the record.
+// We may need to disassemble and serialize before storage
+// if we choose to use a datastore.
 func (v *vm) Update(writer peer.ID, k string, update ir.Dict) error {
-	// TODO: Implementation
+	v.lk.Lock()
+	defer v.lk.Unlock()
+
+	// Start assemble process with the parent VM assemblerContext
+	ds, err := v.asm.Assemble(ir.AssemblerContext{Grammar: v.asm}, update)
+	if err != nil {
+		return err
+	}
+
+	// Check if the result of the assembler is of type Dict
+	d, ok := ds.(ir.Dict)
+	if !ok {
+		return fmt.Errorf("assembler didn't generate a dict")
+	}
+
+	// Directly store d if there is nothing in the key
+	if v.keys[k] == nil {
+		v.keys[k] = &Record{Key: k, Value: make(map[peer.ID]*ir.Dict, 0)}
+		v.keys[k].Value[writer] = &d
+		return nil
+	} else {
+		// If no data in peer
+		if v.keys[k].Value[writer] == nil {
+			v.keys[k].Value[writer] = &d
+		} else {
+			// Update existing dict with the stored one if there's already
+			// something in the peer's key
+			n, err := ir.Update(v.ctx, *v.keys[k].Value[writer], d)
+			if err != nil {
+				return nil
+			}
+			*v.keys[k].Value[writer] = n.(ir.Dict)
+		}
+
+	}
 	return nil
 }
