@@ -12,6 +12,10 @@ type Blob struct {
 	Bytes []byte
 }
 
+func (b Blob) Disassemble() Node {
+	return b
+}
+
 func (b Blob) WritePretty(w io.Writer) error {
 	_, err := fmt.Fprintf(w, "0x%s", hex.EncodeToString(b.Bytes)) // TODO: We can do better. E.g. wrap on 80-column boundary.
 	return err

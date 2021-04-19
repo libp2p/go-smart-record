@@ -17,7 +17,7 @@ func (v Verify) EncodeJSON() (interface{}, error) {
 	return v.Disassemble().EncodeJSON()
 }
 
-func (v Verify) Disassemble() ir.Dict {
+func (v Verify) Disassemble() ir.Node {
 	return v.User.CopySetTag("verify", ir.String{"statement"}, v.Statement)
 }
 
@@ -37,7 +37,7 @@ func (v Verified) EncodeJSON() (interface{}, error) {
 	return v.Disassemble().EncodeJSON()
 }
 
-func (v Verified) Disassemble() ir.Dict {
+func (v Verified) Disassemble() ir.Node {
 	return ir.Dict{
 		Tag: "verify",
 		Pairs: ir.MergePairs(

@@ -32,11 +32,6 @@ func IsEqual(x, y Node) bool {
 		case Set:
 			return IsEqualSet(x1, y1)
 		}
-	case Smart:
-		switch y1 := y.(type) {
-		case Smart:
-			return IsEqualSmart(x1, y1)
-		}
 	}
-	return false
+	return IsEqual(x.Disassemble(), y.Disassemble())
 }

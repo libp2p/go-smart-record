@@ -20,7 +20,7 @@ func (c Cid) EncodeJSON() (interface{}, error) {
 	return c.Disassemble().EncodeJSON()
 }
 
-func (c Cid) Disassemble() ir.Dict {
+func (c Cid) Disassemble() ir.Node {
 	return c.User.CopySetTag("cid", ir.String{"cid"}, ir.String{c.Cid.String()})
 }
 

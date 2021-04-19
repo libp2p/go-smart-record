@@ -16,7 +16,7 @@ func (m Multiaddress) EncodeJSON() (interface{}, error) {
 	return m.Disassemble().EncodeJSON()
 }
 
-func (m Multiaddress) Disassemble() ir.Dict {
+func (m Multiaddress) Disassemble() ir.Node {
 	return m.User.CopySetTag("multiaddress", ir.String{m.Multiaddress}, ir.String{m.Multiaddress})
 }
 

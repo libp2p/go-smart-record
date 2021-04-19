@@ -10,6 +10,10 @@ type String struct {
 	Value string
 }
 
+func (s String) Disassemble() Node {
+	return s
+}
+
 func (s String) WritePretty(w io.Writer) error {
 	_, err := fmt.Fprintf(w, "%q", s.Value)
 	return err

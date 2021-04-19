@@ -17,7 +17,7 @@ func (p Peer) EncodeJSON() (interface{}, error) {
 	return p.Disassemble().EncodeJSON()
 }
 
-func (p Peer) Disassemble() ir.Dict {
+func (p Peer) Disassemble() ir.Node {
 	return p.User.CopySetTag("peer", ir.String{"id"}, ir.String{p.ID})
 }
 

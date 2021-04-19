@@ -23,7 +23,7 @@ func (s Signed) EncodeJSON() (interface{}, error) {
 	return s.Disassemble().EncodeJSON()
 }
 
-func (s Signed) Disassemble() ir.Dict {
+func (s Signed) Disassemble() ir.Node {
 	return ir.Dict{
 		Tag: "verify",
 		Pairs: ir.MergePairs(

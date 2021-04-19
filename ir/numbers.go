@@ -19,6 +19,10 @@ func NewInt64(v int64) Int {
 	return Int{big.NewInt(v)}
 }
 
+func (n Int) Disassemble() Node {
+	return n
+}
+
 func (n Int) TypeIsNumber() {}
 
 func (n Int) WritePretty(w io.Writer) (err error) {
@@ -36,6 +40,10 @@ func (n Int) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 
 type Float struct {
 	*big.Float
+}
+
+func (n Float) Disassemble() Node {
+	return n
 }
 
 func (n Float) TypeIsNumber() {}
