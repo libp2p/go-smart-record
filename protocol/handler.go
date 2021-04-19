@@ -11,7 +11,7 @@ import (
 	"github.com/libp2p/go-smart-record/vm"
 )
 
-// smartRecordHandler specifies the signature of functions that handle DHT messages.
+// smartRecordHandler specifies the signature of functions that handle smart record messages.
 type smartRecordHandler func(context.Context, peer.ID, *pb.Message) (*pb.Message, error)
 
 func (e *smartRecordManager) handlerForMsgType(t pb.Message_MessageType) smartRecordHandler {

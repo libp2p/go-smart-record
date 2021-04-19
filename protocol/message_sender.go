@@ -18,8 +18,7 @@ import (
 // ErrReadTimeout is an error that occurs when no message is read within the timeout period.
 var ErrReadTimeout = fmt.Errorf("timed out reading response")
 
-// messageSenderImpl is responsible for sending requests and messages to peers efficiently, including reuse of streams.
-// It also tracks metrics for sent requests and messages.
+// messageSenderImpl is responsible for sending requests and messages to peers
 type messageSenderImpl struct {
 	host      host.Host // the network services we need
 	smlk      sync.Mutex
@@ -46,8 +45,7 @@ func (m *messageSenderImpl) streamDisconnect(ctx context.Context, p peer.ID) {
 	}()
 }
 
-// SendRequest sends out a request, but also makes sure to
-// measure the RTT for latency measurements.
+// SendRequest sends out a request
 func (m *messageSenderImpl) SendRequest(ctx context.Context, p peer.ID, pmes *pb.Message) (*pb.Message, error) {
 
 	ms, err := m.messageSenderForPeer(ctx, p)
