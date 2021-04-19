@@ -18,7 +18,7 @@ type config struct {
 type Option func(*config) error
 
 // defaults are the default smart record env options. This option will be automatically
-// prepended to any options you pass to the DHT constructor.
+// prepended to any options you pass to the constructor.
 var defaults = func(o *config) error {
 	o.mergeContext = ir.DefaultUpdateContext{}
 	o.assembler = base.BaseGrammar
