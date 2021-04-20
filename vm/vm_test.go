@@ -28,12 +28,12 @@ func TestEmptyUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := vm.Get(k)
-	if !ir.IsEqual(in, *out.Value[p.ID()]) {
+	if !ir.IsEqual(in, *out[p.ID()]) {
 		t.Fatal("Record not updated in empty key", in, out)
 	}
 
 	out = vm.Get("randomKey")
-	if out.Value[p.ID()] != nil {
+	if out[p.ID()] != nil {
 		t.Fatal("Returned non emtpy record", out)
 	}
 }
@@ -70,7 +70,7 @@ func TestExistingUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := vm.Get(k)
-	if !ir.IsEqual(in, *out.Value[p.ID()]) {
+	if !ir.IsEqual(in, *out[p.ID()]) {
 		t.Fatal("Record not updated in existing key", in, out)
 	}
 }
@@ -108,7 +108,7 @@ func TestSeveralPeers(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := vm.Get(k)
-	if !ir.IsEqual(in1, *out.Value[p1.ID()]) && !ir.IsEqual(in2, *out.Value[p2.ID()]) {
+	if !ir.IsEqual(in1, *out[p1.ID()]) || !ir.IsEqual(in2, *out[p2.ID()]) {
 		t.Fatal("Record not updated in existing key", in1, in2, out)
 	}
 	err = vm.Update(p2.ID(), k, in1)
@@ -116,7 +116,7 @@ func TestSeveralPeers(t *testing.T) {
 		t.Fatal(err)
 	}
 	out = vm.Get(k)
-	if !ir.IsEqual(in, *out.Value[p2.ID()]) {
+	if !ir.IsEqual(in, *out[p2.ID()]) {
 		t.Fatal("Record not updated in existing key", in1, in2, out)
 	}
 }

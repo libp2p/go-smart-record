@@ -57,9 +57,10 @@ func (v *vm) Get(k string) RecordValue {
 	for pk, v := range *v.keys[k] {
 		d := v.Disassemble()
 		do, ok := d.(ir.Dict)
-		if !ok {
-			// Do not return nodes which are not ir.Dict
-			continue
+		// Do not return nodes which are not ir.Dict
+		// after dissassembling
+		if ok {
+			out[pk] = &do
 		}
 	}
 	return out
@@ -88,22 +89,27 @@ func (v *vm) Update(writer peer.ID, k string, update ir.Dict) error {
 
 	// Directly store d if there is nothing in the key
 	if v.keys[k] == nil {
-		v.keys[k] = make(map[peer.ID]*ir.Dict, 0)
-		v.keys[k].Value[writer] = &d
+		v.keys[k] = &RecordValue{writer: &d}
 		return nil
 	} else {
 		// If no data in peer
-		if v.keys[k].Value[writer] == nil {
-			v.keys[k].Value[writer] = &d
+		if (*v.keys[k])[writer] == nil {
+			(*v.keys[k])[writer] = &d
 		} else {
 			// Update existing dict with the stored one if there's already
 			// something in the peer's key
-			n, err := ir.Update(v.ctx, *v.keys[k].Value[writer], d)
+			n, err := ir.Update(v.ctx, (*v.keys[k])[writer], d)
 			if err != nil {
 				return nil
 			}
-			*v.keys[k][writer] = n.(ir.Dict)
+			// We can most certainly be sure that this is a ir.Dict,
+			// but as we need to do the cast either way, let's double-check.
+			no, ok := n.(ir.Dict)
+			if !ok {
+				return fmt.Errorf("update didn't generate a dict")
+			}
+			(*v.keys[k])[writer] = &no
 		}
-
+		return nil
 	}
 }
