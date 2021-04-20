@@ -5,6 +5,7 @@ import (
 )
 
 type Node interface {
+	Disassemble() Node // returns only syntactic nodes
 	WritePretty(w io.Writer) error
 	EncodeJSON() (interface{}, error)
 	UpdateWith(ctx UpdateContext, with Node) (Node, error)

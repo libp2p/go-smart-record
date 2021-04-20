@@ -9,6 +9,10 @@ type Bool struct {
 	Value bool
 }
 
+func (b Bool) Disassemble() Node {
+	return b
+}
+
 func (b Bool) WritePretty(w io.Writer) (err error) {
 	_, err = fmt.Fprintf(w, "%v", b.Value)
 	return err

@@ -106,5 +106,4 @@ func (v *vm) Update(writer peer.ID, k string, update ir.Dict) error {
 		}
 
 	}
-	return nil
 }

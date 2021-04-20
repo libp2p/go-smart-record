@@ -11,6 +11,14 @@ type Set struct {
 	Elements Nodes
 }
 
+func (s Set) Disassemble() Node {
+	x := Set{Tag: s.Tag, Elements: make(Nodes, len(s.Elements))}
+	for i, e := range s.Elements {
+		x.Elements[i] = e.Disassemble()
+	}
+	return s
+}
+
 func (s Set) Copy() Set {
 	e := make(Nodes, len(s.Elements))
 	copy(e, s.Elements)
