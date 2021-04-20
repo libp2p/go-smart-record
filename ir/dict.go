@@ -76,6 +76,14 @@ type Dict struct {
 	Pairs Pairs // keys must be unique wrt IsEqual
 }
 
+func (d Dict) Disassemble() Node {
+	x := Dict{Tag: d.Tag, Pairs: make(Pairs, len(d.Pairs))}
+	for i, p := range d.Pairs {
+		x.Pairs[i] = Pair{Key: p.Key, Value: p.Value.Disassemble()}
+	}
+	return x
+}
+
 func (d Dict) Len() int {
 	return len(d.Pairs)
 }
