@@ -38,7 +38,7 @@ func UnmarshalRecordValue(b []byte) (RecordValue, error) {
 		if !ok {
 			return nil, fmt.Errorf("no dict type unmarshalling RecordValue item")
 		}
-		pid, err := peer.IDFromString(k)
+		pid, err := peer.Decode(k)
 		if err != nil {
 			return nil, err
 		}
