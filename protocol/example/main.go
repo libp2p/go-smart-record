@@ -90,8 +90,8 @@ func main() {
 	}
 
 	fmt.Println("[*] It worked")
-	fmt.Println("Record Key", out.Key)
-	for k, v := range out.Value {
+	fmt.Println("Record Key", k)
+	for k, v := range *out {
 		fmt.Println("Value for peer: ", k.String(), " - ", v)
 	}
 

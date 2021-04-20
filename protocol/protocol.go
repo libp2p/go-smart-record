@@ -24,7 +24,7 @@ const (
 
 // SmartRecordManager interface to manage smart records
 type SmartRecordManager interface {
-	Get(ctx context.Context, k string, p peer.ID) (*vm.Record, error)
+	Get(ctx context.Context, k string, p peer.ID) (*vm.RecordValue, error)
 	Update(ctx context.Context, k string, p peer.ID, rec ir.Dict) error
 	// NOTE: we won't support queries until we figure out selectors
 	// Query(ctx context.Context, k string, p peer.ID, selector ir.Dict) (*ir.Dict, error)
@@ -77,7 +77,7 @@ func newSmartRecordManager(ctx context.Context, h host.Host, options ...Option) 
 	return e, nil
 }
 
-func (e *smartRecordManager) Get(ctx context.Context, k string, p peer.ID) (*vm.Record, error) {
+func (e *smartRecordManager) Get(ctx context.Context, k string, p peer.ID) (*vm.RecordValue, error) {
 	// Send a new request and wait for response
 	req := &pb.Message{
 		Type: pb.Message_GET,
@@ -93,7 +93,7 @@ func (e *smartRecordManager) Get(ctx context.Context, k string, p peer.ID) (*vm.
 		return nil, err
 	}
 
-	return &vm.Record{Key: string(resp.GetKey()), Value: rv}, nil
+	return &rv, nil
 
 }
 
