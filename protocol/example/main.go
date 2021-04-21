@@ -23,17 +23,24 @@ func main() {
 	// Option to create smart record in hosts
 	sr := func(h host.Host) (env.SmartRecordManager, error) {
 		var err error
+		sm, err = env.NewSmartRecordClient(ctx, h)
+		return sm, err
+	}
+	// Option to create smart record in hosts
+	srs := func(h host.Host) (env.SmartRecordManager, error) {
+		var err error
 		sm, err = env.NewSmartRecordManager(ctx, h)
 		return sm, err
 	}
-	smartRecordsOpt := libp2p.SmartRecord(sr)
+	smartRecordClientOpt := libp2p.SmartRecord(sr)
+	smartRecordServerOpt := libp2p.SmartRecord(srs)
 
 	// Instantiating hosts
-	h1, err := libp2p.New(ctx, smartRecordsOpt)
+	h1, err := libp2p.New(ctx, smartRecordServerOpt)
 	if err != nil {
 		panic(err)
 	}
-	h2, err := libp2p.New(ctx, smartRecordsOpt)
+	h2, err := libp2p.New(ctx, smartRecordClientOpt)
 	if err != nil {
 		panic(err)
 	}

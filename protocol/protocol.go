@@ -39,12 +39,21 @@ type smartRecordManager struct {
 	self      peer.ID
 	vm        vm.Machine
 	protocols []protocol.ID
+	mode      ModeOpt
 
 	senderManager *messageSenderImpl
 }
 
+// NewSmartRecordManager starts a full smartRecordManager in server mode.
 func NewSmartRecordManager(ctx context.Context, h host.Host, options ...Option) (SmartRecordManager, error) {
 	return newSmartRecordManager(ctx, h, options...)
+}
+
+// NewSmartRecordClient starts a smartRecordManager in client mode
+func NewSmartRecordClient(ctx context.Context, h host.Host, options ...Option) (SmartRecordManager, error) {
+	// Add client mode option
+	opts := append([]Option{Mode(ModeClient)}, options...)
+	return newSmartRecordManager(ctx, h, opts...)
 }
 
 func newSmartRecordManager(ctx context.Context, h host.Host, options ...Option) (*smartRecordManager, error) {
@@ -54,12 +63,12 @@ func newSmartRecordManager(ctx context.Context, h host.Host, options ...Option) 
 	}
 	protocols := []protocol.ID{srProtocol}
 
+	// Start a smartRecordManage in client mode.
 	e := &smartRecordManager{
 		ctx:       ctx,
 		proc:      goprocessctx.WithContext(ctx),
 		host:      h,
 		self:      h.ID(),
-		vm:        sm.NewVM(cfg.mergeContext, cfg.assembler),
 		protocols: protocols,
 
 		senderManager: &messageSenderImpl{
@@ -69,9 +78,19 @@ func newSmartRecordManager(ctx context.Context, h host.Host, options ...Option) 
 		},
 	}
 
-	// Set streamhandler
-	for _, p := range e.protocols {
-		e.host.SetStreamHandler(p, e.handleNewStream)
+	// NOTE: For now the smartrecord manager is in client or server mode from the
+	// moment of initialization. We can add a switchMode() function if we want
+	// this to be configurable in runtime.
+	e.mode = cfg.mode
+
+	// If serverMode is on we handle smart record requests
+	if cfg.mode == ModeServer {
+		// Initialize vm
+		e.vm = sm.NewVM(cfg.updateContext, cfg.assembler)
+		// Set streamhandler
+		for _, p := range e.protocols {
+			e.host.SetStreamHandler(p, e.handleNewStream)
+		}
 	}
 
 	return e, nil
