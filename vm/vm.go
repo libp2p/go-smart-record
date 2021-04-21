@@ -1,7 +1,7 @@
-// Package vm defines and implements a Virtual Machine for smart records.
 package vm
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -45,12 +45,71 @@ func newVM(ctx ir.UpdateContext, asm ir.Assembler) *vm {
 
 // Get the whole record stored in a key
 func (v *vm) Get(k string) RecordValue {
-	// TODO: Implementation
-	return RecordValue{}
+	v.lk.RLock()
+	defer v.lk.RUnlock()
+	// If nothing in key
+	if v.keys[k] == nil {
+		return RecordValue{}
+	}
+
+	// Disassembles all nodes in record
+	out := make(map[peer.ID]*ir.Dict, 0)
+	for pk, v := range *v.keys[k] {
+		d := v.Disassemble()
+		do, ok := d.(ir.Dict)
+		// Do not return nodes which are not ir.Dict
+		// after dissassembling
+		if ok {
+			out[pk] = &do
+		}
+	}
+	return out
+
 }
 
 // Update the dictionary in the writer's private space
+// NOTE: We currently store an assembled version of the record.
+// We may need to disassemble and serialize before storage
+// if we choose to use a datastore.
 func (v *vm) Update(writer peer.ID, k string, update ir.Dict) error {
-	// TODO: Implementation
-	return nil
+	v.lk.Lock()
+	defer v.lk.Unlock()
+
+	// Start assemble process with the parent VM assemblerContext
+	ds, err := v.asm.Assemble(ir.AssemblerContext{Grammar: v.asm}, update)
+	if err != nil {
+		return err
+	}
+
+	// Check if the result of the assembler is of type Dict
+	d, ok := ds.(ir.Dict)
+	if !ok {
+		return fmt.Errorf("assembler didn't generate a dict")
+	}
+
+	// Directly store d if there is nothing in the key
+	if v.keys[k] == nil {
+		v.keys[k] = &RecordValue{writer: &d}
+		return nil
+	} else {
+		// If no data in peer
+		if (*v.keys[k])[writer] == nil {
+			(*v.keys[k])[writer] = &d
+		} else {
+			// Update existing dict with the stored one if there's already
+			// something in the peer's key
+			n, err := ir.Update(v.ctx, (*v.keys[k])[writer], d)
+			if err != nil {
+				return nil
+			}
+			// We can most certainly be sure that this is a ir.Dict,
+			// but as we need to do the cast either way, let's double-check.
+			no, ok := n.(ir.Dict)
+			if !ok {
+				return fmt.Errorf("update didn't generate a dict")
+			}
+			(*v.keys[k])[writer] = &no
+		}
+		return nil
+	}
 }
