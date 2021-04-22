@@ -9,7 +9,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-smart-record/ir"
-	env "github.com/libp2p/go-smart-record/protocol"
+	"github.com/libp2p/go-smart-record/protocol"
 )
 
 func main() {
@@ -17,30 +17,12 @@ func main() {
 
 	fmt.Println("[*] Starting hosts")
 
-	// Variable to host h2 smartRecord manager used to
-	// expose its interface.
-	var sm env.SmartRecordManager
-	// Option to create smart record in hosts
-	sr := func(h host.Host) (env.SmartRecordManager, error) {
-		var err error
-		sm, err = env.NewSmartRecordClient(ctx, h)
-		return sm, err
-	}
-	// Option to create smart record in hosts
-	srs := func(h host.Host) (env.SmartRecordManager, error) {
-		var err error
-		sm, err = env.NewSmartRecordManager(ctx, h)
-		return sm, err
-	}
-	smartRecordClientOpt := libp2p.SmartRecord(sr)
-	smartRecordServerOpt := libp2p.SmartRecord(srs)
-
 	// Instantiating hosts
-	h1, err := libp2p.New(ctx, smartRecordServerOpt)
+	h1, err := libp2p.New(ctx)
 	if err != nil {
 		panic(err)
 	}
-	h2, err := libp2p.New(ctx, smartRecordClientOpt)
+	h2, err := libp2p.New(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -56,6 +38,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	_, _ = protocol.NewSmartRecordServer(ctx, h1)
+	smClient, _ := protocol.NewSmartRecordClient(ctx, h2)
 
 	// Record to update
 	fmt.Println("[*] Updating new record")
@@ -76,14 +61,14 @@ func main() {
 	k := "234"
 
 	// Update record
-	err = sm.Update(ctx, k, h1.ID(), in1)
+	err = smClient.Update(ctx, k, h1.ID(), in1)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("[*] Update 1 successful")
 
 	// Update record
-	err = sm.Update(ctx, k, h1.ID(), in2)
+	err = smClient.Update(ctx, k, h1.ID(), in2)
 	if err != nil {
 		panic(err)
 	}
@@ -91,7 +76,7 @@ func main() {
 
 	// Get Record stored
 	fmt.Println("[*] Getting updated record from peer")
-	out, err := sm.Get(ctx, k, h1.ID())
+	out, err := smClient.Get(ctx, k, h1.ID())
 	if err != nil {
 		panic(err)
 	}
