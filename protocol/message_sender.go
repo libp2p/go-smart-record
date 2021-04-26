@@ -26,25 +26,6 @@ type messageSenderImpl struct {
 	protocols []protocol.ID
 }
 
-func (m *messageSenderImpl) streamDisconnect(ctx context.Context, p peer.ID) {
-	m.smlk.Lock()
-	defer m.smlk.Unlock()
-	ms, ok := m.strmap[p]
-	if !ok {
-		return
-	}
-	delete(m.strmap, p)
-
-	// Do this asynchronously as ms.lk can block for a while.
-	go func() {
-		if err := ms.lk.Lock(ctx); err != nil {
-			return
-		}
-		defer ms.lk.Unlock()
-		ms.invalidate()
-	}()
-}
-
 // SendRequest sends out a request
 func (m *messageSenderImpl) SendRequest(ctx context.Context, p peer.ID, pmes *pb.Message) (*pb.Message, error) {
 
@@ -169,7 +150,7 @@ func (ms *peerMessageSender) prep(ctx context.Context) error {
 	return nil
 }
 
-func (ms *peerMessageSender) SendMessage(ctx context.Context, pmes *pb.Message) error {
+func (ms *peerMessageSender) sendMessage(ctx context.Context, pmes *pb.Message) error {
 	if err := ms.lk.Lock(ctx); err != nil {
 		return err
 	}
@@ -190,20 +171,16 @@ func (ms *peerMessageSender) SendMessage(ctx context.Context, pmes *pb.Message) 
 	return nil
 }
 
+// SendMessage to a peer without waiting for any response.
+func (ms *peerMessageSender) SendMessage(ctx context.Context, pmes *pb.Message) error {
+	return ms.sendMessage(ctx, pmes)
+}
+
+// SendRequest sends a message and waits for a resonse to be sent back.
 func (ms *peerMessageSender) SendRequest(ctx context.Context, pmes *pb.Message) (*pb.Message, error) {
-	if err := ms.lk.Lock(ctx); err != nil {
-		return nil, err
-	}
-	defer ms.lk.Unlock()
-
-	if err := ms.prep(ctx); err != nil {
-		return nil, err
-	}
-
-	if err := ms.writeMsg(pmes); err != nil {
-		_ = ms.s.Reset()
-		ms.s = nil
-		log.Debugw("error writing message", "error", err)
+	err := ms.sendMessage(ctx, pmes)
+	if err != nil {
+		log.Debugw("Error sending request", "erorr", err)
 		return nil, err
 	}
 
