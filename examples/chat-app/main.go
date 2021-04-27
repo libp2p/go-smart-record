@@ -112,7 +112,6 @@ func main() {
 
 		// Send message to connect to server.
 		fmt.Printf("Run './chat-app -d /ip4/127.0.0.1/tcp/%v/p2p/%s -room roomName -nick nickname' on another console to start a chat client.\n", port, host.ID().Pretty())
-		fmt.Printf("on another console to start a chat client.\n")
 		fmt.Printf("\n[*] Smart record chat server running...\n\n")
 		// Hang forever
 		select {}
