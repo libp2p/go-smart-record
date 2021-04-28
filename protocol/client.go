@@ -8,9 +8,9 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
-	"github.com/libp2p/go-smart-record/ir"
 	pb "github.com/libp2p/go-smart-record/protocol/pb"
 	"github.com/libp2p/go-smart-record/vm"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 var log = logging.Logger("smart-records")
@@ -18,7 +18,7 @@ var log = logging.Logger("smart-records")
 // SmartRecordClient sends smart-record requesets to other peers.
 type SmartRecordClient interface {
 	Get(ctx context.Context, k string, p peer.ID) (*vm.RecordValue, error)
-	Update(ctx context.Context, k string, p peer.ID, rec ir.Dict) error
+	Update(ctx context.Context, k string, p peer.ID, rec xr.Dict) error
 	// NOTE: we won't support queries until we figure out selectors
 	// Query(ctx context.Context, k string, p peer.ID, selector ir.Dict) (*ir.Dict, error)
 }
@@ -83,9 +83,9 @@ func (e *smartRecordClient) Get(ctx context.Context, k string, p peer.ID) (*vm.R
 
 }
 
-func (e *smartRecordClient) Update(ctx context.Context, k string, p peer.ID, rec ir.Dict) error {
+func (e *smartRecordClient) Update(ctx context.Context, k string, p peer.ID, rec xr.Dict) error {
 	// Send a new request and wait for response
-	recB, err := ir.Marshal(rec)
+	recB, err := xr.Marshal(rec)
 	if err != nil {
 		return err
 	}

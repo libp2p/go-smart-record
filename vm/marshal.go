@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-smart-record/ir"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 // MarshalRecordValue serializes RecordValue to send it through libp2p protocol.
 func MarshalRecordValue(r RecordValue) ([]byte, error) {
 	out := make(map[string][]byte)
 	for k, v := range r {
-		n, err := ir.Marshal(v)
+		n, err := xr.Marshal(v)
 		if err != nil {
 			return nil, err
 		}
@@ -28,13 +28,13 @@ func UnmarshalRecordValue(b []byte) (RecordValue, error) {
 	if err != nil {
 		return nil, err
 	}
-	out := make(map[peer.ID]*ir.Dict)
-	for k, v := range unm {
-		n, err := ir.Unmarshal(v)
+	out := make(map[peer.ID]*xr.Dict)
+	for k, p := range unm {
+		n, err := xr.Unmarshal(p)
 		if err != nil {
 			return nil, err
 		}
-		no, ok := n.(ir.Dict)
+		no, ok := n.(xr.Dict)
 		if !ok {
 			return nil, fmt.Errorf("no dict type unmarshalling RecordValue item")
 		}

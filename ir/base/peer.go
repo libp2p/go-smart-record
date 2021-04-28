@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/libp2p/go-smart-record/ir"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 type Peer struct {
@@ -17,8 +18,8 @@ func (p Peer) EncodeJSON() (interface{}, error) {
 	return p.Disassemble().EncodeJSON()
 }
 
-func (p Peer) Disassemble() ir.Node {
-	return p.User.CopySetTag("peer", ir.String{"id"}, ir.String{p.ID})
+func (p Peer) Disassemble() xr.Node {
+	return p.User.CopySetTag("peer", ir.String{"id"}, ir.String{p.ID}).Disassemble()
 }
 
 func (p Peer) WritePretty(w io.Writer) error {

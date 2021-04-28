@@ -6,6 +6,7 @@ import (
 	p2ptestutil "github.com/libp2p/go-libp2p-netutil"
 	"github.com/libp2p/go-smart-record/ir"
 	"github.com/libp2p/go-smart-record/ir/base"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 var k = "234"
@@ -16,10 +17,10 @@ func TestEmptyUpdate(t *testing.T) {
 	vm := NewVM(ctx, asm)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
-	in := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "key"}, Value: ir.String{Value: "234"}},
-			ir.Pair{Key: ir.String{Value: "fff"}, Value: ir.String{Value: "ff2"}},
+	in := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "key"}, Value: xr.String{Value: "234"}},
+			xr.Pair{Key: xr.String{Value: "fff"}, Value: xr.String{Value: "ff2"}},
 		},
 	}
 
@@ -28,7 +29,7 @@ func TestEmptyUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := vm.Get(k)
-	if !ir.IsEqual(in, *out[p.ID()]) {
+	if !xr.IsEqual(in, *out[p.ID()]) {
 		t.Fatal("Record not updated in empty key", in, out)
 	}
 
@@ -44,20 +45,20 @@ func TestExistingUpdate(t *testing.T) {
 	vm := NewVM(ctx, asm)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
-	in1 := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "fff"}, Value: ir.String{Value: "ff2"}},
+	in1 := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "fff"}, Value: xr.String{Value: "ff2"}},
 		},
 	}
-	in2 := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "asdf"}, Value: ir.String{Value: "asfd"}},
+	in2 := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "asdf"}, Value: xr.String{Value: "asfd"}},
 		},
 	}
-	in := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "asdf"}, Value: ir.String{Value: "asfd"}},
-			ir.Pair{Key: ir.String{Value: "fff"}, Value: ir.String{Value: "ff2"}},
+	in := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "asdf"}, Value: xr.String{Value: "asfd"}},
+			xr.Pair{Key: xr.String{Value: "fff"}, Value: xr.String{Value: "ff2"}},
 		},
 	}
 
@@ -70,7 +71,7 @@ func TestExistingUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := vm.Get(k)
-	if !ir.IsEqual(in, *out[p.ID()]) {
+	if !xr.IsEqual(in, *out[p.ID()]) {
 		t.Fatal("Record not updated in existing key", in, out)
 	}
 }
@@ -82,20 +83,20 @@ func TestSeveralPeers(t *testing.T) {
 	p1, _ := p2ptestutil.RandTestBogusIdentity()
 	p2, _ := p2ptestutil.RandTestBogusIdentity()
 
-	in1 := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "fff"}, Value: ir.String{Value: "ff2"}},
+	in1 := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "fff"}, Value: xr.String{Value: "ff2"}},
 		},
 	}
-	in2 := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "asdf"}, Value: ir.String{Value: "asfd"}},
+	in2 := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "asdf"}, Value: xr.String{Value: "asfd"}},
 		},
 	}
-	in := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "asdf"}, Value: ir.String{Value: "asfd"}},
-			ir.Pair{Key: ir.String{Value: "fff"}, Value: ir.String{Value: "ff2"}},
+	in := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "asdf"}, Value: xr.String{Value: "asfd"}},
+			xr.Pair{Key: xr.String{Value: "fff"}, Value: xr.String{Value: "ff2"}},
 		},
 	}
 
@@ -108,7 +109,7 @@ func TestSeveralPeers(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := vm.Get(k)
-	if !ir.IsEqual(in1, *out[p1.ID()]) || !ir.IsEqual(in2, *out[p2.ID()]) {
+	if !xr.IsEqual(in1, *out[p1.ID()]) || !xr.IsEqual(in2, *out[p2.ID()]) {
 		t.Fatal("Record not updated in existing key", in1, in2, out)
 	}
 	err = vm.Update(p2.ID(), k, in1)
@@ -116,7 +117,7 @@ func TestSeveralPeers(t *testing.T) {
 		t.Fatal(err)
 	}
 	out = vm.Get(k)
-	if !ir.IsEqual(in, *out[p2.ID()]) {
+	if !xr.IsEqual(in, *out[p2.ID()]) {
 		t.Fatal("Record not updated in existing key", in1, in2, out)
 	}
 }

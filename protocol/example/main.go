@@ -8,8 +8,8 @@ import (
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-smart-record/ir"
 	"github.com/libp2p/go-smart-record/protocol"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 func main() {
@@ -44,18 +44,18 @@ func main() {
 
 	// Record to update
 	fmt.Println("[*] Updating new record")
-	in1 := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "key"}, Value: ir.String{Value: "234"}},
-			ir.Pair{Key: ir.String{Value: "QmXBar"}, Value: ir.String{Value: "/ip4/multiaddr1"}},
-			ir.Pair{Key: ir.String{Value: "QmXFor"}, Value: ir.String{Value: "/ip4/multiaddr2"}},
+	in1 := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "key"}, Value: xr.String{Value: "234"}},
+			xr.Pair{Key: xr.String{Value: "QmXBar"}, Value: xr.String{Value: "/ip4/multiaddr1"}},
+			xr.Pair{Key: xr.String{Value: "QmXFor"}, Value: xr.String{Value: "/ip4/multiaddr2"}},
 		},
 	}
-	in2 := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "key"}, Value: ir.String{Value: "234"}},
-			ir.Pair{Key: ir.String{Value: "QmXBar2"}, Value: ir.String{Value: "/ip4/multiaddr3"}},
-			ir.Pair{Key: ir.String{Value: "QmXFoo2"}, Value: ir.String{Value: "/ip4/multiaddr4"}},
+	in2 := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "key"}, Value: xr.String{Value: "234"}},
+			xr.Pair{Key: xr.String{Value: "QmXBar2"}, Value: xr.String{Value: "/ip4/multiaddr3"}},
+			xr.Pair{Key: xr.String{Value: "QmXFoo2"}, Value: xr.String{Value: "/ip4/multiaddr4"}},
 		},
 	}
 	k := "234"

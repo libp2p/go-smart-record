@@ -1,10 +1,11 @@
 package ir
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io"
 	"math/big"
+
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 type Number interface {
@@ -19,8 +20,8 @@ func NewInt64(v int64) Int {
 	return Int{big.NewInt(v)}
 }
 
-func (n Int) Disassemble() Node {
-	return n
+func (n Int) Disassemble() xr.Node {
+	return xr.Int{Int: n.Int}
 }
 
 func (n Int) TypeIsNumber() {}
@@ -42,16 +43,11 @@ type Float struct {
 	*big.Float
 }
 
-func (n Float) Disassemble() Node {
-	return n
+func (n Float) Disassemble() xr.Node {
+	return xr.Float{Float: n.Float}
 }
 
 func (n Float) TypeIsNumber() {}
-
-func (n Float) WritePretty(w io.Writer) (err error) {
-	_, err = w.Write([]byte(n.Float.String()))
-	return err
-}
 
 func (n Float) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 	wn, ok := with.(Float)
@@ -79,62 +75,4 @@ func IsEqualNumber(x, y Number) bool {
 		}
 	}
 	panic("bug: unknown number type")
-}
-
-func (n Int) EncodeJSON() (interface{}, error) {
-	bn, err := n.MarshalText()
-	if err != nil {
-		return nil, err
-	}
-	return struct {
-		Type  marshalType `json:"type"`
-		Value []byte      `json:"value"`
-	}{Type: IntType, Value: bn}, nil
-}
-
-func (n Float) EncodeJSON() (interface{}, error) {
-	bn, err := n.MarshalText()
-	if err != nil {
-		return nil, err
-	}
-	return struct {
-		Type  marshalType `json:"type"`
-		Value []byte      `json:"value"`
-	}{Type: FloatType, Value: bn}, nil
-}
-
-func decodeInt(s map[string]interface{}) (Node, error) {
-	z := new(big.Int)
-	r, ok := s["value"].(string)
-	if !ok {
-		return nil, fmt.Errorf("wrong int decoding type")
-	}
-	// Unmarshaller inteprets []byte as string, we need to decode base64
-	sDec, err := base64.StdEncoding.DecodeString(r)
-	if err != nil {
-		return nil, err
-	}
-	err = z.UnmarshalText(sDec)
-	if err != nil {
-		return nil, err
-	}
-	return Int{z}, nil
-}
-
-func decodeFloat(s map[string]interface{}) (Node, error) {
-	z := new(big.Float)
-	r, ok := s["value"].(string)
-	if !ok {
-		return nil, fmt.Errorf("wrong float decoding type")
-	}
-	// Unmarshaller inteprets []byte as string, we need to decode base64
-	sDec, err := base64.StdEncoding.DecodeString(r)
-	if err != nil {
-		return nil, err
-	}
-	err = z.UnmarshalText(sDec)
-	if err != nil {
-		return nil, err
-	}
-	return Float{z}, nil
 }

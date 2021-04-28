@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/libp2p/go-smart-record/ir"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 type Verify struct {
@@ -17,8 +18,8 @@ func (v Verify) EncodeJSON() (interface{}, error) {
 	return v.Disassemble().EncodeJSON()
 }
 
-func (v Verify) Disassemble() ir.Node {
-	return v.User.CopySetTag("verify", ir.String{"statement"}, v.Statement)
+func (v Verify) Disassemble() xr.Node {
+	return v.User.CopySetTag("verify", ir.String{"statement"}, v.Statement).Disassemble()
 }
 
 func (v Verify) WritePretty(w io.Writer) error {
@@ -37,7 +38,7 @@ func (v Verified) EncodeJSON() (interface{}, error) {
 	return v.Disassemble().EncodeJSON()
 }
 
-func (v Verified) Disassemble() ir.Node {
+func (v Verified) Disassemble() xr.Node {
 	return ir.Dict{
 		Tag: "verify",
 		Pairs: ir.MergePairs(
@@ -48,7 +49,7 @@ func (v Verified) Disassemble() ir.Node {
 				{Key: ir.String{"signature"}, Value: v.Signature},
 			},
 		),
-	}
+	}.Disassemble()
 }
 
 func (v Verified) WritePretty(w io.Writer) error {

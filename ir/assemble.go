@@ -2,6 +2,8 @@ package ir
 
 import (
 	"fmt"
+
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 // AssemblerContext holds general contextual data for the stage of the assembly process.
@@ -14,7 +16,7 @@ type AssemblerContext struct {
 	Keys    map[string]interface{}
 }
 
-func (ctx AssemblerContext) Assemble(src Node) (Node, error) {
+func (ctx AssemblerContext) Assemble(src xr.Node) (Node, error) {
 	return ctx.Grammar.Assemble(ctx, src)
 }
 
@@ -26,14 +28,14 @@ func (ctx AssemblerContext) Assemble(src Node) (Node, error) {
 // In that sense, an Assembler can be used to implement any transformation or
 // even just a verification operation that returns the input unchanged.
 type Assembler interface {
-	Assemble(ctx AssemblerContext, src Node) (Node, error)
+	Assemble(ctx AssemblerContext, src xr.Node) (Node, error)
 }
 
 // SequenceAssembler is, in common parlance, a parser combinator. Or, in our nomenclature, an "assembler combinator".
 // SequenceAssembler tries to assemble the input, using each of its subordinate assemblers in turn until one of them succeeds.
 type SequenceAssembler []Assembler
 
-func (asm SequenceAssembler) Assemble(ctx AssemblerContext, src Node) (Node, error) {
+func (asm SequenceAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
 	for _, a := range asm {
 		out, err := a.Assemble(ctx, src)
 		if err == nil {
@@ -55,58 +57,58 @@ var SyntacticGrammar = SequenceAssembler{
 
 type StringAssembler struct{}
 
-func (asm StringAssembler) Assemble(ctx AssemblerContext, src Node) (Node, error) {
-	s, ok := src.(String)
+func (asm StringAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+	s, ok := src.(xr.String)
 	if !ok {
 		return nil, fmt.Errorf("not a string")
 	}
-	return s, nil
+	return String{Value: s.Value}, nil
 }
 
 type IntAssembler struct{}
 
-func (asm IntAssembler) Assemble(ctx AssemblerContext, src Node) (Node, error) {
-	s, ok := src.(Int)
+func (asm IntAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+	s, ok := src.(xr.Int)
 	if !ok {
 		return nil, fmt.Errorf("not an int")
 	}
-	return s, nil
+	return Int{Int: s.Int}, nil
 }
 
 type FloatAssembler struct{}
 
-func (asm FloatAssembler) Assemble(ctx AssemblerContext, src Node) (Node, error) {
-	s, ok := src.(Float)
+func (asm FloatAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+	s, ok := src.(xr.Float)
 	if !ok {
 		return nil, fmt.Errorf("not a float")
 	}
-	return s, nil
+	return Float{Float: s.Float}, nil
 }
 
 type BoolAssembler struct{}
 
-func (asm BoolAssembler) Assemble(ctx AssemblerContext, src Node) (Node, error) {
-	s, ok := src.(Bool)
+func (asm BoolAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+	s, ok := src.(xr.Bool)
 	if !ok {
 		return nil, fmt.Errorf("not a bool")
 	}
-	return s, nil
+	return Bool{Value: s.Value}, nil
 }
 
 type BlobAssembler struct{}
 
-func (asm BlobAssembler) Assemble(ctx AssemblerContext, src Node) (Node, error) {
-	s, ok := src.(Blob)
+func (asm BlobAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+	s, ok := src.(xr.Blob)
 	if !ok {
 		return nil, fmt.Errorf("not a blob")
 	}
-	return s, nil
+	return Blob{Bytes: s.Bytes}, nil
 }
 
 type DictAssembler struct{}
 
-func (asm DictAssembler) Assemble(ctx AssemblerContext, src Node) (Node, error) {
-	s, ok := src.(Dict)
+func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+	s, ok := src.(xr.Dict)
 	if !ok {
 		return nil, fmt.Errorf("not a dict")
 	}
@@ -130,8 +132,8 @@ func (asm DictAssembler) Assemble(ctx AssemblerContext, src Node) (Node, error) 
 
 type SetAssembler struct{}
 
-func (asm SetAssembler) Assemble(ctx AssemblerContext, src Node) (Node, error) {
-	s, ok := src.(Set)
+func (asm SetAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+	s, ok := src.(xr.Set)
 	if !ok {
 		return nil, fmt.Errorf("not a set")
 	}

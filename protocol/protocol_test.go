@@ -7,21 +7,30 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	swarmt "github.com/libp2p/go-libp2p-swarm/testing"
 	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
-	"github.com/libp2p/go-smart-record/ir"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
-var in1 = ir.Dict{
-	Pairs: ir.Pairs{
-		ir.Pair{Key: ir.String{Value: "key"}, Value: ir.String{Value: "234"}},
-		ir.Pair{Key: ir.String{Value: "QmXBar"}, Value: ir.String{Value: "/ip4/multiaddr1"}},
-		ir.Pair{Key: ir.String{Value: "QmXFor"}, Value: ir.String{Value: "/ip4/multiaddr2"}},
+var in1 = xr.Dict{
+	Pairs: xr.Pairs{
+		xr.Pair{Key: xr.String{Value: "key"}, Value: xr.String{Value: "234"}},
+		xr.Pair{Key: xr.String{Value: "QmXBar"}, Value: xr.String{Value: "/ip4/multiaddr1"}},
+		xr.Pair{Key: xr.String{Value: "QmXFor"}, Value: xr.String{Value: "/ip4/multiaddr2"}},
 	},
 }
-var in2 = ir.Dict{
-	Pairs: ir.Pairs{
-		ir.Pair{Key: ir.String{Value: "key"}, Value: ir.String{Value: "234"}},
-		ir.Pair{Key: ir.String{Value: "QmXBar2"}, Value: ir.String{Value: "/ip4/multiaddr3"}},
-		ir.Pair{Key: ir.String{Value: "QmXFoo2"}, Value: ir.String{Value: "/ip4/multiaddr4"}},
+var in2 = xr.Dict{
+	Pairs: xr.Pairs{
+		xr.Pair{Key: xr.String{Value: "key"}, Value: xr.String{Value: "234"}},
+		xr.Pair{Key: xr.String{Value: "QmXBar2"}, Value: xr.String{Value: "/ip4/multiaddr3"}},
+		xr.Pair{Key: xr.String{Value: "QmXFoo2"}, Value: xr.String{Value: "/ip4/multiaddr4"}},
+	},
+}
+var in = xr.Dict{
+	Pairs: xr.Pairs{
+		xr.Pair{Key: xr.String{Value: "key"}, Value: xr.String{Value: "234"}},
+		xr.Pair{Key: xr.String{Value: "QmXBar"}, Value: xr.String{Value: "/ip4/multiaddr1"}},
+		xr.Pair{Key: xr.String{Value: "QmXFor"}, Value: xr.String{Value: "/ip4/multiaddr2"}},
+		xr.Pair{Key: xr.String{Value: "QmXBar2"}, Value: xr.String{Value: "/ip4/multiaddr3"}},
+		xr.Pair{Key: xr.String{Value: "QmXFoo2"}, Value: xr.String{Value: "/ip4/multiaddr4"}},
 	},
 }
 
@@ -75,7 +84,7 @@ func TestEmptyUpdate(t *testing.T) {
 		panic(err)
 	}
 	d := (*out)[c.host.ID()]
-	if !ir.IsEqual(in1, *d) {
+	if !xr.IsEqual(in1, *d) {
 		t.Fatal("end-to-end update in empty key failed", in1, *out)
 	}
 
@@ -108,11 +117,11 @@ func TestUpdateSameKeyDifferentPeers(t *testing.T) {
 		panic(err)
 	}
 	d1 := (*out)[c1.host.ID()]
-	if !ir.IsEqual(in1, *d1) {
+	if !xr.IsEqual(in1, *d1) {
 		t.Fatal("end-to-end update in empty key for client1 failed", in1, *out)
 	}
 	d2 := (*out)[c2.host.ID()]
-	if !ir.IsEqual(in2, *d2) {
+	if !xr.IsEqual(in2, *d2) {
 		t.Fatal("end-to-end update in empty key for client2 failed", in1, *out)
 	}
 
@@ -142,12 +151,8 @@ func TestUpdateSameKeySamePeer(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	in, err := in1.UpdateWith(ir.DefaultUpdateContext{}, in2)
-	if err != nil {
-		t.Fatal("Error updating dicts", err)
-	}
 	d := (*out)[c.host.ID()]
-	if !ir.IsEqual(in, *d) {
+	if !xr.IsEqual(in, *d) {
 		t.Fatal("end-to-end existing key for client1 failed", in1, *out)
 	}
 }

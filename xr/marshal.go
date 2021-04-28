@@ -1,4 +1,4 @@
-package ir
+package xr
 
 import (
 	"encoding/json"
