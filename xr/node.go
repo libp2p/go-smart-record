@@ -2,9 +2,12 @@ package xr
 
 import (
 	"io"
+
+	ipld "github.com/ipld/go-ipld-prime"
 )
 
 type Node interface {
+	ipld.Node
 	WritePretty(w io.Writer) error
 	EncodeJSON() (interface{}, error)
 }
