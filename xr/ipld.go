@@ -58,55 +58,10 @@ func FromIPLD(n ipld.Node) (Node, error) {
 		return Float{big.NewFloat(b).SetPrec(64)}, nil
 
 	case xrIpld.Set_IPLD:
-		// Get Tag
-		tag, err := n1.FieldTag().AsNode().AsString()
-		if err != nil {
-			return nil, err
-		}
-
-		// Get elements
-		els := make([]Node, 0)
-		li := n1.FieldElements().Iterator()
-		for !li.Done() {
-			_, enode := li.Next()
-			n, err := FromIPLD(enode)
-			if err != nil {
-				return nil, err
-			}
-			// Append element
-			els = append(els, n)
-		}
-
-		return Set{Tag: tag, Elements: els}, nil
+		return fromIPLDToSet(n1)
 
 	case xrIpld.Dict_IPLD:
-		// Get Tag
-		tag, err := n1.FieldTag().AsNode().AsString()
-		if err != nil {
-			return nil, err
-		}
-
-		// Get pairs
-		pairs := make([]Pair, 0)
-		li := n1.FieldPairs().Iterator()
-		for !li.Done() {
-			_, enode := li.Next()
-			// Get key and convert to xr.Node
-			ikey := enode.FieldKey()
-			k, err := FromIPLD(ikey)
-			if err != nil {
-				return nil, err
-			}
-			// Get value and convert to xr.Node
-			ivalue := enode.FieldValue()
-			v, err := FromIPLD(ivalue)
-			if err != nil {
-				return nil, err
-			}
-			// Append pair
-			pairs = append(pairs, Pair{Key: k, Value: v})
-		}
-		return Dict{Tag: tag, Pairs: pairs}, nil
+		return fromIPLDToDict(n1)
 
 	case xrIpld.Node_IPLD:
 		for _, k := range ipldTypeTags {
@@ -120,4 +75,60 @@ func FromIPLD(n ipld.Node) (Node, error) {
 	}
 
 	return nil, fmt.Errorf("IPLD type for xr.Node not found. Can't convert.")
+}
+
+// Creates a Set in XR from Set_IPLD
+func fromIPLDToSet(n xrIpld.Set_IPLD) (Set, error) {
+	// Get Tag
+	tag, err := n.FieldTag().AsNode().AsString()
+	if err != nil {
+		return Set{}, err
+	}
+
+	// Get elements
+	els := make([]Node, 0)
+	li := n.FieldElements().Iterator()
+	for !li.Done() {
+		_, enode := li.Next()
+		n, err := FromIPLD(enode)
+		if err != nil {
+			return Set{}, err
+		}
+		// Append element
+		els = append(els, n)
+	}
+
+	return Set{Tag: tag, Elements: els}, nil
+}
+
+// Create Dict in XR from Dict_IPLD
+func fromIPLDToDict(n xrIpld.Dict_IPLD) (Dict, error) {
+	// Get Tag
+	tag, err := n.FieldTag().AsNode().AsString()
+	if err != nil {
+		return Dict{}, err
+	}
+
+	// Get pairs
+	pairs := make([]Pair, 0)
+	li := n.FieldPairs().Iterator()
+	for !li.Done() {
+		_, enode := li.Next()
+		// Get key and convert to xr.Node
+		ikey := enode.FieldKey()
+		k, err := FromIPLD(ikey)
+		if err != nil {
+			return Dict{}, err
+		}
+		// Get value and convert to xr.Node
+		ivalue := enode.FieldValue()
+		v, err := FromIPLD(ivalue)
+		if err != nil {
+			return Dict{}, err
+		}
+		// Append pair
+		pairs = append(pairs, Pair{Key: k, Value: v})
+	}
+	return Dict{Tag: tag, Pairs: pairs}, nil
+
 }

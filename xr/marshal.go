@@ -1,8 +1,12 @@
 package xr
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+
+	cbor "github.com/ipld/go-ipld-prime/codec/dagcbor"
+	xrIpld "github.com/libp2p/go-smart-record/xr/ipld"
 )
 
 type marshalType string
@@ -60,4 +64,28 @@ func Unmarshal(r []byte) (Node, error) {
 	var v map[string]interface{}
 	json.Unmarshal(r, &v)
 	return decodeNode(v)
+}
+
+// Encode Serializes syntactic nodes in CBOR using its IPLD capabilities
+func Encode(n Node) ([]byte, error) {
+	in, err := n.toNode_IPLD()
+	if err != nil {
+		return nil, err
+	}
+	var buf bytes.Buffer
+	err = cbor.Encode(in, &buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// Decode de-serializes syntactic nodes in CBOR using its IPLD capabilities
+func Decode(r []byte) (Node, error) {
+	n := xrIpld.Type.Node_IPLD.NewBuilder()
+	err := cbor.Decode(n, bytes.NewReader(r))
+	if err != nil {
+		return nil, err
+	}
+	return FromIPLD(n.Build())
 }
