@@ -1,4 +1,4 @@
-module github.com/libp2p/go-smart-record/xr/gen
+module github.com/libp2p/go-smart-record/xr/ipld/gen
 
 go 1.14
 
