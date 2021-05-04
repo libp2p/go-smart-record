@@ -21,21 +21,6 @@ func IsEqualBool(x, y Bool) bool {
 	return x.Value == y.Value
 }
 
-func (b Bool) EncodeJSON() (interface{}, error) {
-	return struct {
-		Type  marshalType `json:"type"`
-		Value bool        `json:"value"`
-	}{Type: BoolType, Value: b.Value}, nil
-}
-
-func decodeBool(s map[string]interface{}) (Node, error) {
-	r, ok := s["value"].(bool)
-	if !ok {
-		return nil, fmt.Errorf("decoded value not Bool")
-	}
-	return Bool{r}, nil
-}
-
 // ToIPLD converts xr.Node into its corresponding IPLD Node type
 func (b Bool) ToIPLD() (ipld.Node, error) {
 	t := xrIpld.Type.Bool_IPLD.NewBuilder()

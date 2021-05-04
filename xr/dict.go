@@ -1,7 +1,6 @@
 package xr
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/ipld/go-ipld-prime"
@@ -215,76 +214,6 @@ func (d Dict) Get(key Node) Node {
 		}
 	}
 	return nil
-}
-
-// jsonPair is used to encode Pairs with JSON
-type jsonPair struct {
-	Key   interface{}
-	Value interface{}
-}
-
-func (d Dict) EncodeJSON() (interface{}, error) {
-	r := struct {
-		Type  marshalType   `json:"type"`
-		Tag   string        `json:"tag"`
-		Pairs []interface{} `json:"pairs"`
-	}{Type: DictType, Tag: d.Tag, Pairs: []interface{}{}}
-
-	for _, p := range d.Pairs {
-		k, err := p.Key.EncodeJSON()
-		if err != nil {
-			return nil, err
-		}
-		v, err := p.Value.EncodeJSON()
-		if err != nil {
-			return nil, err
-		}
-		r.Pairs = append(r.Pairs, jsonPair{
-			Key:   k,
-			Value: v,
-		})
-	}
-	return r, nil
-
-}
-
-func decodeDict(s map[string]interface{}) (Node, error) {
-	r := Dict{
-		Tag:   s["tag"].(string),
-		Pairs: []Pair{},
-	}
-
-	pairs := s["pairs"].([]interface{})
-	for _, pi := range pairs {
-		p, ok := pi.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("pair is wrong type")
-		}
-		// Get pair values
-		pk, ok := p["Key"].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("key in pair is wrong type")
-		}
-		pv, ok := p["Value"].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("value in pair is wrong type")
-		}
-		// Decode them
-		sk, err := decodeNode(pk)
-		if err != nil {
-			return nil, err
-		}
-		sv, err := decodeNode(pv)
-		if err != nil {
-			return nil, err
-		}
-		r.Pairs = append(r.Pairs,
-			Pair{
-				Key:   sk,
-				Value: sv,
-			})
-	}
-	return r, nil
 }
 
 func IsEqualDict(x, y Dict) bool {

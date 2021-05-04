@@ -7,10 +7,9 @@ import (
 )
 
 type Node interface {
-	WritePretty(w io.Writer) error    // Pretty writes the node
-	EncodeJSON() (interface{}, error) // Custom JSON encoder. Not IPLD compatible
-	ToIPLD() (ipld.Node, error)       // Converts xr.Node into its corresponding IPLD Node type
-	toNode_IPLD() (ipld.Node, error)  // Convert into IPLD Node of dynamic type NODE_IPLD
+	WritePretty(w io.Writer) error   // Pretty writes the node
+	ToIPLD() (ipld.Node, error)      // Converts xr.Node into its corresponding IPLD Node type
+	toNode_IPLD() (ipld.Node, error) // Convert into IPLD Node of dynamic type NODE_IPLD
 
 }
 
