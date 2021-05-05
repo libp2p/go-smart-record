@@ -58,7 +58,7 @@ type _Bool_IPLD struct{ x bool }
 // Dict_IPLD matches the IPLD Schema type "Dict_IPLD".  It has Struct type-kind, and may be interrogated like map kind.
 type Dict_IPLD = *_Dict_IPLD
 type _Dict_IPLD struct {
-	Tag _String__Maybe
+	Tag _String
 	Pairs _Pairs_IPLD
 }
 
@@ -109,7 +109,7 @@ type _Pairs_IPLD struct {
 // Set_IPLD matches the IPLD Schema type "Set_IPLD".  It has Struct type-kind, and may be interrogated like map kind.
 type Set_IPLD = *_Set_IPLD
 type _Set_IPLD struct {
-	Tag _String__Maybe
+	Tag _String
 	Elements _Nodes_IPLD
 }
 

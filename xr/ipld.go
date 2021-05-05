@@ -80,7 +80,7 @@ func FromIPLD(n ipld.Node) (Node, error) {
 // Creates a Set in XR from Set_IPLD
 func fromIPLDToSet(n xrIpld.Set_IPLD) (Set, error) {
 	// Get Tag
-	tag, err := n.FieldTag().AsNode().AsString()
+	tag, err := n.FieldTag().AsString()
 	if err != nil {
 		return Set{}, err
 	}
@@ -104,7 +104,7 @@ func fromIPLDToSet(n xrIpld.Set_IPLD) (Set, error) {
 // Create Dict in XR from Dict_IPLD
 func fromIPLDToDict(n xrIpld.Dict_IPLD) (Dict, error) {
 	// Get Tag
-	tag, err := n.FieldTag().AsNode().AsString()
+	tag, err := n.FieldTag().AsString()
 	if err != nil {
 		return Dict{}, err
 	}

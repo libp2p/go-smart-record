@@ -415,7 +415,7 @@ type _Bool_IPLD__ReprPrototype = _Bool_IPLD__Prototype
 type _Bool_IPLD__ReprAssembler = _Bool_IPLD__Assembler
 
 
-func (n _Dict_IPLD) FieldTag() MaybeString {
+func (n _Dict_IPLD) FieldTag() String {
 	return &n.Tag
 }
 func (n _Dict_IPLD) FieldPairs() Pairs_IPLD {
@@ -466,10 +466,7 @@ func (Dict_IPLD) Kind() ipld.Kind {
 func (n Dict_IPLD) LookupByString(key string) (ipld.Node, error) {
 	switch key {
 	case "Tag":
-		if n.Tag.m == schema.Maybe_Absent {
-			return ipld.Absent, nil
-		}
-		return n.Tag.v, nil
+		return &n.Tag, nil
 	case "Pairs":
 		return &n.Pairs, nil
 	default:
@@ -504,11 +501,7 @@ func (itr *_Dict_IPLD__MapItr) Next() (k ipld.Node, v ipld.Node, _ error) {if it
 	switch itr.idx {
 	case 0:
 		k = &fieldName__Dict_IPLD_Tag
-		if itr.n.Tag.m == schema.Maybe_Absent {
-			v = ipld.Absent
-			break
-		}
-		v = itr.n.Tag.v
+		v = &itr.n.Tag
 	case 1:
 		k = &fieldName__Dict_IPLD_Pairs
 		v = &itr.n.Pairs
@@ -598,7 +591,7 @@ func (na *_Dict_IPLD__Assembler) reset() {
 var (
 	fieldBit__Dict_IPLD_Tag = 1 << 0
 	fieldBit__Dict_IPLD_Pairs = 1 << 1
-	fieldBits__Dict_IPLD_sufficient = 0 + 1 << 1
+	fieldBits__Dict_IPLD_sufficient = 0 + 1 << 0 + 1 << 1
 )
 func (na *_Dict_IPLD__Assembler) BeginMap(int64) (ipld.MapAssembler, error) {
 	switch *na.m {
@@ -692,9 +685,10 @@ func (_Dict_IPLD__Assembler) Prototype() ipld.NodePrototype {
 func (ma *_Dict_IPLD__Assembler) valueFinishTidy() bool {
 	switch ma.f {
 	case 0:
-		switch ma.w.Tag.m {
+		switch ma.cm {
 		case schema.Maybe_Value:
-			ma.w.Tag.v = ma.ca_Tag.w
+			ma.ca_Tag.w = nil
+			ma.cm = schema.Maybe_Absent
 			ma.state = maState_initial
 			return true
 		default:
@@ -737,8 +731,8 @@ func (ma *_Dict_IPLD__Assembler) AssembleEntry(k string) (ipld.NodeAssembler, er
 		ma.s += fieldBit__Dict_IPLD_Tag
 		ma.state = maState_midValue
 		ma.f = 0
-		ma.ca_Tag.w = ma.w.Tag.v
-		ma.ca_Tag.m = &ma.w.Tag.m
+		ma.ca_Tag.w = &ma.w.Tag
+		ma.ca_Tag.m = &ma.cm
 		return &ma.ca_Tag, nil
 	case "Pairs":
 		if ma.s & fieldBit__Dict_IPLD_Pairs != 0 {
@@ -787,8 +781,8 @@ func (ma *_Dict_IPLD__Assembler) AssembleValue() ipld.NodeAssembler {
 	ma.state = maState_midValue
 	switch ma.f {
 	case 0:
-		ma.ca_Tag.w = ma.w.Tag.v
-		ma.ca_Tag.m = &ma.w.Tag.m
+		ma.ca_Tag.w = &ma.w.Tag
+		ma.ca_Tag.m = &ma.cm
 		return &ma.ca_Tag
 	case 1:
 		ma.ca_Pairs.w = &ma.w.Pairs
@@ -815,6 +809,9 @@ func (ma *_Dict_IPLD__Assembler) Finish() error {
 	}
 	if ma.s & fieldBits__Dict_IPLD_sufficient != fieldBits__Dict_IPLD_sufficient {
 		err := ipld.ErrMissingRequiredField{Missing: make([]string, 0)}
+		if ma.s & fieldBit__Dict_IPLD_Tag == 0 {
+			err.Missing = append(err.Missing, "Tag")
+		}
 		if ma.s & fieldBit__Dict_IPLD_Pairs == 0 {
 			err.Missing = append(err.Missing, "Pairs")
 		}
@@ -907,10 +904,7 @@ func (_Dict_IPLD__Repr) Kind() ipld.Kind {
 func (n *_Dict_IPLD__Repr) LookupByString(key string) (ipld.Node, error) {
 	switch key {
 	case "Tag":
-		if n.Tag.m == schema.Maybe_Absent {
-			return ipld.Absent, ipld.ErrNotExists{Segment: ipld.PathSegmentOfString(key)}
-		}
-		return n.Tag.v.Representation(), nil
+		return n.Tag.Representation(), nil
 	case "Pairs":
 		return n.Pairs.Representation(), nil
 	default:
@@ -940,17 +934,13 @@ type _Dict_IPLD__ReprMapItr struct {
 	
 }
 
-func (itr *_Dict_IPLD__ReprMapItr) Next() (k ipld.Node, v ipld.Node, _ error) {advance:if itr.idx >= 2 {
+func (itr *_Dict_IPLD__ReprMapItr) Next() (k ipld.Node, v ipld.Node, _ error) {if itr.idx >= 2 {
 		return nil, nil, ipld.ErrIteratorOverread{}
 	}
 	switch itr.idx {
 	case 0:
 		k = &fieldName__Dict_IPLD_Tag_serial
-		if itr.n.Tag.m == schema.Maybe_Absent {
-			itr.idx++
-			goto advance
-		}
-		v = itr.n.Tag.v.Representation()
+		v = itr.n.Tag.Representation()
 	case 1:
 		k = &fieldName__Dict_IPLD_Pairs_serial
 		v = itr.n.Pairs.Representation()
@@ -968,9 +958,6 @@ func (_Dict_IPLD__Repr) ListIterator() ipld.ListIterator {
 }
 func (rn *_Dict_IPLD__Repr) Length() int64 {
 	l := 2
-	if rn.Tag.m == schema.Maybe_Absent {
-		l--
-	}
 	return int64(l)
 }
 func (_Dict_IPLD__Repr) IsAbsent() bool {
@@ -1131,9 +1118,8 @@ func (_Dict_IPLD__ReprAssembler) Prototype() ipld.NodePrototype {
 func (ma *_Dict_IPLD__ReprAssembler) valueFinishTidy() bool {
 	switch ma.f {
 	case 0:
-		switch ma.w.Tag.m {
-		case schema.Maybe_Value:
-			ma.w.Tag.v = ma.ca_Tag.w
+		switch ma.cm {
+		case schema.Maybe_Value:ma.cm = schema.Maybe_Absent
 			ma.state = maState_initial
 			return true
 		default:
@@ -1174,9 +1160,8 @@ func (ma *_Dict_IPLD__ReprAssembler) AssembleEntry(k string) (ipld.NodeAssembler
 		ma.s += fieldBit__Dict_IPLD_Tag
 		ma.state = maState_midValue
 		ma.f = 0
-		ma.ca_Tag.w = ma.w.Tag.v
-		ma.ca_Tag.m = &ma.w.Tag.m
-		
+		ma.ca_Tag.w = &ma.w.Tag
+		ma.ca_Tag.m = &ma.cm
 		return &ma.ca_Tag, nil
 	case "Pairs":
 		if ma.s & fieldBit__Dict_IPLD_Pairs != 0 {
@@ -1226,9 +1211,8 @@ func (ma *_Dict_IPLD__ReprAssembler) AssembleValue() ipld.NodeAssembler {
 	ma.state = maState_midValue
 	switch ma.f {
 	case 0:
-		ma.ca_Tag.w = ma.w.Tag.v
-		ma.ca_Tag.m = &ma.w.Tag.m
-		
+		ma.ca_Tag.w = &ma.w.Tag
+		ma.ca_Tag.m = &ma.cm
 		return &ma.ca_Tag
 	case 1:
 		ma.ca_Pairs.w = &ma.w.Pairs
@@ -1255,6 +1239,9 @@ func (ma *_Dict_IPLD__ReprAssembler) Finish() error {
 	}
 	if ma.s & fieldBits__Dict_IPLD_sufficient != fieldBits__Dict_IPLD_sufficient {
 		err := ipld.ErrMissingRequiredField{Missing: make([]string, 0)}
+		if ma.s & fieldBit__Dict_IPLD_Tag == 0 {
+			err.Missing = append(err.Missing, "Tag")
+		}
 		if ma.s & fieldBit__Dict_IPLD_Pairs == 0 {
 			err.Missing = append(err.Missing, "Pairs")
 		}
@@ -5137,7 +5124,7 @@ func (la *_Pairs_IPLD__ReprAssembler) ValuePrototype(_ int64) ipld.NodePrototype
 }
 
 
-func (n _Set_IPLD) FieldTag() MaybeString {
+func (n _Set_IPLD) FieldTag() String {
 	return &n.Tag
 }
 func (n _Set_IPLD) FieldElements() Nodes_IPLD {
@@ -5188,10 +5175,7 @@ func (Set_IPLD) Kind() ipld.Kind {
 func (n Set_IPLD) LookupByString(key string) (ipld.Node, error) {
 	switch key {
 	case "Tag":
-		if n.Tag.m == schema.Maybe_Absent {
-			return ipld.Absent, nil
-		}
-		return n.Tag.v, nil
+		return &n.Tag, nil
 	case "Elements":
 		return &n.Elements, nil
 	default:
@@ -5226,11 +5210,7 @@ func (itr *_Set_IPLD__MapItr) Next() (k ipld.Node, v ipld.Node, _ error) {if itr
 	switch itr.idx {
 	case 0:
 		k = &fieldName__Set_IPLD_Tag
-		if itr.n.Tag.m == schema.Maybe_Absent {
-			v = ipld.Absent
-			break
-		}
-		v = itr.n.Tag.v
+		v = &itr.n.Tag
 	case 1:
 		k = &fieldName__Set_IPLD_Elements
 		v = &itr.n.Elements
@@ -5320,7 +5300,7 @@ func (na *_Set_IPLD__Assembler) reset() {
 var (
 	fieldBit__Set_IPLD_Tag = 1 << 0
 	fieldBit__Set_IPLD_Elements = 1 << 1
-	fieldBits__Set_IPLD_sufficient = 0 + 1 << 1
+	fieldBits__Set_IPLD_sufficient = 0 + 1 << 0 + 1 << 1
 )
 func (na *_Set_IPLD__Assembler) BeginMap(int64) (ipld.MapAssembler, error) {
 	switch *na.m {
@@ -5414,9 +5394,10 @@ func (_Set_IPLD__Assembler) Prototype() ipld.NodePrototype {
 func (ma *_Set_IPLD__Assembler) valueFinishTidy() bool {
 	switch ma.f {
 	case 0:
-		switch ma.w.Tag.m {
+		switch ma.cm {
 		case schema.Maybe_Value:
-			ma.w.Tag.v = ma.ca_Tag.w
+			ma.ca_Tag.w = nil
+			ma.cm = schema.Maybe_Absent
 			ma.state = maState_initial
 			return true
 		default:
@@ -5459,8 +5440,8 @@ func (ma *_Set_IPLD__Assembler) AssembleEntry(k string) (ipld.NodeAssembler, err
 		ma.s += fieldBit__Set_IPLD_Tag
 		ma.state = maState_midValue
 		ma.f = 0
-		ma.ca_Tag.w = ma.w.Tag.v
-		ma.ca_Tag.m = &ma.w.Tag.m
+		ma.ca_Tag.w = &ma.w.Tag
+		ma.ca_Tag.m = &ma.cm
 		return &ma.ca_Tag, nil
 	case "Elements":
 		if ma.s & fieldBit__Set_IPLD_Elements != 0 {
@@ -5509,8 +5490,8 @@ func (ma *_Set_IPLD__Assembler) AssembleValue() ipld.NodeAssembler {
 	ma.state = maState_midValue
 	switch ma.f {
 	case 0:
-		ma.ca_Tag.w = ma.w.Tag.v
-		ma.ca_Tag.m = &ma.w.Tag.m
+		ma.ca_Tag.w = &ma.w.Tag
+		ma.ca_Tag.m = &ma.cm
 		return &ma.ca_Tag
 	case 1:
 		ma.ca_Elements.w = &ma.w.Elements
@@ -5537,6 +5518,9 @@ func (ma *_Set_IPLD__Assembler) Finish() error {
 	}
 	if ma.s & fieldBits__Set_IPLD_sufficient != fieldBits__Set_IPLD_sufficient {
 		err := ipld.ErrMissingRequiredField{Missing: make([]string, 0)}
+		if ma.s & fieldBit__Set_IPLD_Tag == 0 {
+			err.Missing = append(err.Missing, "Tag")
+		}
 		if ma.s & fieldBit__Set_IPLD_Elements == 0 {
 			err.Missing = append(err.Missing, "Elements")
 		}
@@ -5629,10 +5613,7 @@ func (_Set_IPLD__Repr) Kind() ipld.Kind {
 func (n *_Set_IPLD__Repr) LookupByString(key string) (ipld.Node, error) {
 	switch key {
 	case "Tag":
-		if n.Tag.m == schema.Maybe_Absent {
-			return ipld.Absent, ipld.ErrNotExists{Segment: ipld.PathSegmentOfString(key)}
-		}
-		return n.Tag.v.Representation(), nil
+		return n.Tag.Representation(), nil
 	case "Elements":
 		return n.Elements.Representation(), nil
 	default:
@@ -5662,17 +5643,13 @@ type _Set_IPLD__ReprMapItr struct {
 	
 }
 
-func (itr *_Set_IPLD__ReprMapItr) Next() (k ipld.Node, v ipld.Node, _ error) {advance:if itr.idx >= 2 {
+func (itr *_Set_IPLD__ReprMapItr) Next() (k ipld.Node, v ipld.Node, _ error) {if itr.idx >= 2 {
 		return nil, nil, ipld.ErrIteratorOverread{}
 	}
 	switch itr.idx {
 	case 0:
 		k = &fieldName__Set_IPLD_Tag_serial
-		if itr.n.Tag.m == schema.Maybe_Absent {
-			itr.idx++
-			goto advance
-		}
-		v = itr.n.Tag.v.Representation()
+		v = itr.n.Tag.Representation()
 	case 1:
 		k = &fieldName__Set_IPLD_Elements_serial
 		v = itr.n.Elements.Representation()
@@ -5690,9 +5667,6 @@ func (_Set_IPLD__Repr) ListIterator() ipld.ListIterator {
 }
 func (rn *_Set_IPLD__Repr) Length() int64 {
 	l := 2
-	if rn.Tag.m == schema.Maybe_Absent {
-		l--
-	}
 	return int64(l)
 }
 func (_Set_IPLD__Repr) IsAbsent() bool {
@@ -5853,9 +5827,8 @@ func (_Set_IPLD__ReprAssembler) Prototype() ipld.NodePrototype {
 func (ma *_Set_IPLD__ReprAssembler) valueFinishTidy() bool {
 	switch ma.f {
 	case 0:
-		switch ma.w.Tag.m {
-		case schema.Maybe_Value:
-			ma.w.Tag.v = ma.ca_Tag.w
+		switch ma.cm {
+		case schema.Maybe_Value:ma.cm = schema.Maybe_Absent
 			ma.state = maState_initial
 			return true
 		default:
@@ -5896,9 +5869,8 @@ func (ma *_Set_IPLD__ReprAssembler) AssembleEntry(k string) (ipld.NodeAssembler,
 		ma.s += fieldBit__Set_IPLD_Tag
 		ma.state = maState_midValue
 		ma.f = 0
-		ma.ca_Tag.w = ma.w.Tag.v
-		ma.ca_Tag.m = &ma.w.Tag.m
-		
+		ma.ca_Tag.w = &ma.w.Tag
+		ma.ca_Tag.m = &ma.cm
 		return &ma.ca_Tag, nil
 	case "Elements":
 		if ma.s & fieldBit__Set_IPLD_Elements != 0 {
@@ -5948,9 +5920,8 @@ func (ma *_Set_IPLD__ReprAssembler) AssembleValue() ipld.NodeAssembler {
 	ma.state = maState_midValue
 	switch ma.f {
 	case 0:
-		ma.ca_Tag.w = ma.w.Tag.v
-		ma.ca_Tag.m = &ma.w.Tag.m
-		
+		ma.ca_Tag.w = &ma.w.Tag
+		ma.ca_Tag.m = &ma.cm
 		return &ma.ca_Tag
 	case 1:
 		ma.ca_Elements.w = &ma.w.Elements
@@ -5977,6 +5948,9 @@ func (ma *_Set_IPLD__ReprAssembler) Finish() error {
 	}
 	if ma.s & fieldBits__Set_IPLD_sufficient != fieldBits__Set_IPLD_sufficient {
 		err := ipld.ErrMissingRequiredField{Missing: make([]string, 0)}
+		if ma.s & fieldBit__Set_IPLD_Tag == 0 {
+			err.Missing = append(err.Missing, "Tag")
+		}
 		if ma.s & fieldBit__Set_IPLD_Elements == 0 {
 			err.Missing = append(err.Missing, "Elements")
 		}

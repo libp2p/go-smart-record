@@ -16,7 +16,7 @@ func main() {
 	ts.Init()
 	adjCfg := &gengo.AdjunctCfg{
 		CfgUnionMemlayout: map[schema.TypeName]string{
-			"Node_IPLD": "interface", // Use a more pointer-heavy memory layout for this type; this is necessary because it is recursive.
+			"Node_IPLD": "interface",
 		},
 	}
 
@@ -24,10 +24,6 @@ func main() {
 
 	// This needs to preclude to have Type Kinds available.
 	ts.Accumulate(schema.SpawnString("String"))
-	// ts.Accumulate(schema.SpawnBytes("Blob"))
-	// ts.Accumulate(schema.SpawnInt("Int"))
-	// ts.Accumulate(schema.SpawnFloat("Float"))
-	// ts.Accumulate(schema.SpawnBool("Bool"))
 
 	ts.Accumulate(schema.SpawnString("String_IPLD"))
 	ts.Accumulate(schema.SpawnBytes("Blob_IPLD"))
@@ -36,7 +32,7 @@ func main() {
 	ts.Accumulate(schema.SpawnBool("Bool_IPLD"))
 
 	ts.Accumulate(schema.SpawnUnion("Node_IPLD",
-		[]schema.TypeName{ // Note that these are somewhat redundant statements due to reasons having to do with how we defined the schema DMT.  The DSL is not so redundant.
+		[]schema.TypeName{
 			"String_IPLD",
 			"Blob_IPLD",
 			"Int_IPLD",
@@ -60,9 +56,8 @@ func main() {
 
 	ts.Accumulate(schema.SpawnStruct("Dict_IPLD",
 		[]schema.StructField{
-			// Notice the lack of field called "type" -- that is expressed in the keyed union, which wraps this, instead: therefore it's not necessary to repeat here.
-			schema.SpawnStructField("Tag", "String", true, false),        // The bools here say "is optional; is not nullable".
-			schema.SpawnStructField("Pairs", "Pairs_IPLD", false, false), // I think it may be possible to just use a map here.  (IPLD maps are order-preserving.)  But we'd want to discuss that; I'm not sure I know all desires on this structure.  (E.g., repeat keys?)
+			schema.SpawnStructField("Tag", "String", false, false),
+			schema.SpawnStructField("Pairs", "Pairs_IPLD", false, false),
 		},
 		schema.SpawnStructRepresentationMap(nil),
 	))
@@ -79,8 +74,7 @@ func main() {
 
 	ts.Accumulate(schema.SpawnStruct("Set_IPLD",
 		[]schema.StructField{
-			// Notice the lack of field called "type" -- that is expressed in the keyed union, which wraps this, instead: therefore it's not necessary to repeat here.
-			schema.SpawnStructField("Tag", "String", true, false), // The bools here say "is optional; is not nullable".
+			schema.SpawnStructField("Tag", "String", false, false),
 			schema.SpawnStructField("Elements", "Nodes_IPLD", false, false),
 		},
 		schema.SpawnStructRepresentationMap(nil),
