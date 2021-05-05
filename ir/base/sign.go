@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/libp2p/go-smart-record/ir"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 type Signed struct {
@@ -23,7 +24,7 @@ func (s Signed) EncodeJSON() (interface{}, error) {
 	return s.Disassemble().EncodeJSON()
 }
 
-func (s Signed) Disassemble() ir.Node {
+func (s Signed) Disassemble() xr.Node {
 	return ir.Dict{
 		Tag: "verify",
 		Pairs: ir.MergePairs(
@@ -34,7 +35,7 @@ func (s Signed) Disassemble() ir.Node {
 				{Key: ir.String{"signature"}, Value: s.Signature},
 			},
 		),
-	}
+	}.Disassemble()
 }
 
 func (s Signed) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {

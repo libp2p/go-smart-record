@@ -1,10 +1,12 @@
-package ir
+package xr
 
-import "github.com/libp2p/go-smart-record/xr"
+import (
+	"io"
+)
 
 type Node interface {
-	Disassemble() xr.Node // returns only syntactic nodes
-	UpdateWith(ctx UpdateContext, with Node) (Node, error)
+	WritePretty(w io.Writer) error
+	EncodeJSON() (interface{}, error)
 }
 
 type Nodes []Node
