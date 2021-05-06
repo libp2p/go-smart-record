@@ -28,10 +28,12 @@ func (s Set) Metadata() MetadataInfo {
 func (s Set) Copy() Set {
 	e := make(Nodes, len(s.Elements))
 	copy(e, s.Elements)
+	// Also copy metadata if it exists
+	m := s.metadataCtx.copy()
 	return Set{
 		Tag:         s.Tag,
 		Elements:    e,
-		metadataCtx: s.metadataCtx, // Also copy metadata.
+		metadataCtx: &m,
 	}
 }
 

@@ -67,7 +67,9 @@ func (d Dict) Copy() Dict {
 	p := make(Pairs, len(c.Pairs))
 	copy(p, c.Pairs)
 	c.Pairs = p
-	c.metadataCtx = d.metadataCtx // Also copy metadata.
+	// Also copy metadata if it exists
+	m := d.metadataCtx.copy()
+	c.metadataCtx = &m
 	return c
 }
 

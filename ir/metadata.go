@@ -74,3 +74,10 @@ func (m *metadataContext) update(with *metadataContext) {
 	m.ttl = m.ttl.update(with.ttl).(ttl)
 	m.assemblyTime = m.assemblyTime.update(with.assemblyTime).(assemblyTime)
 }
+
+func (m *metadataContext) copy() metadataContext {
+	if m == nil {
+		return metadataContext{}
+	}
+	return *m
+}
