@@ -186,3 +186,33 @@ func TestMarshalSet(t *testing.T) {
 	}
 
 }
+
+func TestIPLDE2ESerialize(t *testing.T) {
+	n := Dict{
+		Tag: "foo",
+		Pairs: Pairs{
+			{String{"bar1"}, String{"baz"}},
+			{Int{big.NewInt(567)}, String{"baz"}},
+			{String{"bar2"}, Int{big.NewInt(567)}},
+			{String{"bar3"}, Blob{[]byte("asdf")}},
+			{Blob{[]byte("asdf")}, Int{big.NewInt(567)}},
+			{String{"bar4"}, Dict{
+				Tag: "foo2",
+				Pairs: Pairs{
+					{Bool{true}, Int{big.NewInt(567)}},
+				},
+			}},
+		},
+	}
+	b, err := Encode(n)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := Decode(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !IsEqual(n, out) {
+		t.Fatal("Error CBOR decoding using IPLD encoders", n, out)
+	}
+}

@@ -1,8 +1,10 @@
 package xr
 
 import (
-	"fmt"
 	"io"
+
+	"github.com/ipld/go-ipld-prime"
+	xrIpld "github.com/libp2p/go-smart-record/xr/ipld"
 )
 
 // Pair holds a key/value pair.
@@ -96,6 +98,95 @@ func (d Dict) WritePretty(w io.Writer) error {
 	return nil
 }
 
+func (d Dict) ToIPLD() (ipld.Node, error) {
+	// NOTE: Consider adding multierr throughout this whole function
+	// Initialize Dict
+	dbuild := xrIpld.Type.Dict_IPLD.NewBuilder()
+	ma, err := dbuild.BeginMap(-1)
+	if err != nil {
+		return nil, err
+	}
+	// Assign tag
+	tasm, err := ma.AssembleEntry("Tag")
+	if err != nil {
+		return nil, err
+	}
+	err = tasm.AssignString(d.Tag)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build pairs
+	lbuild := xrIpld.Type.Pairs_IPLD.NewBuilder()
+	// NOTE: We can assign here directly the size of Pairs instead of -1
+	la, err := lbuild.BeginList(-1)
+	if err != nil {
+		return nil, err
+	}
+	// For each pair
+	for _, p := range d.Pairs {
+		pbuild := xrIpld.Type.Pair_IPLD.NewBuilder()
+		// NOTE: We can initialize the map with 2 instead of -1
+		pa, err := pbuild.BeginMap(-1)
+		if err != nil {
+			return nil, err
+		}
+		k, err := p.Key.toNode_IPLD()
+		if err != nil {
+			return nil, err
+		}
+
+		// Create key to IPLDNode and assign
+		kasm, err := pa.AssembleEntry("Key")
+		if err != nil {
+			return nil, err
+		}
+		err = kasm.AssignNode(k)
+		if err != nil {
+			return nil, err
+		}
+		// Create value to IPLDNode and assign
+		v, err := p.Value.toNode_IPLD()
+		if err != nil {
+			return nil, err
+		}
+		vasm, err := pa.AssembleEntry("Value")
+		if err != nil {
+			return nil, err
+		}
+		err = vasm.AssignNode(v)
+		if err != nil {
+			return nil, err
+		}
+		// Finish pair building
+		if err := pa.Finish(); err != nil {
+			return nil, err
+		}
+		// Add pair to the list of pairs
+		if err := la.AssembleValue().AssignNode(pbuild.Build()); err != nil {
+			return nil, err
+		}
+	}
+	// Finish building pairs
+	if err := la.Finish(); err != nil {
+		return nil, err
+	}
+	// Assign list of pairs to dict
+	psasm, err := ma.AssembleEntry("Pairs")
+	if err != nil {
+		return nil, err
+	}
+	err = psasm.AssignNode(lbuild.Build())
+	if err != nil {
+		return nil, err
+	}
+	// Finish building dict
+	if err := ma.Finish(); err != nil {
+		return nil, err
+	}
+	return dbuild.Build(), nil
+}
+
 func (d Dict) Copy() Dict {
 	c := d
 	p := make(Pairs, len(c.Pairs))
@@ -125,79 +216,31 @@ func (d Dict) Get(key Node) Node {
 	return nil
 }
 
-// jsonPair is used to encode Pairs with JSON
-type jsonPair struct {
-	Key   interface{}
-	Value interface{}
-}
-
-func (d Dict) EncodeJSON() (interface{}, error) {
-	r := struct {
-		Type  marshalType   `json:"type"`
-		Tag   string        `json:"tag"`
-		Pairs []interface{} `json:"pairs"`
-	}{Type: DictType, Tag: d.Tag, Pairs: []interface{}{}}
-
-	for _, p := range d.Pairs {
-		k, err := p.Key.EncodeJSON()
-		if err != nil {
-			return nil, err
-		}
-		v, err := p.Value.EncodeJSON()
-		if err != nil {
-			return nil, err
-		}
-		r.Pairs = append(r.Pairs, jsonPair{
-			Key:   k,
-			Value: v,
-		})
-	}
-	return r, nil
-
-}
-
-func decodeDict(s map[string]interface{}) (Node, error) {
-	r := Dict{
-		Tag:   s["tag"].(string),
-		Pairs: []Pair{},
-	}
-
-	pairs := s["pairs"].([]interface{})
-	for _, pi := range pairs {
-		p, ok := pi.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("pair is wrong type")
-		}
-		// Get pair values
-		pk, ok := p["Key"].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("key in pair is wrong type")
-		}
-		pv, ok := p["Value"].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("value in pair is wrong type")
-		}
-		// Decode them
-		sk, err := decodeNode(pk)
-		if err != nil {
-			return nil, err
-		}
-		sv, err := decodeNode(pv)
-		if err != nil {
-			return nil, err
-		}
-		r.Pairs = append(r.Pairs,
-			Pair{
-				Key:   sk,
-				Value: sv,
-			})
-	}
-	return r, nil
-}
-
 func IsEqualDict(x, y Dict) bool {
 	if x.Tag != y.Tag {
 		return false
 	}
 	return AreSamePairs(x.Pairs, y.Pairs)
+}
+
+// toNode_IPLD convert into IPLD Node of dynamic type NODE_IPLD
+func (d Dict) toNode_IPLD() (ipld.Node, error) {
+	t := xrIpld.Type.Node_IPLD.NewBuilder()
+	ma, err := t.BeginMap(-1)
+	asm, err := ma.AssembleEntry("Dict_IPLD")
+	if err != nil {
+		return nil, err
+	}
+	nd, err := d.ToIPLD()
+	if err != nil {
+		return nil, err
+	}
+	err = asm.AssignNode(nd)
+	if err != nil {
+		return nil, err
+	}
+	if err := ma.Finish(); err != nil {
+		return nil, err
+	}
+	return t.Build(), nil
 }

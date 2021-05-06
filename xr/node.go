@@ -2,11 +2,15 @@ package xr
 
 import (
 	"io"
+
+	"github.com/ipld/go-ipld-prime"
 )
 
 type Node interface {
-	WritePretty(w io.Writer) error
-	EncodeJSON() (interface{}, error)
+	WritePretty(w io.Writer) error   // Pretty writes the node
+	ToIPLD() (ipld.Node, error)      // Converts xr.Node into its corresponding IPLD Node type
+	toNode_IPLD() (ipld.Node, error) // Convert into IPLD Node of dynamic type NODE_IPLD
+
 }
 
 type Nodes []Node
