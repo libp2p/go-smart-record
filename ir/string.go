@@ -8,11 +8,16 @@ import (
 
 // String is a node representing a string literal.
 type String struct {
-	Value string
+	Value       string
+	metadataCtx *metadataContext
 }
 
 func (s String) Disassemble() xr.Node {
 	return xr.String{Value: s.Value}
+}
+
+func (s String) Metadata() MetadataInfo {
+	return s.metadataCtx.getMetadata()
 }
 
 func (s String) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
@@ -20,5 +25,7 @@ func (s String) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 	if !ok {
 		return nil, fmt.Errorf("cannot update with a non-string")
 	}
+	// Update metadata
+	s.metadataCtx.update(w.metadataCtx)
 	return w, nil
 }

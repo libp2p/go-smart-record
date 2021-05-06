@@ -17,12 +17,13 @@ type Cid struct {
 	User ir.Dict
 }
 
-func (c Cid) EncodeJSON() (interface{}, error) {
-	return c.Disassemble().EncodeJSON()
+func (c Cid) Disassemble() xr.Node {
+	return c.User.Disassemble().(xr.Dict).CopySetTag("cid",
+		xr.String{"cid"}, xr.String{c.Cid.String()})
 }
 
-func (c Cid) Disassemble() xr.Node {
-	return c.User.CopySetTag("cid", ir.String{"cid"}, ir.String{c.Cid.String()}).Disassemble()
+func (c Cid) Metadata() ir.MetadataInfo {
+	return c.User.Metadata()
 }
 
 func (c Cid) WritePretty(w io.Writer) error {
@@ -39,7 +40,7 @@ func (c Cid) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {
 
 type CidAssembler struct{}
 
-func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node) (ir.Node, error) {
+func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata ...ir.Metadata) (ir.Node, error) {
 	d, ok := srcNode.(xr.Dict)
 	if !ok {
 		return nil, fmt.Errorf("expecting dict")

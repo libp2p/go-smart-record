@@ -14,12 +14,13 @@ type Peer struct {
 	User ir.Dict
 }
 
-func (p Peer) EncodeJSON() (interface{}, error) {
-	return p.Disassemble().EncodeJSON()
+func (p Peer) Disassemble() xr.Node {
+	return p.User.Disassemble().(xr.Dict).CopySetTag("peer",
+		xr.String{"id"}, xr.String{p.ID})
 }
 
-func (p Peer) Disassemble() xr.Node {
-	return p.User.CopySetTag("peer", ir.String{"id"}, ir.String{p.ID}).Disassemble()
+func (p Peer) Metadata() ir.MetadataInfo {
+	return p.User.Metadata()
 }
 
 func (p Peer) WritePretty(w io.Writer) error {

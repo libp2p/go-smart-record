@@ -8,8 +8,9 @@ import (
 
 // Set is a set of (uniquely) elements.
 type Set struct {
-	Tag      string
-	Elements Nodes
+	Tag         string
+	Elements    Nodes
+	metadataCtx *metadataContext
 }
 
 func (s Set) Disassemble() xr.Node {
@@ -20,12 +21,17 @@ func (s Set) Disassemble() xr.Node {
 	return x
 }
 
+func (s Set) Metadata() MetadataInfo {
+	return s.metadataCtx.getMetadata()
+}
+
 func (s Set) Copy() Set {
 	e := make(Nodes, len(s.Elements))
 	copy(e, s.Elements)
 	return Set{
-		Tag:      s.Tag,
-		Elements: e,
+		Tag:         s.Tag,
+		Elements:    e,
+		metadataCtx: s.metadataCtx, // Also copy metadata.
 	}
 }
 
@@ -45,5 +51,7 @@ func (s Set) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 			u.Elements = append(u.Elements, e)
 		}
 	}
+	// Update metadata
+	u.metadataCtx.update(ws.metadataCtx)
 	return u, nil
 }

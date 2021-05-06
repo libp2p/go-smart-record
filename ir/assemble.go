@@ -27,17 +27,20 @@ func (ctx AssemblerContext) Assemble(src xr.Node) (Node, error) {
 // It can also produce syntactic nodes (like dictionaries).
 // In that sense, an Assembler can be used to implement any transformation or
 // even just a verification operation that returns the input unchanged.
+// Assemblers can add metadata to the generated semantic nodes.
 type Assembler interface {
-	Assemble(ctx AssemblerContext, src xr.Node) (Node, error)
+	Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error)
 }
 
 // SequenceAssembler is, in common parlance, a parser combinator. Or, in our nomenclature, an "assembler combinator".
 // SequenceAssembler tries to assemble the input, using each of its subordinate assemblers in turn until one of them succeeds.
+// NOTE: With the current implementation all assembled nodes are updated with the same metadata. In the future
+// additional tags could be specified so nodes can be assembled with different metadata each.
 type SequenceAssembler []Assembler
 
-func (asm SequenceAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+func (asm SequenceAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
 	for _, a := range asm {
-		out, err := a.Assemble(ctx, src)
+		out, err := a.Assemble(ctx, src, metadata...)
 		if err == nil {
 			return out, nil
 		}
@@ -57,57 +60,91 @@ var SyntacticGrammar = SequenceAssembler{
 
 type StringAssembler struct{}
 
-func (asm StringAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+func (asm StringAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
 	s, ok := src.(xr.String)
 	if !ok {
 		return nil, fmt.Errorf("not a string")
 	}
-	return String{Value: s.Value}, nil
+
+	// Assemble metadata provided and update assemblyTime
+	var m metadataContext
+	if err := m.assembleMetadata(metadata...); err != nil {
+		return nil, err
+	}
+
+	return String{Value: s.Value, metadataCtx: &m}, nil
 }
 
 type IntAssembler struct{}
 
-func (asm IntAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+func (asm IntAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
 	s, ok := src.(xr.Int)
 	if !ok {
 		return nil, fmt.Errorf("not an int")
 	}
-	return Int{Int: s.Int}, nil
+
+	// Assemble metadata provided and update assemblyTime
+	var m metadataContext
+	if err := m.assembleMetadata(metadata...); err != nil {
+		return nil, err
+	}
+
+	return Int{Int: s.Int, metadataCtx: &m}, nil
 }
 
 type FloatAssembler struct{}
 
-func (asm FloatAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+func (asm FloatAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
 	s, ok := src.(xr.Float)
 	if !ok {
 		return nil, fmt.Errorf("not a float")
 	}
-	return Float{Float: s.Float}, nil
+
+	// Assemble metadata provided and update assemblyTime
+	var m metadataContext
+	if err := m.assembleMetadata(metadata...); err != nil {
+		return nil, err
+	}
+	return Float{Float: s.Float, metadataCtx: &m}, nil
 }
 
 type BoolAssembler struct{}
 
-func (asm BoolAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+func (asm BoolAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
 	s, ok := src.(xr.Bool)
 	if !ok {
 		return nil, fmt.Errorf("not a bool")
 	}
-	return Bool{Value: s.Value}, nil
+
+	// Assemble metadata provided and update assemblyTime
+	var m metadataContext
+	if err := m.assembleMetadata(metadata...); err != nil {
+		return nil, err
+	}
+
+	return Bool{Value: s.Value, metadataCtx: &m}, nil
 }
 
 type BlobAssembler struct{}
 
-func (asm BlobAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+func (asm BlobAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
 	s, ok := src.(xr.Blob)
 	if !ok {
 		return nil, fmt.Errorf("not a blob")
 	}
-	return Blob{Bytes: s.Bytes}, nil
+
+	// Assemble metadata provided and update assemblyTime
+	var m metadataContext
+	if err := m.assembleMetadata(metadata...); err != nil {
+		return nil, err
+	}
+
+	return Blob{Bytes: s.Bytes, metadataCtx: &m}, nil
 }
 
 type DictAssembler struct{}
 
-func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
 	s, ok := src.(xr.Dict)
 	if !ok {
 		return nil, fmt.Errorf("not a dict")
@@ -127,12 +164,20 @@ func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, erro
 		}
 		d.Pairs[i] = Pair{Key: k, Value: v}
 	}
+
+	// Assemble metadata provided and update assemblyTime
+	var m metadataContext
+	if err := m.assembleMetadata(metadata...); err != nil {
+		return nil, err
+	}
+	d.metadataCtx = &m
+
 	return d, nil
 }
 
 type SetAssembler struct{}
 
-func (asm SetAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error) {
+func (asm SetAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
 	s, ok := src.(xr.Set)
 	if !ok {
 		return nil, fmt.Errorf("not a set")
@@ -148,5 +193,13 @@ func (asm SetAssembler) Assemble(ctx AssemblerContext, src xr.Node) (Node, error
 		}
 		d.Elements[i] = ae
 	}
+
+	// Assemble metadata provided and update assemblyTime
+	var m metadataContext
+	if err := m.assembleMetadata(metadata...); err != nil {
+		return nil, err
+	}
+	d.metadataCtx = &m
+
 	return d, nil
 }

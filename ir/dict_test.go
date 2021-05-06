@@ -22,17 +22,17 @@ func TestUpdateDictDiffTag(t *testing.T) {
 func TestUpdateDictDisjointPairs(t *testing.T) {
 	d1 := Dict{
 		Tag:   "aaa",
-		Pairs: Pairs{{String{"x"}, NewInt64(1)}},
+		Pairs: Pairs{{String{"x", nil}, NewInt64(1)}},
 	}
 	d2 := Dict{
 		Tag:   "aaa",
-		Pairs: Pairs{{String{"y"}, NewInt64(1)}},
+		Pairs: Pairs{{String{"y", nil}, NewInt64(1)}},
 	}
 	exp := Dict{
 		Tag: "aaa",
 		Pairs: Pairs{
-			{String{"x"}, NewInt64(1)},
-			{String{"y"}, NewInt64(1)},
+			{String{"x", nil}, NewInt64(1)},
+			{String{"y", nil}, NewInt64(1)},
 		},
 	}
 	mctx := DefaultUpdateContext{}
@@ -49,23 +49,23 @@ func TestUpdateDictOverlappingPairs(t *testing.T) {
 	d1 := Dict{
 		Tag: "aaa",
 		Pairs: Pairs{
-			{String{"x"}, NewInt64(1)},
-			{String{"z"}, NewInt64(1)},
+			{String{"x", nil}, NewInt64(1)},
+			{String{"z", nil}, NewInt64(1)},
 		},
 	}
 	d2 := Dict{
 		Tag: "aaa",
 		Pairs: Pairs{
-			{String{"x"}, NewInt64(1)},
-			{String{"w"}, NewInt64(1)},
+			{String{"x", nil}, NewInt64(1)},
+			{String{"w", nil}, NewInt64(1)},
 		},
 	}
 	exp := Dict{
 		Tag: "aaa",
 		Pairs: Pairs{
-			{String{"x"}, NewInt64(1)},
-			{String{"z"}, NewInt64(1)},
-			{String{"w"}, NewInt64(1)},
+			{String{"x", nil}, NewInt64(1)},
+			{String{"z", nil}, NewInt64(1)},
+			{String{"w", nil}, NewInt64(1)},
 		},
 	}
 	mctx := DefaultUpdateContext{}

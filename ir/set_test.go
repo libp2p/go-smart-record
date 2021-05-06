@@ -23,23 +23,23 @@ func TestUpdateSetSameTag(t *testing.T) {
 	s1 := Set{
 		Tag: "aaa",
 		Elements: Nodes{
-			String{"x"},
-			String{"z"},
+			String{"x", nil},
+			String{"z", nil},
 		},
 	}
 	s2 := Set{
 		Tag: "aaa",
 		Elements: Nodes{
-			String{"x"},
-			String{"w"},
+			String{"x", nil},
+			String{"w", nil},
 		},
 	}
 	exp := Set{
 		Tag: "aaa",
 		Elements: Nodes{
-			String{"x"},
-			String{"z"},
-			String{"w"},
+			String{"x", nil},
+			String{"z", nil},
+			String{"w", nil},
 		},
 	}
 	mctx := DefaultUpdateContext{}

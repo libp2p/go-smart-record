@@ -20,22 +20,22 @@ func (s Signed) WritePretty(w io.Writer) error {
 	return s.Disassemble().WritePretty(w)
 }
 
-func (s Signed) EncodeJSON() (interface{}, error) {
-	return s.Disassemble().EncodeJSON()
-}
-
 func (s Signed) Disassemble() xr.Node {
 	return ir.Dict{
 		Tag: "verify",
 		Pairs: ir.MergePairs(
 			s.User.Pairs,
 			ir.Pairs{
-				{Key: ir.String{"by"}, Value: s.By},
-				{Key: ir.String{"statement"}, Value: s.Statement},
-				{Key: ir.String{"signature"}, Value: s.Signature},
+				{Key: ir.String{Value: "by"}, Value: s.By},
+				{Key: ir.String{Value: "statement"}, Value: s.Statement},
+				{Key: ir.String{Value: "signature"}, Value: s.Signature},
 			},
 		),
 	}.Disassemble()
+}
+
+func (s Signed) Metadata() ir.MetadataInfo {
+	return s.User.Metadata()
 }
 
 func (s Signed) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {

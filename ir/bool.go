@@ -7,11 +7,16 @@ import (
 )
 
 type Bool struct {
-	Value bool
+	Value       bool
+	metadataCtx *metadataContext
 }
 
 func (b Bool) Disassemble() xr.Node {
 	return xr.Bool{Value: b.Value}
+}
+
+func (b Bool) Metadata() MetadataInfo {
+	return b.metadataCtx.getMetadata()
 }
 
 func (b Bool) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
@@ -19,5 +24,7 @@ func (b Bool) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 	if !ok {
 		return nil, fmt.Errorf("cannot update with a non-bool")
 	}
+	// Update metadata
+	b.metadataCtx.update(w.metadataCtx)
 	return w, nil
 }

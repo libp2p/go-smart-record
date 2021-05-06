@@ -14,12 +14,9 @@ type Verify struct {
 	User ir.Dict
 }
 
-func (v Verify) EncodeJSON() (interface{}, error) {
-	return v.Disassemble().EncodeJSON()
-}
-
 func (v Verify) Disassemble() xr.Node {
-	return v.User.CopySetTag("verify", ir.String{"statement"}, v.Statement).Disassemble()
+	return v.User.Disassemble().(xr.Dict).CopySetTag("verify",
+		xr.String{"statement"}, v.Statement.Disassemble())
 }
 
 func (v Verify) WritePretty(w io.Writer) error {
@@ -34,24 +31,23 @@ type Verified struct {
 	User ir.Dict
 }
 
-func (v Verified) EncodeJSON() (interface{}, error) {
-	return v.Disassemble().EncodeJSON()
-}
-
 func (v Verified) Disassemble() xr.Node {
 	return ir.Dict{
 		Tag: "verify",
 		Pairs: ir.MergePairs(
 			v.User.Pairs,
 			ir.Pairs{
-				{Key: ir.String{"by"}, Value: v.By},
-				{Key: ir.String{"statement"}, Value: v.Statement},
-				{Key: ir.String{"signature"}, Value: v.Signature},
+				{Key: ir.String{Value: "by"}, Value: v.By},
+				{Key: ir.String{Value: "statement"}, Value: v.Statement},
+				{Key: ir.String{Value: "signature"}, Value: v.Signature},
 			},
 		),
 	}.Disassemble()
 }
 
+func (v Verified) Metadata() ir.MetadataInfo {
+	return v.User.Metadata()
+}
 func (v Verified) WritePretty(w io.Writer) error {
 	return v.Disassemble().WritePretty(w)
 }

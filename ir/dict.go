@@ -41,8 +41,9 @@ func MergePairs(x, y Pairs) Pairs {
 
 // Dict is a set of uniquely-keyed values.
 type Dict struct {
-	Tag   string
-	Pairs Pairs // keys must be unique wrt IsEqual
+	Tag         string
+	Pairs       Pairs // keys must be unique wrt IsEqual
+	metadataCtx *metadataContext
 }
 
 func (d Dict) Disassemble() xr.Node {
@@ -51,6 +52,10 @@ func (d Dict) Disassemble() xr.Node {
 		x.Pairs[i] = xr.Pair{Key: p.Key.Disassemble(), Value: p.Value.Disassemble()}
 	}
 	return x
+}
+
+func (d Dict) Metadata() MetadataInfo {
+	return d.metadataCtx.getMetadata()
 }
 
 func (d Dict) Len() int {
@@ -62,27 +67,7 @@ func (d Dict) Copy() Dict {
 	p := make(Pairs, len(c.Pairs))
 	copy(p, c.Pairs)
 	c.Pairs = p
-	return c
-}
-
-func (d Dict) CopySet(key Node, value Node) Dict {
-	return d.CopySetTag(d.Tag, key, value)
-}
-
-func (d Dict) CopySetTag(tag string, key Node, value Node) Dict {
-	c := d.Copy()
-	c.Tag = tag
-	found := false
-	for i, p := range c.Pairs {
-		if IsEqual(key, p.Key) {
-			c.Pairs[i] = Pair{key, value}
-			found = true
-			break
-		}
-	}
-	if !found {
-		c.Pairs = append(c.Pairs, Pair{key, value})
-	}
+	c.metadataCtx = d.metadataCtx // Also copy metadata.
 	return c
 }
 
@@ -131,5 +116,7 @@ func (d Dict) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 			}
 		}
 	}
+	// Update metadata
+	u.metadataCtx.update(wd.metadataCtx)
 	return u, nil
 }
