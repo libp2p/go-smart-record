@@ -1,25 +1,19 @@
 package vm
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/jbenet/goprocess"
 	"github.com/libp2p/go-smart-record/ir"
 )
 
-// gcPeriod determines the granularity of GC by the VM.
-// NOTE: Make it a configurable parameter at initialization.
-const gcPeriod = 2 * time.Second
-
 func (v *vm) gcLoop(proc goprocess.Process) {
 	// TODO: Add gcInterval as an option
-	msgSyncTicker := time.NewTicker(gcPeriod)
+	msgSyncTicker := time.NewTicker(v.gcPeriod)
 	defer msgSyncTicker.Stop()
 	for {
 		select {
 		case <-msgSyncTicker.C:
-			fmt.Println("Garbage collect triggered")
 			// NOTE: Locking all keys while garbage collecting may really
 			// harm performance, specially if the gcPeriod is low. Consider
 			// adding a lock per entry or other schemes to improve this.
@@ -39,36 +33,43 @@ func (v *vm) garbageCollect() {
 	for _, r := range v.keys {
 		// And the datastore of each peer
 		for p, entry := range *r {
-			if gc := gcDict(entry); gc {
+			e, gc := gcDict(*entry)
+			if gc {
 				// Delete that entry if dict for peer expired.
 				delete(*r, p)
+			} else {
+				// Assign the resulting dict after gc
+				(*r)[p] = &e
 			}
+
 		}
 	}
 }
 
-func gcNode(n ir.Node) bool {
+func gcNode(n ir.Node) (ir.Node, bool) {
 	switch n1 := n.(type) {
 	case ir.Dict:
-		return gcDict(&n1)
+		return gcDict(n1)
 	case ir.Set:
-		return gcSet(&n1)
+		return gcSet(n1)
 	default:
-		return isTTLExpired(n1)
+		return n1, isTTLExpired(n1)
 	}
 }
 
-func gcDict(d *ir.Dict) bool {
+func gcDict(d ir.Dict) (ir.Dict, bool) {
 	// Check if we can remove Dict if all children have expired.
 	gcFlag := isTTLExpired(d)
 	pairs := make(ir.Pairs, 0)
 	// For each pair.
 	for _, p := range d.Pairs {
 		// Check if pair has expired and garbage collect.
-		gcP := gcNode(p.Key) && gcNode(p.Value)
+		k, gck := gcNode(p.Key)
+		v, gcv := gcNode(p.Value)
+		gcP := gck && gcv
 		// If it hasn't keep the pair
 		if !gcP {
-			pairs = append(pairs, p)
+			pairs = append(pairs, ir.Pair{Key: k, Value: v})
 		}
 		// Accummulate the result for the child in dict.
 		gcFlag = gcFlag && gcP
@@ -78,17 +79,17 @@ func gcDict(d *ir.Dict) bool {
 		d.Pairs = pairs
 	}
 	// Return gc result for dict.
-	return gcFlag
+	return d, gcFlag
 }
 
-func gcSet(s *ir.Set) bool {
+func gcSet(s ir.Set) (ir.Set, bool) {
 	// Check if we can remove Dict if all children have expired.
 	gcFlag := isTTLExpired(s)
 	els := make(ir.Nodes, 0)
 	// For each elements.
 	for _, e := range s.Elements {
 		// Check if element gas expired
-		gcP := gcNode(e)
+		e, gcP := gcNode(e)
 		// If it hasn't keep the element
 		if !gcP {
 			els = append(els, e)
@@ -101,7 +102,7 @@ func gcSet(s *ir.Set) bool {
 		s.Elements = els
 	}
 	// Return gc result for dict.
-	return gcFlag
+	return s, gcFlag
 }
 
 func isTTLExpired(n ir.Node) bool {

@@ -12,11 +12,12 @@ import (
 )
 
 var k = "234"
+var gcPeriodOpt = GCPeriod(1 * time.Second)
 
 func TestEmptyUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asm := base.BaseGrammar
-	vm := NewVM(context.Background(), ctx, asm)
+	vm, _ := NewVM(context.Background(), ctx, asm, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in := xr.Dict{
@@ -44,7 +45,7 @@ func TestEmptyUpdate(t *testing.T) {
 func TestExistingUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asm := base.BaseGrammar
-	vm := NewVM(context.Background(), ctx, asm)
+	vm, _ := NewVM(context.Background(), ctx, asm, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in1 := xr.Dict{
@@ -81,7 +82,7 @@ func TestExistingUpdate(t *testing.T) {
 func TestSeveralPeers(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asm := base.BaseGrammar
-	vm := NewVM(context.Background(), ctx, asm)
+	vm, _ := NewVM(context.Background(), ctx, asm, gcPeriodOpt)
 	p1, _ := p2ptestutil.RandTestBogusIdentity()
 	p2, _ := p2ptestutil.RandTestBogusIdentity()
 
@@ -127,7 +128,7 @@ func TestSeveralPeers(t *testing.T) {
 func TestGcProcess(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asm := base.BaseGrammar
-	vm := NewVM(context.Background(), ctx, asm)
+	vm, _ := NewVM(context.Background(), ctx, asm, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in1 := xr.Dict{
@@ -140,14 +141,6 @@ func TestGcProcess(t *testing.T) {
 			xr.Pair{Key: xr.String{Value: "asdf"}, Value: xr.String{Value: "asfd"}},
 		},
 	}
-	/*
-		in := xr.Dict{
-			Pairs: xr.Pairs{
-				xr.Pair{Key: xr.String{Value: "asdf"}, Value: xr.String{Value: "asfd"}},
-				xr.Pair{Key: xr.String{Value: "fff"}, Value: xr.String{Value: "ff2"}},
-			},
-		}
-	*/
 
 	// Small expiration for in1
 	err := vm.Update(p.ID(), k, in1, []ir.Metadata{ir.TTL(1)}...)
@@ -159,8 +152,8 @@ func TestGcProcess(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	out := vm.Get(k)
 	time.Sleep(3 * time.Second)
+	out := vm.Get(k)
 	// In1 should have been garbage collected
 	if !xr.IsEqual(in2, *out[p.ID()]) {
 		t.Fatal("Record not garbage collected successfully", in2, *out[p.ID()])
@@ -182,8 +175,8 @@ func TestGcFullDict(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	time.Sleep(3 * time.Second)
-	if g := gcNode(ds); !g {
+	time.Sleep(2 * time.Second)
+	if _, g := gcNode(ds); !g {
 		t.Fatal("Dict should have been garbage collected", g, ds)
 	}
 }
@@ -216,22 +209,13 @@ func TestGcPartialDict(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	time.Sleep(4 * time.Second)
-	if g := gcNode(dsu); g {
+	time.Sleep(2 * time.Second)
+	out, g := gcNode(dsu)
+	if g {
 		t.Fatal("Dict should not have been garbage collected", g, dsu)
 	}
-	if !ir.IsEqual(dsu, ds2) {
-		t.Fatal("Dict not garbage collected partially", dsu, ds2)
+	if !ir.IsEqual(out, ds2) {
+		t.Fatal("Dict not garbage collected partially", out, ds2)
 	}
 
 }
-
-/*
-func TestTimer(t *testing.T) {
-	ctx := ir.DefaultUpdateContext{}
-	asm := base.BaseGrammar
-	_ = NewVM(context.Background(), ctx, asm)
-	time.Sleep(10 * time.Second)
-
-}
-*/

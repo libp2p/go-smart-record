@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/jbenet/goprocess"
 	goprocessctx "github.com/jbenet/goprocess/context"
@@ -33,26 +34,33 @@ type Machine interface {
 type vm struct {
 	ctx  context.Context
 	proc goprocess.Process
+	lk   sync.RWMutex // Lock to enable multiple access
 
 	updateCtx ir.UpdateContext // UpdateContext the VM uses to resolve conflicts
 	//ds  ds.Datastore    // TODO: Add a datastore instead of using map[string] for the VM state
 	keys map[string]*recordEntry // State of the VM storing the map of records.
 	asm  ir.Assembler            // Assemble to use in the VM.
-	lk   sync.RWMutex            // Lock to enable multiple access
+
+	gcPeriod time.Duration // Period of the gc process
 }
 
 // NewVM creates a new smart record Machine
-func NewVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.Assembler) Machine {
-	return newVM(ctx, updateCtx, asm)
+func NewVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.Assembler, options ...VMOption) (Machine, error) {
+	return newVM(ctx, updateCtx, asm, options...)
 }
 
 //newVM instantiates a new VM with an updateContext and an assembler
-func newVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.Assembler) *vm {
+func newVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.Assembler, options ...VMOption) (*vm, error) {
+	var cfg vmConfig
+	if err := cfg.apply(append([]VMOption{defaults}, options...)...); err != nil {
+		return nil, err
+	}
 	v := &vm{
 		ctx:       ctx,
 		updateCtx: updateCtx,
 		keys:      make(map[string]*recordEntry),
 		asm:       asm,
+		gcPeriod:  cfg.gcPeriod,
 	}
 
 	// Initialize process so routines are ended with context
@@ -60,7 +68,7 @@ func newVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.Assembler) *v
 	// Start garbage collection process
 	// NOTE: Should we add an option for this?
 	v.proc.Go(v.gcLoop)
-	return v
+	return v, nil
 }
 
 // Get the whole record stored in a key
