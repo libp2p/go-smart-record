@@ -16,8 +16,8 @@ type AssemblerContext struct {
 	Keys    map[string]interface{}
 }
 
-func (ctx AssemblerContext) Assemble(src xr.Node) (Node, error) {
-	return ctx.Grammar.Assemble(ctx, src)
+func (ctx AssemblerContext) Assemble(src xr.Node, metadata ...Metadata) (Node, error) {
+	return ctx.Grammar.Assemble(ctx, src, metadata...)
 }
 
 // Assembler is an object that can "parse" a syntactic tree (given as a dictionary)
@@ -154,11 +154,11 @@ func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 		Pairs: make(Pairs, len(s.Pairs)),
 	}
 	for i, p := range s.Pairs {
-		k, err := ctx.Assemble(p.Key)
+		k, err := ctx.Assemble(p.Key, metadata...)
 		if err != nil {
 			return nil, fmt.Errorf("key assembly (%v)", err)
 		}
-		v, err := ctx.Assemble(p.Value)
+		v, err := ctx.Assemble(p.Value, metadata...)
 		if err != nil {
 			return nil, fmt.Errorf("value assembly (%v)", err)
 		}
@@ -187,7 +187,7 @@ func (asm SetAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...
 		Elements: make(Nodes, len(s.Elements)),
 	}
 	for i, e := range s.Elements {
-		ae, err := ctx.Assemble(e)
+		ae, err := ctx.Assemble(e, metadata...)
 		if err != nil {
 			return nil, fmt.Errorf("element assembly (%v)", err)
 		}

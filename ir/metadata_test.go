@@ -9,7 +9,7 @@ import (
 
 const sampleTTL = 123
 
-func TestSetMetadata(t *testing.T) {
+func TestDictMetadata(t *testing.T) {
 	now := time.Now().Unix()
 
 	d := xr.Dict{
@@ -27,13 +27,49 @@ func TestSetMetadata(t *testing.T) {
 	}
 	m := ds.Metadata()
 	if m.TTL != uint64(sampleTTL) {
-		t.Fatal("TTL not set successfully in node:", m.TTL, sampleTTL)
+		t.Fatal("TTL not set successfully in dict:", m.TTL, sampleTTL)
+	}
+
+	elm := ds.(Dict).Pairs[1].Key
+	if elm.Metadata().TTL != uint64(sampleTTL) {
+		t.Fatal("TTL not set successfully in dict element:", elm.Metadata().TTL, sampleTTL)
 	}
 	if m.AssemblyTime < uint64(now) {
 		t.Fatal("Assembly time set failed:", m.AssemblyTime, now)
 	}
 
 }
+
+func TestSetMetadata(t *testing.T) {
+	now := time.Now().Unix()
+
+	d := xr.Set{
+		Tag: "aaa",
+		Elements: xr.Nodes{
+			xr.String{Value: "x"},
+		},
+	}
+
+	ttl := TTL(uint64(sampleTTL))
+	ds, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d, []Metadata{ttl}...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := ds.Metadata()
+	if m.TTL != uint64(sampleTTL) {
+		t.Fatal("TTL not set successfully in set:", m.TTL, sampleTTL)
+	}
+
+	elm := ds.(Set).Elements[0]
+	if elm.Metadata().TTL != uint64(sampleTTL) {
+		t.Fatal("TTL not set successfully in set element:", elm.Metadata().TTL, sampleTTL)
+	}
+	if m.AssemblyTime < uint64(now) {
+		t.Fatal("Assembly time set failed:", m.AssemblyTime, now)
+	}
+
+}
+
 func TestUpdateMetadata(t *testing.T) {
 
 	d1 := xr.Dict{
