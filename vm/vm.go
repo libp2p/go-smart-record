@@ -1,8 +1,12 @@
 package vm
 
 import (
+	"context"
 	"fmt"
 	"sync"
+
+	"github.com/jbenet/goprocess"
+	goprocessctx "github.com/jbenet/goprocess/context"
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-smart-record/ir"
@@ -19,15 +23,18 @@ type RecordValue map[peer.ID]*xr.Dict
 
 // Machine captures the public interface of a smart record virtual machine.
 type Machine interface {
-	Update(writer peer.ID, k string, update xr.Dict) error // Updates the dictionary in the writer's private space.
-	Get(k string) RecordValue                              // Get the full Record in a key
+	Update(writer peer.ID, k string, update xr.Dict, metadata ...ir.Metadata) error // Updates the dictionary in the writer's private space.
+	Get(k string) RecordValue                                                       // Get the full Record in a key
 	// NOTE: No query operation will be supported until we figure out selectors
 	// Query(key string, selector Selector) (RecordValue, error)
 }
 
 // VM implements the Machine interface and keeps the map of records in its state.
 type vm struct {
-	ctx ir.UpdateContext // UpdateContext the VM uses to resolve conflicts
+	ctx  context.Context
+	proc goprocess.Process
+
+	updateCtx ir.UpdateContext // UpdateContext the VM uses to resolve conflicts
 	//ds  ds.Datastore    // TODO: Add a datastore instead of using map[string] for the VM state
 	keys map[string]*recordEntry // State of the VM storing the map of records.
 	asm  ir.Assembler            // Assemble to use in the VM.
@@ -35,17 +42,25 @@ type vm struct {
 }
 
 // NewVM creates a new smart record Machine
-func NewVM(ctx ir.UpdateContext, asm ir.Assembler) Machine {
-	return newVM(ctx, asm)
+func NewVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.Assembler) Machine {
+	return newVM(ctx, updateCtx, asm)
 }
 
 //newVM instantiates a new VM with an updateContext and an assembler
-func newVM(ctx ir.UpdateContext, asm ir.Assembler) *vm {
-	return &vm{
-		ctx:  ctx,
-		keys: make(map[string]*recordEntry),
-		asm:  asm,
+func newVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.Assembler) *vm {
+	v := &vm{
+		ctx:       ctx,
+		updateCtx: updateCtx,
+		keys:      make(map[string]*recordEntry),
+		asm:       asm,
 	}
+
+	// Initialize process so routines are ended with context
+	v.proc = goprocessctx.WithContext(ctx)
+	// Start garbage collection process
+	// NOTE: Should we add an option for this?
+	v.proc.Go(v.gcLoop)
+	return v
 }
 
 // Get the whole record stored in a key
@@ -76,12 +91,12 @@ func (v *vm) Get(k string) RecordValue {
 // NOTE: We currently store an assembled version of the record.
 // We may need to disassemble and serialize before storage
 // if we choose to use a datastore.
-func (v *vm) Update(writer peer.ID, k string, update xr.Dict) error {
+func (v *vm) Update(writer peer.ID, k string, update xr.Dict, metadata ...ir.Metadata) error {
 	v.lk.Lock()
 	defer v.lk.Unlock()
 
 	// Start assemble process with the parent VM assemblerContext
-	ds, err := v.asm.Assemble(ir.AssemblerContext{Grammar: v.asm}, update)
+	ds, err := v.asm.Assemble(ir.AssemblerContext{Grammar: v.asm}, update, metadata...)
 	if err != nil {
 		return err
 	}
@@ -117,4 +132,9 @@ func (v *vm) Update(writer peer.ID, k string, update xr.Dict) error {
 		}
 		return nil
 	}
+}
+
+// Close calls Process Close.
+func (v *vm) Close() error {
+	return v.proc.Close()
 }

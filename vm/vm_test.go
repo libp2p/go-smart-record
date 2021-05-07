@@ -1,7 +1,9 @@
 package vm
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	p2ptestutil "github.com/libp2p/go-libp2p-netutil"
 	"github.com/libp2p/go-smart-record/ir"
@@ -14,7 +16,7 @@ var k = "234"
 func TestEmptyUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asm := base.BaseGrammar
-	vm := NewVM(ctx, asm)
+	vm := NewVM(context.Background(), ctx, asm)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in := xr.Dict{
@@ -42,7 +44,7 @@ func TestEmptyUpdate(t *testing.T) {
 func TestExistingUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asm := base.BaseGrammar
-	vm := NewVM(ctx, asm)
+	vm := NewVM(context.Background(), ctx, asm)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in1 := xr.Dict{
@@ -79,7 +81,7 @@ func TestExistingUpdate(t *testing.T) {
 func TestSeveralPeers(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asm := base.BaseGrammar
-	vm := NewVM(ctx, asm)
+	vm := NewVM(context.Background(), ctx, asm)
 	p1, _ := p2ptestutil.RandTestBogusIdentity()
 	p2, _ := p2ptestutil.RandTestBogusIdentity()
 
@@ -121,3 +123,115 @@ func TestSeveralPeers(t *testing.T) {
 		t.Fatal("Record not updated in existing key", in1, in2, out)
 	}
 }
+
+func TestGcProcess(t *testing.T) {
+	ctx := ir.DefaultUpdateContext{}
+	asm := base.BaseGrammar
+	vm := NewVM(context.Background(), ctx, asm)
+	p, _ := p2ptestutil.RandTestBogusIdentity()
+
+	in1 := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "fff"}, Value: xr.String{Value: "ff2"}},
+		},
+	}
+	in2 := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "asdf"}, Value: xr.String{Value: "asfd"}},
+		},
+	}
+	/*
+		in := xr.Dict{
+			Pairs: xr.Pairs{
+				xr.Pair{Key: xr.String{Value: "asdf"}, Value: xr.String{Value: "asfd"}},
+				xr.Pair{Key: xr.String{Value: "fff"}, Value: xr.String{Value: "ff2"}},
+			},
+		}
+	*/
+
+	// Small expiration for in1
+	err := vm.Update(p.ID(), k, in1, []ir.Metadata{ir.TTL(1)}...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Large expiration for in2
+	err = vm.Update(p.ID(), k, in2, []ir.Metadata{ir.TTL(3000)}...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := vm.Get(k)
+	time.Sleep(3 * time.Second)
+	// In1 should have been garbage collected
+	if !xr.IsEqual(in2, *out[p.ID()]) {
+		t.Fatal("Record not garbage collected successfully", in2, *out[p.ID()])
+	}
+
+}
+
+func TestGcFullDict(t *testing.T) {
+	d := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "x"}, Value: xr.String{Value: "w"}},
+			xr.Pair{Key: xr.String{Value: "w"}, Value: xr.String{Value: "h"}},
+		},
+	}
+
+	ttl := ir.TTL(1)
+	ds, err := ir.SyntacticGrammar.Assemble(ir.AssemblerContext{Grammar: ir.SyntacticGrammar},
+		d, []ir.Metadata{ttl}...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(3 * time.Second)
+	if g := gcNode(ds); !g {
+		t.Fatal("Dict should have been garbage collected", g, ds)
+	}
+}
+
+func TestGcPartialDict(t *testing.T) {
+	in1 := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "fff"}, Value: xr.String{Value: "ff2"}},
+		},
+	}
+	in2 := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "asdf"}, Value: xr.String{Value: "asfd"}},
+		},
+	}
+	// Small TTL
+	ds1, err := ir.SyntacticGrammar.Assemble(ir.AssemblerContext{Grammar: ir.SyntacticGrammar},
+		in1, []ir.Metadata{ir.TTL(1)}...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Large TTL
+	ds2, err := ir.SyntacticGrammar.Assemble(ir.AssemblerContext{Grammar: ir.SyntacticGrammar},
+		in2, []ir.Metadata{ir.TTL(3000)}...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Update
+	dsu, err := ds1.UpdateWith(ir.DefaultUpdateContext{}, ds2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(4 * time.Second)
+	if g := gcNode(dsu); g {
+		t.Fatal("Dict should not have been garbage collected", g, dsu)
+	}
+	if !ir.IsEqual(dsu, ds2) {
+		t.Fatal("Dict not garbage collected partially", dsu, ds2)
+	}
+
+}
+
+/*
+func TestTimer(t *testing.T) {
+	ctx := ir.DefaultUpdateContext{}
+	asm := base.BaseGrammar
+	_ = NewVM(context.Background(), ctx, asm)
+	time.Sleep(10 * time.Second)
+
+}
+*/
