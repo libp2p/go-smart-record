@@ -64,7 +64,7 @@ func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata 
 		u.Remove(xr.String{"cid"})
 
 		asm := ir.DictAssembler{}
-		uasm, err := asm.Assemble(ctx, d)
+		uasm, err := asm.Assemble(ctx, d, metadata...)
 		return Cid{
 			Cid:  x,
 			User: uasm.(ir.Dict),
