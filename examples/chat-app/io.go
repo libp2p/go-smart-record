@@ -35,6 +35,7 @@ func (c *clientConfig) readInput(outCh chan string) {
 
 // Write in STDOUT new messages received in channel
 func (c *clientConfig) writeOutput(outCh chan string) {
+	fmt.Println("[*] Ready! You can start typing your messages :) ")
 	w := bufio.NewWriter(os.Stdout)
 	for {
 		select {
