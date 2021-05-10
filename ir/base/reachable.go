@@ -12,7 +12,9 @@ import (
 	"github.com/libp2p/go-smart-record/xr"
 )
 
-// Reachable is a smart node. It checks if the multiaddrs included in Dict are dialable.
+// Reachable is a smart node. It detects if there are multiaddrs in the node.
+// If there are, it checks if they are dialable, and it only keeps those
+// that are reachable, discarding the unreachable.
 type Reachable struct {
 	// Reachable only keeps multiaddrss that are reachable in Node.
 	Reachable ir.Node

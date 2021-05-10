@@ -13,8 +13,8 @@ var k = "234"
 
 func TestEmptyUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
-	asm := base.BaseGrammar
-	vm := NewVM(ctx, asm)
+	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
+	vm := NewVM(ctx, asmCtx)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in := xr.Dict{
@@ -41,8 +41,8 @@ func TestEmptyUpdate(t *testing.T) {
 
 func TestExistingUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
-	asm := base.BaseGrammar
-	vm := NewVM(ctx, asm)
+	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
+	vm := NewVM(ctx, asmCtx)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in1 := xr.Dict{
@@ -78,8 +78,8 @@ func TestExistingUpdate(t *testing.T) {
 
 func TestSeveralPeers(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
-	asm := base.BaseGrammar
-	vm := NewVM(ctx, asm)
+	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
+	vm := NewVM(ctx, asmCtx)
 	p1, _ := p2ptestutil.RandTestBogusIdentity()
 	p2, _ := p2ptestutil.RandTestBogusIdentity()
 

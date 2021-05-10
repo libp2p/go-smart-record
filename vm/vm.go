@@ -29,22 +29,22 @@ type Machine interface {
 type vm struct {
 	ctx ir.UpdateContext // UpdateContext the VM uses to resolve conflicts
 	//ds  ds.Datastore    // TODO: Add a datastore instead of using map[string] for the VM state
-	keys map[string]*recordEntry // State of the VM storing the map of records.
-	asm  ir.Assembler            // Assemble to use in the VM.
-	lk   sync.RWMutex            // Lock to enable multiple access
+	keys   map[string]*recordEntry // State of the VM storing the map of records.
+	asmCtx ir.AssemblerContext     // Root AssemblerContext to use in the VM.
+	lk     sync.RWMutex            // Lock to enable multiple access
 }
 
 // NewVM creates a new smart record Machine
-func NewVM(ctx ir.UpdateContext, asm ir.Assembler) Machine {
-	return newVM(ctx, asm)
+func NewVM(ctx ir.UpdateContext, asmCtx ir.AssemblerContext) Machine {
+	return newVM(ctx, asmCtx)
 }
 
 //newVM instantiates a new VM with an updateContext and an assembler
-func newVM(ctx ir.UpdateContext, asm ir.Assembler) *vm {
+func newVM(ctx ir.UpdateContext, asmCtx ir.AssemblerContext) *vm {
 	return &vm{
-		ctx:  ctx,
-		keys: make(map[string]*recordEntry),
-		asm:  asm,
+		ctx:    ctx,
+		keys:   make(map[string]*recordEntry),
+		asmCtx: asmCtx,
 	}
 }
 
@@ -81,7 +81,7 @@ func (v *vm) Update(writer peer.ID, k string, update xr.Dict) error {
 	defer v.lk.Unlock()
 
 	// Start assemble process with the parent VM assemblerContext
-	ds, err := v.asm.Assemble(ir.AssemblerContext{Grammar: v.asm}, update)
+	ds, err := v.asmCtx.Grammar.Assemble(v.asmCtx, update)
 	if err != nil {
 		return err
 	}

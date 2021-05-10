@@ -47,6 +47,9 @@ func newSmartRecordServer(ctx context.Context, h host.Host, options ...ServerOpt
 	}
 	protocols := []protocol.ID{srProtocol}
 
+	// Add host to assemblerContext
+	cfg.assembler.Host = h
+
 	// Start a smartRecordServer with an initialized VM.
 	e := &smartRecordServer{
 		ctx:       ctx,
