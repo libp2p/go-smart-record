@@ -59,7 +59,8 @@ func main() {
 
 	fmt.Println("[*] Record:")
 	for k, v := range *out {
-		fmt.Println("Value for peer: ", k.String(), " - ", v)
+		fmt.Println("Value for peer: ", k.String())
+		fmt.Println(v)
 	}
 
 }

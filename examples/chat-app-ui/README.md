@@ -20,4 +20,3 @@ Run './chat-app -d /ip4/127.0.0.1/tcp/37615/p2p/12D3KooWSRvCLEGisZZMGRiCbzgwpQ4v
 $ ./chat-app -d /ip4/127.0.0.1/tcp/37615/p2p/12D3KooWSRvCLEGisZZMGRiCbzgwpQ4v9gc42tT2VHwZTYYKWfCq -room roomName -nick nickname
 ```
 - Have fun chatting through smart-records!
-

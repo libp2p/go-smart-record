@@ -35,11 +35,6 @@ const syncTime = 1 * time.Second
 func main() {
 	ctx := context.Background()
 
-	/* ======================================================================
-		STEP 1: Gather and process config info from command arguments.
-			- Are we starting a server or a client?
-			- What nickname and room should I use?
-	========================================================================= */
 	// Available flags
 	sourcePort := flag.Int("sp", 0, "Source port number")
 	dest := flag.String("d", "", "Destination multiaddr string")
@@ -83,9 +78,6 @@ func main() {
 	// 0.0.0.0 will listen on any interface device.
 	sourceMultiAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", *sourcePort))
 
-	/* ======================================================================
-		STEP 2: Initialize libp2p host
-	========================================================================= */
 	// libp2p.New constructs a new libp2p Host.
 	// Other options can be added here.
 	host, err := libp2p.New(
@@ -98,13 +90,6 @@ func main() {
 		panic(err)
 	}
 
-	/* ======================================================================
-		STEP 3.A: Initialize server.
-			- If I a starting the chat server initialize a SR server
-			in host.
-			- Share data in cli for clients to connect.
-			- Wait for SR updates.
-	========================================================================= */
 	// If server, initialize smartRecord server and hang forever
 	if *server {
 		_, err = protocol.NewSmartRecordServer(ctx, host)
@@ -131,13 +116,6 @@ func main() {
 		// Hang forever
 		select {}
 	} else {
-		/* ======================================================================
-			STEP 3.B: Initialize SR client.
-				- Connect to SR server
-				- Start a go routine to read from STDIN new messages
-				- Start a go routing to write to STDOUT messages.
-				- Periodically sync new messages with server.
-		========================================================================= */
 		// Initialize smartRecord client for chat client
 		smClient, _ := protocol.NewSmartRecordClient(ctx, host)
 		if err != nil {
@@ -166,7 +144,7 @@ func main() {
 		}
 
 		// Initialize client config
-		client := &clientConfig{
+		env := &clientConfig{
 			ctx:      ctx,
 			client:   smClient,
 			room:     *room,
@@ -174,27 +152,13 @@ func main() {
 			nick:     *nick,
 			self:     host.ID(),
 		}
-		// an input chan for typing messages into
-		outCh := make(chan string, 32)
-		// Start listening to STDIN for new messages
-		go client.readInput(outCh)
-		// Print my messages and every new message in STDOUT
-		go client.writeOutput(outCh)
-		// Initial sync in case there are old messages in room
-		client.syncMessages(outCh)
 
-		// Periodically listen for new messages.
-		msgSyncTicker := time.NewTicker(syncTime)
-		defer msgSyncTicker.Stop()
-		for {
-			select {
-			case <-msgSyncTicker.C:
-				// We periodically fetch the smrat-record to check if there are new messages.
-				client.syncMessages(outCh)
-
-			case <-client.ctx.Done():
-				return
-			}
+		// Initialize chat UI
+		ui := newUI(env)
+		// Run UI, sync existing messages and start prompt
+		err = ui.start()
+		if err != nil {
+			panic("Error initializing UI")
 		}
 	}
 }
