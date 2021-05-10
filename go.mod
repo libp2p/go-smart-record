@@ -3,7 +3,6 @@ module github.com/libp2p/go-smart-record
 go 1.14
 
 require (
-	github.com/go-yaml/yaml v2.1.0+incompatible // indirect
 	github.com/gogo/protobuf v1.3.2
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-log v1.0.5
@@ -13,6 +12,6 @@ require (
 	github.com/libp2p/go-libp2p-netutil v0.1.0
 	github.com/libp2p/go-libp2p-swarm v0.4.3
 	github.com/libp2p/go-msgio v0.0.6
+	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/polydawn/refmt v0.0.0-20201211092308-30ac6d18308e // indirect
-	github.com/urfave/cli v1.22.5 // indirect
 )

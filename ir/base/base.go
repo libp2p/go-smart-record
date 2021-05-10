@@ -7,6 +7,7 @@ import "github.com/libp2p/go-smart-record/ir"
 var BaseGrammar = ir.SequenceAssembler{
 	// insert the assemblers of smart tags here
 	CidAssembler{},
+	ReachableAssembler{},
 	// if no smart tag parses the input, keep it as is (in the form of syntactic nodes)
 	ir.SyntacticGrammar,
 }

@@ -3,6 +3,7 @@ package ir
 import (
 	"fmt"
 
+	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-smart-record/xr"
 )
 
@@ -14,6 +15,7 @@ import (
 type AssemblerContext struct {
 	Grammar Assembler
 	Keys    map[string]interface{}
+	Host    host.Host
 }
 
 func (ctx AssemblerContext) Assemble(src xr.Node, metadata ...Metadata) (Node, error) {

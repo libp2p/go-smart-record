@@ -25,6 +25,18 @@ func (s Set) Metadata() MetadataInfo {
 	return s.metadataCtx.getMetadata()
 }
 
+// MergeElements returns the union of the two sets
+func MergeElements(x, y Nodes) Nodes {
+	z := make(Nodes, len(x), len(x)+len(y))
+	copy(z, x)
+	for _, el := range y {
+		if i := x.IndexOf(el); i < 0 {
+			z = append(z, el)
+		}
+	}
+	return z
+}
+
 func (s Set) Copy() Set {
 	e := make(Nodes, len(s.Elements))
 	copy(e, s.Elements)
