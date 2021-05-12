@@ -106,7 +106,7 @@ func gcSet(s ir.Set) (ir.Set, bool) {
 }
 
 func isTTLExpired(n ir.Node) bool {
-	if uint64(time.Now().Unix()) > n.Metadata().TTL+n.Metadata().AssemblyTime {
+	if uint64(time.Now().Unix()) > n.Metadata().ExpirationTime {
 		return true
 	}
 	return false
