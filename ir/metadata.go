@@ -2,7 +2,6 @@ package ir
 
 import (
 	"fmt"
-	"time"
 )
 
 // metadataContext includes all the metadata fields supported by semantic nodes.
@@ -13,16 +12,14 @@ import (
 // metadataContext so that anyone can easily register their own metadata in their
 // nodes. For instance, we can use a map[string]metadataType and add a .RegisterMetadataType.
 type metadataContext struct {
-	ttl          ttl          // TTL of the semantic node
-	assemblyTime assemblyTime // Time of assembly of the node.
+	expirationTime expirationTime // Timestamp of expiration of the node.
 }
 
 // MetadataInfo is a container for the reporting of the current
 // public metadata of a semantic node. We report directly the metadata
 // internal value type, not the metadataType
 type MetadataInfo struct {
-	TTL          uint64
-	AssemblyTime uint64
+	ExpirationTime uint64
 }
 
 // Metadata option applies metaadata to a smart node.
@@ -41,18 +38,6 @@ func (m *metadataContext) apply(items ...Metadata) error {
 	return nil
 }
 
-// assembleMetadata applies metadata to a context and sets assemblyTime
-func (m *metadataContext) assembleMetadata(items ...Metadata) error {
-	// Apply metadata provided
-	if err := m.apply(items...); err != nil {
-		// Assembly fails if the wrong metadata is passed to the context.
-		return err
-	}
-	// Update assemblyTime in seconds
-	m.assemblyTime.value = uint64(time.Now().Unix())
-	return nil
-}
-
 // getMetadata returns public metadata in a context as MetadataInfo
 func (m *metadataContext) getMetadata() MetadataInfo {
 	if m == nil {
@@ -60,8 +45,7 @@ func (m *metadataContext) getMetadata() MetadataInfo {
 	}
 
 	return MetadataInfo{
-		TTL:          m.ttl.value,
-		AssemblyTime: m.assemblyTime.value,
+		ExpirationTime: m.expirationTime.value,
 	}
 }
 
@@ -71,8 +55,7 @@ func (m *metadataContext) update(with *metadataContext) {
 	if m == nil || with == nil {
 		return
 	}
-	m.ttl = m.ttl.update(with.ttl).(ttl)
-	m.assemblyTime = m.assemblyTime.update(with.assemblyTime).(assemblyTime)
+	m.expirationTime = m.expirationTime.update(with.expirationTime).(expirationTime)
 }
 
 func (m *metadataContext) copy() metadataContext {
