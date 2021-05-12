@@ -2,6 +2,8 @@ package ir
 
 import "time"
 
+const MaxUINT64 = 1<<64 - 1
+
 // MetadataType interface implemented by metadata field types
 type metadataType interface {
 	update(with metadataType) metadataType // Determines how the metadata is updated when the node is updated.
@@ -34,4 +36,13 @@ func (t expirationTime) update(with metadataType) metadataType {
 	}
 	t.value = withT.value
 	return t
+}
+
+// NoExpiration prevents the node from having an expirationTime
+func NoExpiration() Metadata {
+	return func(m *metadataContext) error {
+		m.expirationTime.value = uint64(MaxUINT64)
+		return nil
+	}
+
 }
