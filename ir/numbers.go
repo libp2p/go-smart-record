@@ -48,7 +48,7 @@ func (n Int) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 	}
 	// Update metadata
 	n.metadataCtx.update(wn.metadataCtx)
-	return wn, nil
+	return n, nil
 }
 
 type Float struct {
@@ -73,7 +73,7 @@ func (n Float) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 	}
 	// Update metadata
 	n.metadataCtx.update(wn.metadataCtx)
-	return wn, nil
+	return n, nil
 }
 
 func IsEqualNumber(x, y Number) bool {
