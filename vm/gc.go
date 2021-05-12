@@ -8,7 +8,6 @@ import (
 )
 
 func (v *vm) gcLoop(proc goprocess.Process) {
-	// TODO: Add gcInterval as an option
 	msgSyncTicker := time.NewTicker(v.gcPeriod)
 	defer msgSyncTicker.Stop()
 	for {
