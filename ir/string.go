@@ -27,5 +27,5 @@ func (s String) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 	}
 	// Update metadata
 	s.metadataCtx.update(w.metadataCtx)
-	return w, nil
+	return s, nil
 }

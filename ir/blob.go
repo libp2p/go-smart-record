@@ -26,5 +26,5 @@ func (b Blob) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
 	}
 	// Update metadata
 	b.metadataCtx.update(w.metadataCtx)
-	return w, nil
+	return b, nil
 }

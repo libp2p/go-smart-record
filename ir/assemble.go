@@ -70,7 +70,7 @@ func (asm StringAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata 
 
 	// Assemble metadata provided and update assemblyTime
 	var m metadataContext
-	if err := m.assembleMetadata(metadata...); err != nil {
+	if err := m.apply(metadata...); err != nil {
 		return nil, err
 	}
 
@@ -87,7 +87,7 @@ func (asm IntAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...
 
 	// Assemble metadata provided and update assemblyTime
 	var m metadataContext
-	if err := m.assembleMetadata(metadata...); err != nil {
+	if err := m.apply(metadata...); err != nil {
 		return nil, err
 	}
 
@@ -104,7 +104,7 @@ func (asm FloatAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata .
 
 	// Assemble metadata provided and update assemblyTime
 	var m metadataContext
-	if err := m.assembleMetadata(metadata...); err != nil {
+	if err := m.apply(metadata...); err != nil {
 		return nil, err
 	}
 	return Float{Float: s.Float, metadataCtx: &m}, nil
@@ -120,7 +120,7 @@ func (asm BoolAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 
 	// Assemble metadata provided and update assemblyTime
 	var m metadataContext
-	if err := m.assembleMetadata(metadata...); err != nil {
+	if err := m.apply(metadata...); err != nil {
 		return nil, err
 	}
 
@@ -137,7 +137,7 @@ func (asm BlobAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 
 	// Assemble metadata provided and update assemblyTime
 	var m metadataContext
-	if err := m.assembleMetadata(metadata...); err != nil {
+	if err := m.apply(metadata...); err != nil {
 		return nil, err
 	}
 
@@ -169,7 +169,7 @@ func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 
 	// Assemble metadata provided and update assemblyTime
 	var m metadataContext
-	if err := m.assembleMetadata(metadata...); err != nil {
+	if err := m.apply(metadata...); err != nil {
 		return nil, err
 	}
 	d.metadataCtx = &m
@@ -198,7 +198,7 @@ func (asm SetAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...
 
 	// Assemble metadata provided and update assemblyTime
 	var m metadataContext
-	if err := m.assembleMetadata(metadata...); err != nil {
+	if err := m.apply(metadata...); err != nil {
 		return nil, err
 	}
 	d.metadataCtx = &m

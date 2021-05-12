@@ -18,6 +18,8 @@ type serverConfig struct {
 	//datastore          ds.Batching
 	updateContext ir.UpdateContext
 	assembler     ir.AssemblerContext
+	// NOTE: Add option for VM garbage collection if needed
+	// gcPeriod      time.Duration
 }
 
 // Option type for smart records
