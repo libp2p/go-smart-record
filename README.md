@@ -46,7 +46,7 @@ operations in the VM.
 - VM [(vm)](./vm): The VM is responsible for storing and updating the SR stored in a peer. It exposes the SR interface to the "outside world" and triggers smart-tag operations when appropiate. The "outside world" use syntctic nodes to intercat with the VM interface that the VM assembles and stores in its datastore in its semantic form.
 - Libp2p SR request/response protocol [(protocol)](./protocol) to interact with other peers SR. It includes a server implementation that instantiates a SR VM and exposes the SR interface to other peers in the network; and a client implementation that can be leveraged by applications and protocols to make requests to SR servers.
 
-![./doc/sr-architecture.png]
+![](./doc/sr-architecture.png)
 
 ## Use cases
 
