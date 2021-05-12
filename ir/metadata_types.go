@@ -2,8 +2,7 @@ package ir
 
 import "time"
 
-// MetadataType interface that metadata field types need to
-// implement.
+// MetadataType interface implemented by metadata field types
 type metadataType interface {
 	update(with metadataType) metadataType // Determines how the metadata is updated when the node is updated.
 }
@@ -13,7 +12,8 @@ type expirationTime struct {
 	value uint64
 }
 
-// TTL sets a TTL in seconds to the node in metadata and sets expirationTime
+// TTL sets a TTL in seconds to the node in metadata. It triggers a change
+// to the node's expirationTime
 func TTL(value uint64) Metadata {
 	return func(m *metadataContext) error {
 		m.expirationTime.value = uint64(time.Now().Unix()) + value
@@ -21,7 +21,7 @@ func TTL(value uint64) Metadata {
 	}
 }
 
-// update for ttl
+// update logic for expirationTime metadata type
 func (t expirationTime) update(with metadataType) metadataType {
 	withT, ok := with.(expirationTime)
 	// If entered wrong type to update do nothing and return metadata as-is
