@@ -16,8 +16,8 @@ var gcPeriodOpt = GCPeriod(1 * time.Second)
 
 func TestEmptyUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
-	asm := base.BaseGrammar
-	vm, _ := NewVM(context.Background(), ctx, asm, gcPeriodOpt)
+	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
+	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in := xr.Dict{
@@ -44,8 +44,8 @@ func TestEmptyUpdate(t *testing.T) {
 
 func TestExistingUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
-	asm := base.BaseGrammar
-	vm, _ := NewVM(context.Background(), ctx, asm, gcPeriodOpt)
+	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
+	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in1 := xr.Dict{
@@ -81,8 +81,8 @@ func TestExistingUpdate(t *testing.T) {
 
 func TestSeveralPeers(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
-	asm := base.BaseGrammar
-	vm, _ := NewVM(context.Background(), ctx, asm, gcPeriodOpt)
+	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
+	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
 	p1, _ := p2ptestutil.RandTestBogusIdentity()
 	p2, _ := p2ptestutil.RandTestBogusIdentity()
 
@@ -127,8 +127,8 @@ func TestSeveralPeers(t *testing.T) {
 
 func TestGcProcess(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
-	asm := base.BaseGrammar
-	vm, _ := NewVM(context.Background(), ctx, asm, gcPeriodOpt)
+	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
+	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 	p2, _ := p2ptestutil.RandTestBogusIdentity()
 

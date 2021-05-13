@@ -39,7 +39,7 @@ type vm struct {
 	updateCtx ir.UpdateContext // UpdateContext the VM uses to resolve conflicts
 	//ds  ds.Datastore    // TODO: Add a datastore instead of using map[string] for the VM state
 	keys map[string]*recordEntry // State of the VM storing the map of records.
-	asm  ir.Assembler            // Assemble to use in the VM.
+	asm  ir.AssemblerContext     // Assemble to use in the VM.
 
 	// NOTE: When performance matters in the future, implement incremental garbage collection,
 	// which runs on every operation and uses a priority queue to know (in O(1) time)
@@ -50,12 +50,12 @@ type vm struct {
 }
 
 // NewVM creates a new smart record Machine
-func NewVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.Assembler, options ...VMOption) (Machine, error) {
+func NewVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.AssemblerContext, options ...VMOption) (Machine, error) {
 	return newVM(ctx, updateCtx, asm, options...)
 }
 
 //newVM instantiates a new VM with an updateContext and an assembler
-func newVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.Assembler, options ...VMOption) (*vm, error) {
+func newVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.AssemblerContext, options ...VMOption) (*vm, error) {
 	var cfg vmConfig
 	if err := cfg.apply(append([]VMOption{defaults}, options...)...); err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (v *vm) Update(writer peer.ID, k string, update xr.Dict, metadata ...ir.Met
 	defer v.lk.Unlock()
 
 	// Start assemble process with the parent VM assemblerContext
-	ds, err := v.asm.Assemble(ir.AssemblerContext{Grammar: v.asm}, update, metadata...)
+	ds, err := v.asm.Grammar.Assemble(v.asm, update, metadata...)
 	if err != nil {
 		return err
 	}

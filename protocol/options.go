@@ -17,7 +17,7 @@ const (
 type serverConfig struct {
 	//datastore          ds.Batching
 	updateContext ir.UpdateContext
-	assembler     ir.Assembler
+	assembler     ir.AssemblerContext
 	// NOTE: Add option for VM garbage collection if needed
 	// gcPeriod      time.Duration
 }
@@ -29,7 +29,7 @@ type ServerOption func(*serverConfig) error
 // prepended to any options you pass to the constructor.
 var serverDefaults = func(o *serverConfig) error {
 	o.updateContext = ir.DefaultUpdateContext{}
-	o.assembler = base.BaseGrammar
+	o.assembler = ir.AssemblerContext{Grammar: base.BaseGrammar}
 
 	return nil
 }
@@ -45,7 +45,7 @@ func (c *serverConfig) apply(opts ...ServerOption) error {
 }
 
 // Assembler  configures the assembler to use in the smart record VM
-func Assembler(asm ir.Assembler) ServerOption {
+func Assembler(asm ir.AssemblerContext) ServerOption {
 	return func(c *serverConfig) error {
 		c.assembler = asm
 		return nil
