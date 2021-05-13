@@ -41,16 +41,21 @@ func MergePairs(x, y Pairs) Pairs {
 
 // Dict is a set of uniquely-keyed values.
 type Dict struct {
-	Tag   string
-	Pairs Pairs // keys must be unique wrt IsEqual
+	Tag         string
+	Pairs       Pairs // keys must be unique wrt IsEqual
+	metadataCtx *metadataContext
 }
 
-func (d Dict) Disassemble() xr.Node {
+func (d *Dict) Disassemble() xr.Node {
 	x := xr.Dict{Tag: d.Tag, Pairs: make(xr.Pairs, len(d.Pairs))}
 	for i, p := range d.Pairs {
 		x.Pairs[i] = xr.Pair{Key: p.Key.Disassemble(), Value: p.Value.Disassemble()}
 	}
 	return x
+}
+
+func (d *Dict) Metadata() MetadataInfo {
+	return d.metadataCtx.getMetadata()
 }
 
 func (d Dict) Len() int {
@@ -62,27 +67,9 @@ func (d Dict) Copy() Dict {
 	p := make(Pairs, len(c.Pairs))
 	copy(p, c.Pairs)
 	c.Pairs = p
-	return c
-}
-
-func (d Dict) CopySet(key Node, value Node) Dict {
-	return d.CopySetTag(d.Tag, key, value)
-}
-
-func (d Dict) CopySetTag(tag string, key Node, value Node) Dict {
-	c := d.Copy()
-	c.Tag = tag
-	found := false
-	for i, p := range c.Pairs {
-		if IsEqual(key, p.Key) {
-			c.Pairs[i] = Pair{key, value}
-			found = true
-			break
-		}
-	}
-	if !found {
-		c.Pairs = append(c.Pairs, Pair{key, value})
-	}
+	// Also copy metadata if it exists
+	m := d.metadataCtx.copy()
+	c.metadataCtx = &m
 	return c
 }
 
@@ -107,29 +94,22 @@ func (d Dict) Get(key Node) Node {
 	return nil
 }
 
-// jsonPair is used to encode Pairs with JSON
-type jsonPair struct {
-	Key   interface{}
-	Value interface{}
-}
-
-func (d Dict) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
-	wd, ok := with.(Dict)
+func (d *Dict) UpdateWith(ctx UpdateContext, with Node) error {
+	wd, ok := with.(*Dict)
 	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-dict")
+		return fmt.Errorf("cannot update with a non-dict")
 	}
-	u := d.Copy()
-	u.Tag = wd.Tag
+	d.Tag = wd.Tag
 	for _, p := range wd.Pairs {
-		if i := u.Pairs.IndexOf(p.Key); i < 0 {
-			u.Pairs = append(u.Pairs, p)
+		if i := d.Pairs.IndexOf(p.Key); i < 0 {
+			d.Pairs = append(d.Pairs, p)
 		} else {
-			if v, err := u.Pairs[i].Value.UpdateWith(ctx, p.Value); err != nil {
-				return nil, fmt.Errorf("cannout update value (%v)", err)
-			} else {
-				u.Pairs[i].Value = v
+			if err := d.Pairs[i].Value.UpdateWith(ctx, p.Value); err != nil {
+				return fmt.Errorf("cannout update value (%v)", err)
 			}
 		}
 	}
-	return u, nil
+	// Update metadata
+	d.metadataCtx.update(wd.metadataCtx)
+	return nil
 }

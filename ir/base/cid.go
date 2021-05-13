@@ -2,7 +2,6 @@ package base
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-smart-record/ir"
@@ -14,32 +13,29 @@ type Cid struct {
 	Cid cid.Cid
 
 	// User holds user fields.
-	User ir.Dict
+	User *ir.Dict
 }
 
-func (c Cid) EncodeJSON() (interface{}, error) {
-	return c.Disassemble().EncodeJSON()
+func (c *Cid) Disassemble() xr.Node {
+	return c.User.Disassemble().(xr.Dict).CopySetTag("cid",
+		xr.String{"cid"}, xr.String{c.Cid.String()})
 }
 
-func (c Cid) Disassemble() xr.Node {
-	return c.User.CopySetTag("cid", ir.String{"cid"}, ir.String{c.Cid.String()}).Disassemble()
+func (c *Cid) Metadata() ir.MetadataInfo {
+	return c.User.Metadata()
 }
 
-func (c Cid) WritePretty(w io.Writer) error {
-	return c.Disassemble().WritePretty(w)
-}
-
-func (c Cid) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {
-	w, ok := with.(Cid)
+func (c *Cid) UpdateWith(ctx ir.UpdateContext, with ir.Node) error {
+	_, ok := with.(*Cid)
 	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-cid")
+		return fmt.Errorf("cannot update with a non-cid")
 	}
-	return w, nil
+	return nil
 }
 
 type CidAssembler struct{}
 
-func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node) (ir.Node, error) {
+func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata ...ir.Metadata) (ir.Node, error) {
 	d, ok := srcNode.(xr.Dict)
 	if !ok {
 		return nil, fmt.Errorf("expecting dict")
@@ -63,10 +59,10 @@ func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node) (ir.Node,
 		u.Remove(xr.String{"cid"})
 
 		asm := ir.DictAssembler{}
-		uasm, err := asm.Assemble(ctx, d)
-		return Cid{
+		uasm, err := asm.Assemble(ctx, d, metadata...)
+		return &Cid{
 			Cid:  x,
-			User: uasm.(ir.Dict),
+			User: uasm.(*ir.Dict),
 		}, nil
 	}
 }

@@ -216,6 +216,27 @@ func (d Dict) Get(key Node) Node {
 	return nil
 }
 
+func (d Dict) CopySet(key Node, value Node) Dict {
+	return d.CopySetTag(d.Tag, key, value)
+}
+
+func (d Dict) CopySetTag(tag string, key Node, value Node) Dict {
+	c := d.Copy()
+	c.Tag = tag
+	found := false
+	for i, p := range c.Pairs {
+		if IsEqual(key, p.Key) {
+			c.Pairs[i] = Pair{key, value}
+			found = true
+			break
+		}
+	}
+	if !found {
+		c.Pairs = append(c.Pairs, Pair{key, value})
+	}
+	return c
+}
+
 func IsEqualDict(x, y Dict) bool {
 	if x.Tag != y.Tag {
 		return false
