@@ -11,51 +11,47 @@ import (
 type Verify struct {
 	Statement ir.Node
 	// User holds user fields.
-	User ir.Dict
+	User *ir.Dict
 }
 
-func (v Verify) Disassemble() xr.Node {
+func (v *Verify) Disassemble() xr.Node {
 	return v.User.Disassemble().(xr.Dict).CopySetTag("verify",
 		xr.String{"statement"}, v.Statement.Disassemble())
 }
 
-func (v Verify) WritePretty(w io.Writer) error {
-	return v.Disassemble().WritePretty(w)
-}
-
 type Verified struct {
-	By        Peer
+	By        *Peer
 	Statement ir.Node
-	Signature ir.Blob
+	Signature *ir.Blob
 	// User holds user fields.
-	User ir.Dict
+	User *ir.Dict
 }
 
-func (v Verified) Disassemble() xr.Node {
-	return ir.Dict{
+func (v *Verified) Disassemble() xr.Node {
+	return (&ir.Dict{
 		Tag: "verify",
 		Pairs: ir.MergePairs(
 			v.User.Pairs,
 			ir.Pairs{
-				{Key: ir.String{Value: "by"}, Value: v.By},
-				{Key: ir.String{Value: "statement"}, Value: v.Statement},
-				{Key: ir.String{Value: "signature"}, Value: v.Signature},
+				{Key: &ir.String{Value: "by"}, Value: v.By},
+				{Key: &ir.String{Value: "statement"}, Value: v.Statement},
+				{Key: &ir.String{Value: "signature"}, Value: v.Signature},
 			},
 		),
-	}.Disassemble()
+	}).Disassemble()
 }
 
-func (v Verified) Metadata() ir.MetadataInfo {
+func (v *Verified) Metadata() ir.MetadataInfo {
 	return v.User.Metadata()
 }
-func (v Verified) WritePretty(w io.Writer) error {
+func (v *Verified) WritePretty(w io.Writer) error {
 	return v.Disassemble().WritePretty(w)
 }
 
-func (v Verified) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {
-	w, ok := with.(Signed)
+func (v *Verified) UpdateWith(ctx ir.UpdateContext, with ir.Node) error {
+	_, ok := with.(*Signed)
 	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-verified")
+		return fmt.Errorf("cannot update with a non-verified")
 	}
-	return w, nil
+	return nil
 }

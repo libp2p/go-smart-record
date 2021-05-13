@@ -13,7 +13,7 @@ type Set struct {
 	metadataCtx *metadataContext
 }
 
-func (s Set) Disassemble() xr.Node {
+func (s *Set) Disassemble() xr.Node {
 	x := xr.Set{Tag: s.Tag, Elements: make(xr.Nodes, len(s.Elements))}
 	for i, e := range s.Elements {
 		x.Elements[i] = e.Disassemble()
@@ -21,7 +21,7 @@ func (s Set) Disassemble() xr.Node {
 	return x
 }
 
-func (s Set) Metadata() MetadataInfo {
+func (s *Set) Metadata() MetadataInfo {
 	return s.metadataCtx.getMetadata()
 }
 
@@ -53,19 +53,18 @@ func (s Set) Len() int {
 	return len(s.Elements)
 }
 
-func (s Set) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
-	ws, ok := with.(Set)
+func (s *Set) UpdateWith(ctx UpdateContext, with Node) error {
+	ws, ok := with.(*Set)
 	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-set")
+		return fmt.Errorf("cannot update with a non-set")
 	}
-	u := s.Copy()
-	u.Tag = ws.Tag
+	s.Tag = ws.Tag
 	for _, e := range ws.Elements {
-		if i := u.Elements.IndexOf(e); i < 0 {
-			u.Elements = append(u.Elements, e)
+		if i := s.Elements.IndexOf(e); i < 0 {
+			s.Elements = append(s.Elements, e)
 		}
 	}
 	// Update metadata
-	u.metadataCtx.update(ws.metadataCtx)
-	return u, nil
+	s.metadataCtx.update(ws.metadataCtx)
+	return nil
 }

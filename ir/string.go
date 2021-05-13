@@ -12,20 +12,20 @@ type String struct {
 	metadataCtx *metadataContext
 }
 
-func (s String) Disassemble() xr.Node {
+func (s *String) Disassemble() xr.Node {
 	return xr.String{Value: s.Value}
 }
 
-func (s String) Metadata() MetadataInfo {
+func (s *String) Metadata() MetadataInfo {
 	return s.metadataCtx.getMetadata()
 }
 
-func (s String) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
-	w, ok := with.(String)
+func (s *String) UpdateWith(ctx UpdateContext, with Node) error {
+	w, ok := with.(*String)
 	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-string")
+		return fmt.Errorf("cannot update with a non-string")
 	}
 	// Update metadata
 	s.metadataCtx.update(w.metadataCtx)
-	return s, nil
+	return nil
 }

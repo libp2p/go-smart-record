@@ -4,7 +4,7 @@ import "github.com/libp2p/go-smart-record/xr"
 
 type Node interface {
 	Disassemble() xr.Node // returns only syntactic nodes
-	UpdateWith(ctx UpdateContext, with Node) (Node, error)
+	UpdateWith(ctx UpdateContext, with Node) error
 	Metadata() MetadataInfo
 }
 

@@ -46,7 +46,7 @@ type Dict struct {
 	metadataCtx *metadataContext
 }
 
-func (d Dict) Disassemble() xr.Node {
+func (d *Dict) Disassemble() xr.Node {
 	x := xr.Dict{Tag: d.Tag, Pairs: make(xr.Pairs, len(d.Pairs))}
 	for i, p := range d.Pairs {
 		x.Pairs[i] = xr.Pair{Key: p.Key.Disassemble(), Value: p.Value.Disassemble()}
@@ -54,7 +54,7 @@ func (d Dict) Disassemble() xr.Node {
 	return x
 }
 
-func (d Dict) Metadata() MetadataInfo {
+func (d *Dict) Metadata() MetadataInfo {
 	return d.metadataCtx.getMetadata()
 }
 
@@ -94,31 +94,22 @@ func (d Dict) Get(key Node) Node {
 	return nil
 }
 
-// jsonPair is used to encode Pairs with JSON
-type jsonPair struct {
-	Key   interface{}
-	Value interface{}
-}
-
-func (d Dict) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
-	wd, ok := with.(Dict)
+func (d *Dict) UpdateWith(ctx UpdateContext, with Node) error {
+	wd, ok := with.(*Dict)
 	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-dict")
+		return fmt.Errorf("cannot update with a non-dict")
 	}
-	u := d.Copy()
-	u.Tag = wd.Tag
+	d.Tag = wd.Tag
 	for _, p := range wd.Pairs {
-		if i := u.Pairs.IndexOf(p.Key); i < 0 {
-			u.Pairs = append(u.Pairs, p)
+		if i := d.Pairs.IndexOf(p.Key); i < 0 {
+			d.Pairs = append(d.Pairs, p)
 		} else {
-			if v, err := u.Pairs[i].Value.UpdateWith(ctx, p.Value); err != nil {
-				return nil, fmt.Errorf("cannout update value (%v)", err)
-			} else {
-				u.Pairs[i].Value = v
+			if err := d.Pairs[i].Value.UpdateWith(ctx, p.Value); err != nil {
+				return fmt.Errorf("cannout update value (%v)", err)
 			}
 		}
 	}
 	// Update metadata
-	u.metadataCtx.update(wd.metadataCtx)
-	return u, nil
+	d.metadataCtx.update(wd.metadataCtx)
+	return nil
 }

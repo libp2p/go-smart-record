@@ -42,12 +42,12 @@ func TestReachableDict(t *testing.T) {
 	}
 
 	// Verify reachable list.
-	r := ds.(Reachable).Reachable.(ir.Dict).Get(ir.String{Value: "reachable"})
-	if len(ds.(Reachable).Reachable.(ir.Dict).Pairs) != 1 && r == nil {
+	r := ds.(*Reachable).Reachable.(*ir.Dict).Get(&ir.String{Value: "reachable"})
+	if len(ds.(*Reachable).Reachable.(*ir.Dict).Pairs) != 1 && r == nil {
 		t.Fatal("Reachable entry not added correctly to reachable dict")
 	}
 	// Verify discarded unreachable from user dict
-	if ds.(Reachable).User.(ir.Dict).Get(ir.String{Value: "unreachable"}) != nil {
+	if ds.(*Reachable).User.(*ir.Dict).Get(&ir.String{Value: "unreachable"}) != nil {
 		t.Fatal("Unreachable entry was not removed from user pairs")
 	}
 
@@ -86,13 +86,13 @@ func TestSetDict(t *testing.T) {
 	}
 
 	// Verify reachable list.
-	r := ds.(Reachable).Reachable.(ir.Set).Elements.IndexOf(ir.String{Value: reachable})
-	if len(ds.(Reachable).Reachable.(ir.Set).Elements) != 1 && r < 0 {
+	r := ds.(*Reachable).Reachable.(*ir.Set).Elements.IndexOf(&ir.String{Value: reachable})
+	if len(ds.(*Reachable).Reachable.(*ir.Set).Elements) != 1 && r < 0 {
 		t.Fatal("Reachable entry not added correctly to reachable set")
 	}
 
 	// Verify discarded unreachable from user set
-	if ds.(Reachable).User.(ir.Set).Elements.IndexOf(ir.String{Value: "unreachable"}) >= 0 {
+	if ds.(*Reachable).User.(*ir.Set).Elements.IndexOf(&ir.String{Value: "unreachable"}) >= 0 {
 		t.Fatal("Unreachable entry was not removed from user set")
 	}
 

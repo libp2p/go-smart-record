@@ -11,20 +11,20 @@ type Bool struct {
 	metadataCtx *metadataContext
 }
 
-func (b Bool) Disassemble() xr.Node {
+func (b *Bool) Disassemble() xr.Node {
 	return xr.Bool{Value: b.Value}
 }
 
-func (b Bool) Metadata() MetadataInfo {
+func (b *Bool) Metadata() MetadataInfo {
 	return b.metadataCtx.getMetadata()
 }
 
-func (b Bool) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
-	w, ok := with.(Bool)
+func (b *Bool) UpdateWith(ctx UpdateContext, with Node) error {
+	w, ok := with.(*Bool)
 	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-bool")
+		return fmt.Errorf("cannot update with a non-bool")
 	}
 	// Update metadata
 	b.metadataCtx.update(w.metadataCtx)
-	return b, nil
+	return nil
 }

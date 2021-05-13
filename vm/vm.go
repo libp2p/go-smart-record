@@ -38,19 +38,24 @@ type vm struct {
 
 	updateCtx ir.UpdateContext // UpdateContext the VM uses to resolve conflicts
 	//ds  ds.Datastore    // TODO: Add a datastore instead of using map[string] for the VM state
-	keys   map[string]*recordEntry // State of the VM storing the map of records.
-	asmCtx ir.AssemblerContext     // Root AssemblerContext to use in the VM.
+	keys map[string]*recordEntry // State of the VM storing the map of records.
+	asm  ir.AssemblerContext     // Assemble to use in the VM.
 
+	// NOTE: When performance matters in the future, implement incremental garbage collection,
+	// which runs on every operation and uses a priority queue to know (in O(1) time)
+	// if anything needs garbage collection.
+	// (When there are bursts of uneven traffic, no choice of garbage collection interval helps.)
+	// We can add it in a GCType option.
 	gcPeriod time.Duration // Period of the gc process
 }
 
 // NewVM creates a new smart record Machine
-func NewVM(ctx context.Context, updateCtx ir.UpdateContext, asmCtx ir.AssemblerContext, options ...VMOption) (Machine, error) {
-	return newVM(ctx, updateCtx, asmCtx, options...)
+func NewVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.AssemblerContext, options ...VMOption) (Machine, error) {
+	return newVM(ctx, updateCtx, asm, options...)
 }
 
 //newVM instantiates a new VM with an updateContext and an assembler
-func newVM(ctx context.Context, updateCtx ir.UpdateContext, asmCtx ir.AssemblerContext, options ...VMOption) (*vm, error) {
+func newVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.AssemblerContext, options ...VMOption) (*vm, error) {
 	var cfg vmConfig
 	if err := cfg.apply(append([]VMOption{defaults}, options...)...); err != nil {
 		return nil, err
@@ -59,14 +64,14 @@ func newVM(ctx context.Context, updateCtx ir.UpdateContext, asmCtx ir.AssemblerC
 		ctx:       ctx,
 		updateCtx: updateCtx,
 		keys:      make(map[string]*recordEntry),
-		asmCtx:    asmCtx,
+		asm:       asm,
 		gcPeriod:  cfg.gcPeriod,
 	}
 
 	// Initialize process so routines are ended with context
 	v.proc = goprocessctx.WithContext(ctx)
 	// Start garbage collection process
-	// NOTE: Should we add an option for this?
+	// NOTE: Add an option for gcType?
 	v.proc.Go(v.gcLoop)
 	return v, nil
 }
@@ -104,39 +109,32 @@ func (v *vm) Update(writer peer.ID, k string, update xr.Dict, metadata ...ir.Met
 	defer v.lk.Unlock()
 
 	// Start assemble process with the parent VM assemblerContext
-	ds, err := v.asmCtx.Grammar.Assemble(v.asmCtx, update, metadata...)
+	ds, err := v.asm.Grammar.Assemble(v.asm, update, metadata...)
 	if err != nil {
 		return err
 	}
 
 	// Check if the result of the assembler is of type Dict
-	d, ok := ds.(ir.Dict)
+	d, ok := ds.(*ir.Dict)
 	if !ok {
 		return fmt.Errorf("assembler didn't generate a dict")
 	}
 
 	// Directly store d if there is nothing in the key
 	if v.keys[k] == nil {
-		v.keys[k] = &recordEntry{writer: &d}
+		v.keys[k] = &recordEntry{writer: d}
 		return nil
 	} else {
 		// If no data in peer
 		if (*v.keys[k])[writer] == nil {
-			(*v.keys[k])[writer] = &d
+			(*v.keys[k])[writer] = d
 		} else {
 			// Update existing dict with the stored one if there's already
 			// something in the peer's key
-			n, err := ir.Update(v.ctx, (*v.keys[k])[writer], d)
+			err := ir.Update(v.ctx, (*v.keys[k])[writer], d)
 			if err != nil {
 				return nil
 			}
-			// We can most certainly be sure that this is a ir.Dict,
-			// but as we need to do the cast either way, let's double-check.
-			no, ok := n.(ir.Dict)
-			if !ok {
-				return fmt.Errorf("update didn't generate a dict")
-			}
-			(*v.keys[k])[writer] = &no
 		}
 		return nil
 	}

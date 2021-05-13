@@ -23,53 +23,53 @@ type Reachable struct {
 }
 
 func (r Reachable) Disassemble() xr.Node {
-	_, dok := r.Reachable.(ir.Dict)
+	_, dok := r.Reachable.(*ir.Dict)
 	if dok {
-		return ir.Dict{
+		return (&ir.Dict{
 			Tag: "reachable",
 			Pairs: ir.MergePairs(
-				r.Reachable.(ir.Dict).Pairs, // List of reachable multiaddresses
-				r.User.(ir.Dict).Pairs,      // The rest of pairs which don't have multiaddrs.
+				r.Reachable.(*ir.Dict).Pairs, // List of reachable multiaddresses
+				r.User.(*ir.Dict).Pairs,      // The rest of pairs which don't have multiaddrs.
 			),
-		}.Disassemble()
+		}).Disassemble()
 	} else {
 
-		return ir.Set{
+		return (&ir.Set{
 			Tag: "reachable",
 			Elements: ir.MergeElements(
-				r.Reachable.(ir.Set).Elements, // List of reachable multiaddresses
-				r.User.(ir.Set).Elements,      // The rest of pairs which don't have multiaddrs.
+				r.Reachable.(*ir.Set).Elements, // List of reachable multiaddresses
+				r.User.(*ir.Set).Elements,      // The rest of pairs which don't have multiaddrs.
 			),
-		}.Disassemble()
+		}).Disassemble()
 	}
 
 }
 
-func (r Reachable) Metadata() ir.MetadataInfo {
+func (r *Reachable) Metadata() ir.MetadataInfo {
 	return r.User.Metadata()
 }
 
-func (r Reachable) WritePretty(w io.Writer) error {
+func (r *Reachable) WritePretty(w io.Writer) error {
 	return r.Disassemble().WritePretty(w)
 }
 
-func (r Reachable) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {
-	w, ok := with.(Reachable)
+func (r *Reachable) UpdateWith(ctx ir.UpdateContext, with ir.Node) error {
+	w, ok := with.(*Reachable)
 	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-reachable node")
+		return fmt.Errorf("cannot update with a non-reachable node")
 	}
 	// Update each of the dicts for reachable and user straightaway
 	var err error
-	r.User, err = r.User.UpdateWith(ctx, with)
+	err = r.User.UpdateWith(ctx, w)
 	if err != nil {
-		return nil, fmt.Errorf("Error updating user node: %s", err)
+		return fmt.Errorf("Error updating user node: %s", err)
 	}
-	r.Reachable, err = r.Reachable.UpdateWith(ctx, with)
+	err = r.Reachable.UpdateWith(ctx, w)
 	if err != nil {
-		return nil, fmt.Errorf("Error updating user node: %s", err)
+		return fmt.Errorf("Error updating user node: %s", err)
 	}
 
-	return w, nil
+	return nil
 }
 
 type ReachableAssembler struct{}
@@ -131,7 +131,7 @@ func reachableDictAssemble(ctx ir.AssemblerContext, d xr.Dict, metadata ...ir.Me
 	if err != nil {
 		return nil, fmt.Errorf("couldn't assemble reachable dict: %s", err)
 	}
-	return Reachable{
+	return &Reachable{
 		Reachable: rasm,
 		User:      uasm,
 	}, nil
@@ -177,7 +177,7 @@ func reachableSetAssemble(ctx ir.AssemblerContext, d xr.Set, metadata ...ir.Meta
 	if err != nil {
 		return nil, fmt.Errorf("couldn't assemble reachable dict: %s", err)
 	}
-	return Reachable{
+	return &Reachable{
 		Reachable: rasm,
 		User:      uasm,
 	}, nil
