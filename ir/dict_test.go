@@ -5,75 +5,75 @@ import (
 )
 
 func TestUpdateDictDiffTag(t *testing.T) {
-	d1 := Dict{
+	d1 := &Dict{
 		Tag:   "aaa",
 		Pairs: Pairs{},
 	}
-	d2 := Dict{
+	d2 := &Dict{
 		Tag:   "bbb",
 		Pairs: Pairs{},
 	}
 	mctx := DefaultUpdateContext{}
-	if _, err := Update(mctx, d1, d2); err != nil {
+	if err := Update(mctx, d1, d2); err != nil {
 		t.Errorf("update (%v)", err)
 	}
 }
 
 func TestUpdateDictDisjointPairs(t *testing.T) {
-	d1 := Dict{
+	d1 := &Dict{
 		Tag:   "aaa",
-		Pairs: Pairs{{String{"x", nil}, NewInt64(1)}},
+		Pairs: Pairs{{&String{"x", nil}, NewInt64(1)}},
 	}
-	d2 := Dict{
+	d2 := &Dict{
 		Tag:   "aaa",
-		Pairs: Pairs{{String{"y", nil}, NewInt64(1)}},
+		Pairs: Pairs{{&String{"y", nil}, NewInt64(1)}},
 	}
-	exp := Dict{
+	exp := &Dict{
 		Tag: "aaa",
 		Pairs: Pairs{
-			{String{"x", nil}, NewInt64(1)},
-			{String{"y", nil}, NewInt64(1)},
+			{&String{"x", nil}, NewInt64(1)},
+			{&String{"y", nil}, NewInt64(1)},
 		},
 	}
 	mctx := DefaultUpdateContext{}
-	m, err := Update(mctx, d1, d2)
+	err := Update(mctx, d1, d2)
 	if err != nil {
 		t.Errorf("expecting no merge conflict, got %v", err)
 	}
-	if !IsEqual(m, exp) {
-		t.Errorf("expecting %v, got %v", exp, m)
+	if !IsEqual(d1, exp) {
+		t.Errorf("expecting %v, got %v", exp, d1)
 	}
 }
 
 func TestUpdateDictOverlappingPairs(t *testing.T) {
-	d1 := Dict{
+	d1 := &Dict{
 		Tag: "aaa",
 		Pairs: Pairs{
-			{String{"x", nil}, NewInt64(1)},
-			{String{"z", nil}, NewInt64(1)},
+			{&String{"x", nil}, NewInt64(1)},
+			{&String{"z", nil}, NewInt64(1)},
 		},
 	}
-	d2 := Dict{
+	d2 := &Dict{
 		Tag: "aaa",
 		Pairs: Pairs{
-			{String{"x", nil}, NewInt64(1)},
-			{String{"w", nil}, NewInt64(1)},
+			{&String{"x", nil}, NewInt64(1)},
+			{&String{"w", nil}, NewInt64(1)},
 		},
 	}
-	exp := Dict{
+	exp := &Dict{
 		Tag: "aaa",
 		Pairs: Pairs{
-			{String{"x", nil}, NewInt64(1)},
-			{String{"z", nil}, NewInt64(1)},
-			{String{"w", nil}, NewInt64(1)},
+			{&String{"x", nil}, NewInt64(1)},
+			{&String{"z", nil}, NewInt64(1)},
+			{&String{"w", nil}, NewInt64(1)},
 		},
 	}
 	mctx := DefaultUpdateContext{}
-	m, err := Update(mctx, d1, d2)
+	err := Update(mctx, d1, d2)
 	if err != nil {
 		t.Errorf("expecting no merge conflict, got %v", err)
 	}
-	if !IsEqual(m, exp) {
-		t.Errorf("expecting %v, got %v", exp, m)
+	if !IsEqual(d1, exp) {
+		t.Errorf("expecting %v, got %v", exp, d1)
 	}
 }

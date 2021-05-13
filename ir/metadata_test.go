@@ -30,7 +30,7 @@ func TestDictMetadata(t *testing.T) {
 		t.Fatal("Expiration not set successfully in dict:", m.ExpirationTime, now)
 	}
 
-	elm := ds.(Dict).Pairs[1].Key
+	elm := ds.(*Dict).Pairs[1].Key
 	if elm.Metadata().ExpirationTime < uint64(now) {
 		t.Fatal("Expiration not set successfully in dict element:", elm.Metadata().ExpirationTime, now)
 	}
@@ -57,7 +57,7 @@ func TestSetMetadata(t *testing.T) {
 		t.Fatal("Expiration not set successfully in set:", m.ExpirationTime, now)
 	}
 
-	elm := ds.(Set).Elements[0]
+	elm := ds.(*Set).Elements[0]
 	if elm.Metadata().ExpirationTime < uint64(now) {
 		t.Fatal("Expiration not set successfully in set element:", elm.Metadata().ExpirationTime, now)
 	}
@@ -94,25 +94,31 @@ func TestDictMetadataUpdate(t *testing.T) {
 
 	now := time.Now().Unix()
 	// Update
-	dsu, err := ds1.UpdateWith(DefaultUpdateContext{}, ds2)
+	err = ds1.UpdateWith(DefaultUpdateContext{}, ds2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := dsu.Metadata()
-	if m.ExpirationTime < ds1.Metadata().ExpirationTime || ds1.Metadata().ExpirationTime == m.ExpirationTime {
+	m := ds1.Metadata()
+	// Updated with TTL of ds2
+	if ds2.Metadata().ExpirationTime != m.ExpirationTime {
 		t.Fatal("Expiration not updated successfully in node:", m.ExpirationTime, now)
 	}
 
+	ds1, err = SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
+	if err != nil {
+		t.Fatal(err)
+	}
 	// Update without ttl being set in updated node
 	ds2nottl, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	dsu, err = ds1.UpdateWith(DefaultUpdateContext{}, ds2nottl)
+	err = ds1.UpdateWith(DefaultUpdateContext{}, ds2nottl)
 	if err != nil {
 		t.Fatal(err)
 	}
-	m = dsu.Metadata()
+	m = ds1.Metadata()
+	// Expiration should have not been updated.
 	if m.ExpirationTime != ds1.Metadata().ExpirationTime {
 		t.Fatal("Update with no ttl not updated successfully in node:", m.ExpirationTime, ds1.Metadata().ExpirationTime, now)
 	}
@@ -139,25 +145,29 @@ func TestBasicMetadataUpdate(t *testing.T) {
 
 	now := time.Now().Unix()
 	// Update
-	dsu, err := ds1.UpdateWith(DefaultUpdateContext{}, ds2)
+	err = ds1.UpdateWith(DefaultUpdateContext{}, ds2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := dsu.Metadata()
-	if m.ExpirationTime < ds1.Metadata().ExpirationTime || ds1.Metadata().ExpirationTime == m.ExpirationTime {
+	m := ds1.Metadata()
+	if ds2.Metadata().ExpirationTime != m.ExpirationTime {
 		t.Fatal("Expiration not updated successfully in node:", m.ExpirationTime, now)
 	}
 
 	// Update without ttl being set in updated node
+	ds1, err = SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
+	if err != nil {
+		t.Fatal(err)
+	}
 	ds2nottl, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	dsu, err = ds1.UpdateWith(DefaultUpdateContext{}, ds2nottl)
+	err = ds1.UpdateWith(DefaultUpdateContext{}, ds2nottl)
 	if err != nil {
 		t.Fatal(err)
 	}
-	m = dsu.Metadata()
+	m = ds1.Metadata()
 	if m.ExpirationTime != ds1.Metadata().ExpirationTime {
 		t.Fatal("Update with no ttl not updated successfully in node:", m.ExpirationTime, ds1.Metadata().ExpirationTime, now)
 	}
@@ -193,22 +203,26 @@ func TestSetMetadataUpdate(t *testing.T) {
 
 	now := time.Now().Unix()
 	// Update
-	dsu, err := ds1.UpdateWith(DefaultUpdateContext{}, ds2)
-	m := dsu.Metadata()
-	if m.ExpirationTime < ds1.Metadata().ExpirationTime || ds1.Metadata().ExpirationTime == m.ExpirationTime {
+	err = ds1.UpdateWith(DefaultUpdateContext{}, ds2)
+	m := ds1.Metadata()
+	if ds2.Metadata().ExpirationTime != m.ExpirationTime {
 		t.Fatal("Expiration not updated successfully in node:", m.ExpirationTime, now)
 	}
 
+	ds1, err = SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
+	if err != nil {
+		t.Fatal(err)
+	}
 	// Update without ttl being set in updated node
 	ds2nottl, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	dsu, err = ds1.UpdateWith(DefaultUpdateContext{}, ds2nottl)
+	err = ds1.UpdateWith(DefaultUpdateContext{}, ds2nottl)
 	if err != nil {
 		t.Fatal(err)
 	}
-	m = dsu.Metadata()
+	m = ds1.Metadata()
 	if m.ExpirationTime != ds1.Metadata().ExpirationTime {
 		t.Fatal("Update with no ttl not updated successfully in node:", m.ExpirationTime, ds1.Metadata().ExpirationTime, now)
 	}

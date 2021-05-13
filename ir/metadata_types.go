@@ -37,12 +37,3 @@ func (t expirationTime) update(with metadataType) metadataType {
 	t.value = withT.value
 	return t
 }
-
-// NoExpiration prevents the node from having an expirationTime
-func NoExpiration() Metadata {
-	return func(m *metadataContext) error {
-		m.expirationTime.value = uint64(MaxUINT64)
-		return nil
-	}
-
-}
