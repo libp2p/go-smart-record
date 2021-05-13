@@ -41,6 +41,11 @@ type vm struct {
 	keys map[string]*recordEntry // State of the VM storing the map of records.
 	asm  ir.Assembler            // Assemble to use in the VM.
 
+	// NOTE: When performance matters in the future, implement incremental garbage collection,
+	// which runs on every operation and uses a priority queue to know (in O(1) time)
+	// if anything needs garbage collection.
+	// (When there are bursts of uneven traffic, no choice of garbage collection interval helps.)
+	// We can add it in a GCType option.
 	gcPeriod time.Duration // Period of the gc process
 }
 
@@ -66,7 +71,7 @@ func newVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.Assembler, op
 	// Initialize process so routines are ended with context
 	v.proc = goprocessctx.WithContext(ctx)
 	// Start garbage collection process
-	// NOTE: Should we add an option for this?
+	// NOTE: Add an option for gcType?
 	v.proc.Go(v.gcLoop)
 	return v, nil
 }

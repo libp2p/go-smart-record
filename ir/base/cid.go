@@ -59,6 +59,8 @@ func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata 
 		u.Remove(xr.String{"cid"})
 
 		asm := ir.DictAssembler{}
+		// TODO: Simplify CID tag. Here we are just applying metadata
+		// to the user dict.
 		uasm, err := asm.Assemble(ctx, d, metadata...)
 		return &Cid{
 			Cid:  x,

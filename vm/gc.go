@@ -8,11 +8,12 @@ import (
 )
 
 func (v *vm) gcLoop(proc goprocess.Process) {
-	msgSyncTicker := time.NewTicker(v.gcPeriod)
-	defer msgSyncTicker.Stop()
 	for {
+		msgSyncTicker := time.NewTicker(v.gcPeriod)
 		select {
 		case <-msgSyncTicker.C:
+			// Stopping ticker while garbage collecting.
+			msgSyncTicker.Stop()
 			// NOTE: Locking all keys while garbage collecting may really
 			// harm performance, specially if the gcPeriod is low. Consider
 			// adding a lock per entry or other schemes to improve this.
@@ -32,76 +33,56 @@ func (v *vm) garbageCollect() {
 	for _, r := range v.keys {
 		// And the datastore of each peer
 		for p, entry := range *r {
-			e, gc := gcDict(*entry)
-			if gc {
+			// Run garbage collection
+			if gcDict(entry) {
 				// Delete that entry if dict for peer expired.
 				delete(*r, p)
-			} else {
-				// Assign the resulting dict after gc
-				(*r)[p] = &e
 			}
-
 		}
 	}
 }
 
-func gcNode(n ir.Node) (ir.Node, bool) {
+func gcNode(n ir.Node) bool {
 	switch n1 := n.(type) {
-	case ir.Dict:
+	case *ir.Dict:
 		return gcDict(n1)
-	case ir.Set:
+	case *ir.Set:
 		return gcSet(n1)
 	default:
-		return n1, isTTLExpired(n1)
+		return isTTLExpired(n1)
 	}
 }
 
-func gcDict(d ir.Dict) (ir.Dict, bool) {
+func gcDict(d *ir.Dict) bool {
 	// Check if we can remove Dict if all children have expired.
 	gcFlag := isTTLExpired(d)
-	pairs := make(ir.Pairs, 0)
 	// For each pair.
-	for _, p := range d.Pairs {
+	for k := len(d.Pairs) - 1; k >= 0; k-- {
 		// Check if pair has expired and garbage collect.
-		k, gck := gcNode(p.Key)
-		v, gcv := gcNode(p.Value)
-		gcP := gck && gcv
-		// If it hasn't keep the pair
-		if !gcP {
-			pairs = append(pairs, ir.Pair{Key: k, Value: v})
+		if gcP := gcNode(d.Pairs[k].Key) && gcNode(d.Pairs[k].Value); gcP {
+			// Remove pair if both expired
+			d.Remove(d.Pairs[k].Key)
+			// Accummulate the result for the child in dict.
+			gcFlag = gcFlag && gcP
 		}
-		// Accummulate the result for the child in dict.
-		gcFlag = gcFlag && gcP
 	}
-	// Assign the pairs that haven't expired to dict.
-	if !gcFlag {
-		d.Pairs = pairs
-	}
-	// Return gc result for dict.
-	return d, gcFlag
+	return gcFlag
 }
 
-func gcSet(s ir.Set) (ir.Set, bool) {
+func gcSet(s *ir.Set) bool {
 	// Check if we can remove Dict if all children have expired.
 	gcFlag := isTTLExpired(s)
-	els := make(ir.Nodes, 0)
-	// For each elements.
-	for _, e := range s.Elements {
+	// For each element
+	for k := len(s.Elements) - 1; k >= 0; k-- {
 		// Check if element gas expired
-		e, gcP := gcNode(e)
-		// If it hasn't keep the element
-		if !gcP {
-			els = append(els, e)
+		if gcP := gcNode(s.Elements[k]); gcP {
+			// Remove pair if both expired
+			s.Elements = append(s.Elements[:k], s.Elements[k+1:]...)
+			// Accummulate the result for the child in set
+			gcFlag = gcFlag && gcP
 		}
-		// Accummulate the result for the child in set
-		gcFlag = gcFlag && gcP
 	}
-	// Assign the pairs that haven't expired to set.
-	if !gcFlag {
-		s.Elements = els
-	}
-	// Return gc result for dict.
-	return s, gcFlag
+	return gcFlag
 }
 
 func isTTLExpired(n ir.Node) bool {

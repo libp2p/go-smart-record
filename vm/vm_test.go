@@ -130,6 +130,7 @@ func TestGcProcess(t *testing.T) {
 	asm := base.BaseGrammar
 	vm, _ := NewVM(context.Background(), ctx, asm, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
+	p2, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in1 := xr.Dict{
 		Pairs: xr.Pairs{
@@ -147,6 +148,11 @@ func TestGcProcess(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Add it also in other peer
+	err = vm.Update(p2.ID(), k, in1, []ir.Metadata{ir.TTL(1)}...)
+	if err != nil {
+		t.Fatal(err)
+	}
 	// Large expiration for in2
 	err = vm.Update(p.ID(), k, in2, []ir.Metadata{ir.TTL(3000)}...)
 	if err != nil {
@@ -154,9 +160,13 @@ func TestGcProcess(t *testing.T) {
 	}
 	time.Sleep(3 * time.Second)
 	out := vm.Get(k)
-	// In1 should have been garbage collected
+	// In1 should have been garbage collected in p
 	if !xr.IsEqual(in2, *out[p.ID()]) {
 		t.Fatal("Record not garbage collected successfully", in2, *out[p.ID()])
+	}
+	// Everything should have been garbage collected in p2
+	if out[p2.ID()] != nil {
+		t.Fatal("Record not garbage collected successfully in p2", in2, *out[p.ID()])
 	}
 
 }
@@ -176,7 +186,7 @@ func TestGcFullDict(t *testing.T) {
 		t.Fatal(err)
 	}
 	time.Sleep(2 * time.Second)
-	if _, g := gcNode(ds); !g {
+	if g := gcNode(ds); !g {
 		t.Fatal("Dict should have been garbage collected", g, ds)
 	}
 }
@@ -205,17 +215,17 @@ func TestGcPartialDict(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Update
-	dsu, err := ds1.UpdateWith(ir.DefaultUpdateContext{}, ds2)
+	err = ds1.UpdateWith(ir.DefaultUpdateContext{}, ds2)
 	if err != nil {
 		t.Fatal(err)
 	}
 	time.Sleep(2 * time.Second)
-	out, g := gcNode(dsu)
+	g := gcNode(ds1)
 	if g {
-		t.Fatal("Dict should not have been garbage collected", g, dsu)
+		t.Fatal("Dict should not have been garbage collected", g, ds1)
 	}
-	if !ir.IsEqual(out, ds2) {
-		t.Fatal("Dict not garbage collected partially", out, ds2)
+	if !ir.IsEqual(ds1, ds2) {
+		t.Fatal("Dict not garbage collected partially", ds1, ds2)
 	}
 
 }
