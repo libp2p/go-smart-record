@@ -94,12 +94,6 @@ func (d Dict) Get(key Node) Node {
 	return nil
 }
 
-// jsonPair is used to encode Pairs with JSON
-type jsonPair struct {
-	Key   interface{}
-	Value interface{}
-}
-
 func (d *Dict) UpdateWith(ctx UpdateContext, with Node) error {
 	wd, ok := with.(*Dict)
 	if !ok {
