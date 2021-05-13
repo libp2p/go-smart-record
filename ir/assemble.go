@@ -72,7 +72,7 @@ func (asm StringAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata 
 		return nil, err
 	}
 
-	return String{Value: s.Value, metadataCtx: &m}, nil
+	return &String{Value: s.Value, metadataCtx: &m}, nil
 }
 
 type IntAssembler struct{}
@@ -89,7 +89,7 @@ func (asm IntAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...
 		return nil, err
 	}
 
-	return Int{Int: s.Int, metadataCtx: &m}, nil
+	return &Int{Int: s.Int, metadataCtx: &m}, nil
 }
 
 type FloatAssembler struct{}
@@ -105,7 +105,7 @@ func (asm FloatAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata .
 	if err := m.apply(metadata...); err != nil {
 		return nil, err
 	}
-	return Float{Float: s.Float, metadataCtx: &m}, nil
+	return &Float{Float: s.Float, metadataCtx: &m}, nil
 }
 
 type BoolAssembler struct{}
@@ -122,7 +122,7 @@ func (asm BoolAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 		return nil, err
 	}
 
-	return Bool{Value: s.Value, metadataCtx: &m}, nil
+	return &Bool{Value: s.Value, metadataCtx: &m}, nil
 }
 
 type BlobAssembler struct{}
@@ -139,7 +139,7 @@ func (asm BlobAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 		return nil, err
 	}
 
-	return Blob{Bytes: s.Bytes, metadataCtx: &m}, nil
+	return &Blob{Bytes: s.Bytes, metadataCtx: &m}, nil
 }
 
 type DictAssembler struct{}
@@ -172,7 +172,7 @@ func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 	}
 	d.metadataCtx = &m
 
-	return d, nil
+	return &d, nil
 }
 
 type SetAssembler struct{}
@@ -201,5 +201,5 @@ func (asm SetAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...
 	}
 	d.metadataCtx = &m
 
-	return d, nil
+	return &d, nil
 }

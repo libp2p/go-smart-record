@@ -9,39 +9,39 @@ import (
 )
 
 type Signed struct {
-	By        Peer
+	By        *Peer
 	Statement ir.Node
-	Signature ir.Blob
+	Signature *ir.Blob
 	// User holds user fields.
-	User ir.Dict
+	User *ir.Dict
 }
 
-func (s Signed) WritePretty(w io.Writer) error {
+func (s *Signed) WritePretty(w io.Writer) error {
 	return s.Disassemble().WritePretty(w)
 }
 
-func (s Signed) Disassemble() xr.Node {
-	return ir.Dict{
+func (s *Signed) Disassemble() xr.Node {
+	return (&ir.Dict{
 		Tag: "verify",
 		Pairs: ir.MergePairs(
 			s.User.Pairs,
 			ir.Pairs{
-				{Key: ir.String{Value: "by"}, Value: s.By},
-				{Key: ir.String{Value: "statement"}, Value: s.Statement},
-				{Key: ir.String{Value: "signature"}, Value: s.Signature},
+				{Key: &ir.String{Value: "by"}, Value: s.By},
+				{Key: &ir.String{Value: "statement"}, Value: s.Statement},
+				{Key: &ir.String{Value: "signature"}, Value: s.Signature},
 			},
 		),
-	}.Disassemble()
+	}).Disassemble()
 }
 
-func (s Signed) Metadata() ir.MetadataInfo {
+func (s *Signed) Metadata() ir.MetadataInfo {
 	return s.User.Metadata()
 }
 
-func (s Signed) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {
-	w, ok := with.(Signed)
+func (s *Signed) UpdateWith(ctx ir.UpdateContext, with ir.Node) error {
+	_, ok := with.(*Signed)
 	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-signed")
+		return fmt.Errorf("cannot update with a non-signed")
 	}
-	return w, nil
+	return nil
 }

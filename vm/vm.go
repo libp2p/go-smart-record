@@ -110,33 +110,26 @@ func (v *vm) Update(writer peer.ID, k string, update xr.Dict, metadata ...ir.Met
 	}
 
 	// Check if the result of the assembler is of type Dict
-	d, ok := ds.(ir.Dict)
+	d, ok := ds.(*ir.Dict)
 	if !ok {
 		return fmt.Errorf("assembler didn't generate a dict")
 	}
 
 	// Directly store d if there is nothing in the key
 	if v.keys[k] == nil {
-		v.keys[k] = &recordEntry{writer: &d}
+		v.keys[k] = &recordEntry{writer: d}
 		return nil
 	} else {
 		// If no data in peer
 		if (*v.keys[k])[writer] == nil {
-			(*v.keys[k])[writer] = &d
+			(*v.keys[k])[writer] = d
 		} else {
 			// Update existing dict with the stored one if there's already
 			// something in the peer's key
-			n, err := ir.Update(v.ctx, (*v.keys[k])[writer], d)
+			err := ir.Update(v.ctx, (*v.keys[k])[writer], d)
 			if err != nil {
 				return nil
 			}
-			// We can most certainly be sure that this is a ir.Dict,
-			// but as we need to do the cast either way, let's double-check.
-			no, ok := n.(ir.Dict)
-			if !ok {
-				return fmt.Errorf("update didn't generate a dict")
-			}
-			(*v.keys[k])[writer] = &no
 		}
 		return nil
 	}
