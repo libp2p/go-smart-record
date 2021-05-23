@@ -9,6 +9,9 @@ import (
 )
 
 // Cid is a smart node, representing a valid CID.
+// NOTE: The current implementation of the CID node applies metadata
+// exclusively to the User Dict and not to the CID itself. This is a
+// consequence of the Cid field being cid.Cid instado of an ir.Node
 type Cid struct {
 	Cid cid.Cid
 
