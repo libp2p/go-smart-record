@@ -59,12 +59,13 @@ func gcDict(d *ir.Dict) bool {
 	// For each pair.
 	for k := len(d.Pairs) - 1; k >= 0; k-- {
 		// Check if pair has expired and garbage collect.
-		if gcP := gcNode(d.Pairs[k].Key) && gcNode(d.Pairs[k].Value); gcP {
+		gcP := gcNode(d.Pairs[k].Key) && gcNode(d.Pairs[k].Value)
+		if gcP {
 			// Remove pair if both expired
 			d.Remove(d.Pairs[k].Key)
-			// Accummulate the result for the child in dict.
-			gcFlag = gcFlag && gcP
 		}
+		// Accummulate the result for the child in dict.
+		gcFlag = gcFlag && gcP
 	}
 	return gcFlag
 }
@@ -75,12 +76,13 @@ func gcSet(s *ir.Set) bool {
 	// For each element
 	for k := len(s.Elements) - 1; k >= 0; k-- {
 		// Check if element gas expired
-		if gcP := gcNode(s.Elements[k]); gcP {
+		gcP := gcNode(s.Elements[k])
+		if gcP {
 			// Remove pair if both expired
 			s.Elements = append(s.Elements[:k], s.Elements[k+1:]...)
-			// Accummulate the result for the child in set
-			gcFlag = gcFlag && gcP
 		}
+		// Accummulate the result for the child in set
+		gcFlag = gcFlag && gcP
 	}
 	return gcFlag
 }
