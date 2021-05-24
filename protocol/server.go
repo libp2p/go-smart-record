@@ -46,13 +46,16 @@ func newSmartRecordServer(ctx context.Context, h host.Host, options ...ServerOpt
 		return nil, err
 	}
 	protocols := []protocol.ID{srProtocol}
-
+	vm, err := vm.NewVM(ctx, cfg.updateContext, cfg.assembler)
+	if err != nil {
+		return nil, err
+	}
 	// Start a smartRecordServer with an initialized VM.
 	e := &smartRecordServer{
 		ctx:       ctx,
 		host:      h,
-		vm:        vm.NewVM(cfg.updateContext, cfg.assembler),
 		self:      h.ID(),
+		vm:        vm,
 		protocols: protocols,
 	}
 

@@ -2,8 +2,6 @@ package ir
 
 import "time"
 
-const MaxUINT64 = 1<<64 - 1
-
 // MetadataType interface implemented by metadata field types
 type metadataType interface {
 	update(with metadataType) metadataType // Determines how the metadata is updated when the node is updated.

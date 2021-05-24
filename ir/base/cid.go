@@ -9,6 +9,9 @@ import (
 )
 
 // Cid is a smart node, representing a valid CID.
+// NOTE: The current implementation of the CID node applies metadata
+// exclusively to the User Dict and not to the CID itself. This is a
+// consequence of the Cid field being cid.Cid instado of an ir.Node
 type Cid struct {
 	Cid cid.Cid
 
@@ -59,6 +62,8 @@ func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata 
 		u.Remove(xr.String{"cid"})
 
 		asm := ir.DictAssembler{}
+		// TODO: Simplify CID tag. Here we are just applying metadata
+		// to the user dict.
 		uasm, err := asm.Assemble(ctx, d, metadata...)
 		return &Cid{
 			Cid:  x,
