@@ -20,13 +20,21 @@ type Reachable struct {
 	Reachable ir.Node
 	// User holds user fields which are not multiaddrs.
 	User ir.Node
+	// Flag to discern if the Reachable node is of type "connected".
+	// If this flag is not set it means is of type "dialable".
+	isConn bool
 }
 
 func (r Reachable) Disassemble() xr.Node {
 	_, dok := r.Reachable.(*ir.Dict)
+	tag := "dialable"
+	// Check the type of Reachable: "dialable" or "connected"
+	if r.isConn {
+		tag = "connected"
+	}
 	if dok {
 		return (&ir.Dict{
-			Tag: "reachable",
+			Tag: tag,
 			Pairs: ir.MergePairs(
 				r.Reachable.(*ir.Dict).Pairs, // List of reachable multiaddresses
 				r.User.(*ir.Dict).Pairs,      // The rest of pairs which don't have multiaddrs.
@@ -35,7 +43,7 @@ func (r Reachable) Disassemble() xr.Node {
 	} else {
 
 		return (&ir.Set{
-			Tag: "reachable",
+			Tag: tag,
 			Elements: ir.MergeElements(
 				r.Reachable.(*ir.Set).Elements, // List of reachable multiaddresses
 				r.User.(*ir.Set).Elements,      // The rest of pairs which don't have multiaddrs.
@@ -93,8 +101,14 @@ func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, met
 }
 
 func reachableDictAssemble(ctx ir.AssemblerContext, d xr.Dict, metadata ...ir.Metadata) (ir.Node, error) {
-	if d.Tag != "reachable" {
-		return nil, fmt.Errorf("expecting tag reachable")
+
+	isConn := false
+	if d.Tag != "connected" && d.Tag != "dialable" {
+		return nil, fmt.Errorf("expecting tag 'connected' or 'dialable'")
+	}
+	// If the node is of type connected set flag
+	if d.Tag == "connected" {
+		isConn = true
 	}
 
 	u := xr.Dict{}
@@ -107,9 +121,17 @@ func reachableDictAssemble(ctx ir.AssemblerContext, d xr.Dict, metadata ...ir.Me
 			u.Pairs = append(u.Pairs, p)
 			continue
 		}
-		// If reachable add pair with multiaddr to reachable
-		if reachable := checkIfReachable(ctx.Host, *info); reachable {
-			r.Pairs = append(r.Pairs, p)
+		// According to if connected or dialable
+		if isConn {
+			// If connected add pair with multiaddr to reachable
+			if conn := checkIfConnected(ctx.Host, *info); conn {
+				r.Pairs = append(r.Pairs, p)
+			}
+		} else {
+			// If dialable add pair with multiaddr to reachable
+			if dialable := checkIfDialable(ctx.Host, *info); dialable {
+				r.Pairs = append(r.Pairs, p)
+			}
 		}
 	}
 	// Assemble reachable and user dicts.
@@ -125,12 +147,18 @@ func reachableDictAssemble(ctx ir.AssemblerContext, d xr.Dict, metadata ...ir.Me
 	return &Reachable{
 		Reachable: rasm,
 		User:      uasm,
+		isConn:    isConn,
 	}, nil
 }
 
 func reachableSetAssemble(ctx ir.AssemblerContext, d xr.Set, metadata ...ir.Metadata) (ir.Node, error) {
-	if d.Tag != "reachable" {
-		return nil, fmt.Errorf("expecting tag reachable")
+	isConn := false
+	if d.Tag != "connected" && d.Tag != "dialable" {
+		return nil, fmt.Errorf("expecting tag 'connected' or 'dialable'")
+	}
+	// If the node is of type connected set flag
+	if d.Tag == "connected" {
+		isConn = true
 	}
 
 	u := xr.Set{}
@@ -143,9 +171,17 @@ func reachableSetAssemble(ctx ir.AssemblerContext, d xr.Set, metadata ...ir.Meta
 			u.Elements = append(u.Elements, p)
 			continue
 		}
-		// If reachable add pair with multiaddr to reachable
-		if reachable := checkIfReachable(ctx.Host, *info); reachable {
-			r.Elements = append(r.Elements, p)
+		// According to if connected or dialable
+		if isConn {
+			// If connected add pair with multiaddr to reachable
+			if conn := checkIfConnected(ctx.Host, *info); conn {
+				r.Elements = append(r.Elements, p)
+			}
+		} else {
+			// If dialable add pair with multiaddr to reachable
+			if dialable := checkIfDialable(ctx.Host, *info); dialable {
+				r.Elements = append(r.Elements, p)
+			}
 		}
 	}
 	// Assemble reachable and user dicts.
@@ -161,6 +197,7 @@ func reachableSetAssemble(ctx ir.AssemblerContext, d xr.Set, metadata ...ir.Meta
 	return &Reachable{
 		Reachable: rasm,
 		User:      uasm,
+		isConn:    isConn,
 	}, nil
 }
 
@@ -180,11 +217,8 @@ func isValidMultiAddrNode(n xr.Node) *peer.AddrInfo {
 	return info
 }
 
-// CheckIfReachable Checks if peer reachable with 5s timeout.
-// NOTE: We currently consider a peer reachable if we can dial them.
-// We could change the concept of reachable and say that someone is
-// reachable if we are currently connected to it (host.Network().Peers())
-func checkIfReachable(h host.Host, i peer.AddrInfo) bool {
+// CheckIfdialable Checks if peer reachable with 5s timeout.
+func checkIfDialable(h host.Host, i peer.AddrInfo) bool {
 	// If self, consider as reachable and don't try to connect
 	if h.ID() == i.ID {
 		return true
@@ -196,4 +230,19 @@ func checkIfReachable(h host.Host, i peer.AddrInfo) bool {
 	}
 	cancel()
 	return reachable
+}
+
+// CheckIfConnected checks if we are currently connected to a peer.
+func checkIfConnected(h host.Host, i peer.AddrInfo) bool {
+	// If self, consider as connected and don't try to connect
+	if h.ID() == i.ID {
+		return true
+	}
+	// Check if we are connected to peer
+	for _, p := range h.Network().Peers() {
+		if p == i.ID {
+			return true
+		}
+	}
+	return false
 }
