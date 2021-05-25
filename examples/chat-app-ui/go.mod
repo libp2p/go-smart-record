@@ -3,7 +3,7 @@ module github.com/libp2p/go-smart-record/examples/chat-app
 go 1.16
 
 require (
-	github.com/gdamore/tcell/v2 v2.2.1 // indirect
+	github.com/gdamore/tcell/v2 v2.2.1
 	github.com/libp2p/go-libp2p v0.13.1-0.20210420165741-6a5da01b0449
 	github.com/libp2p/go-libp2p-core v0.8.6-0.20210415043615-525a0b130172
 	github.com/libp2p/go-libp2p-crypto v0.1.0

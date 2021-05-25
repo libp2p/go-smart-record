@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	peer "github.com/libp2p/go-libp2p-peer"
-	"github.com/libp2p/go-smart-record/ir"
 	"github.com/libp2p/go-smart-record/protocol"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 type clientConfig struct {
@@ -28,23 +28,23 @@ type syncUpdate struct {
 }
 
 // Genereates the data model for messages for the chat application
-func (e *clientConfig) generateChatMessage(msg string) ir.Dict {
+func (e *clientConfig) generateChatMessage(msg string) xr.Dict {
 	e.lk.Lock()
 	// Increase seqID
 	e.seqId++
 	defer e.lk.Unlock()
 	// Message data
-	d := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.Int{big.NewInt(e.seqId)}, Value: ir.String{Value: msg}},
+	d := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.Int{Int: big.NewInt(e.seqId)}, Value: xr.String{Value: msg}},
 		},
 	}
 
 	// Include message data into a wrapper with seqID for synchronization
-	return ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "nick"}, Value: ir.String{Value: e.nick}},
-			ir.Pair{Key: ir.String{Value: "msgs"}, Value: d},
+	return xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "nick"}, Value: xr.String{Value: e.nick}},
+			xr.Pair{Key: xr.String{Value: "msgs"}, Value: d},
 		},
 	}
 }

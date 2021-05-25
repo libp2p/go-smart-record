@@ -8,9 +8,9 @@ import (
 	"sync"
 
 	peer "github.com/libp2p/go-libp2p-peer"
-	"github.com/libp2p/go-smart-record/ir"
 	"github.com/libp2p/go-smart-record/protocol"
 	"github.com/libp2p/go-smart-record/vm"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 type clientConfig struct {
@@ -30,24 +30,24 @@ type syncUpdate struct {
 	msg  string
 }
 
-// Genereates the data model for messages for the chat application
-func (c *clientConfig) generateChatMessage(msg string) ir.Dict {
+// Genereates the data model of messages for the chat application
+func (c *clientConfig) generateChatMessage(msg string) xr.Dict {
 	c.lk.Lock()
 	// Increase seqID
 	c.seqId++
 	defer c.lk.Unlock()
 	// Message data
-	d := ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.Int{Int: big.NewInt(c.seqId)}, Value: ir.String{Value: msg}},
+	d := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.Int{Int: big.NewInt(c.seqId)}, Value: xr.String{Value: msg}},
 		},
 	}
 
 	// Include message data into a wrapper with seqID for synchronization
-	return ir.Dict{
-		Pairs: ir.Pairs{
-			ir.Pair{Key: ir.String{Value: "nick"}, Value: ir.String{Value: c.nick}},
-			ir.Pair{Key: ir.String{Value: "msgs"}, Value: d},
+	return xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "nick"}, Value: xr.String{Value: c.nick}},
+			xr.Pair{Key: xr.String{Value: "msgs"}, Value: d},
 		},
 	}
 }
@@ -77,21 +77,22 @@ func (c *clientConfig) processSyncMessages(out *vm.RecordValue, outCh chan strin
 		}
 
 		// Get peer's nick (if any)
-		nickNode := v.Get(ir.String{Value: "nick"})
+		nickNode := v.Get(xr.String{Value: "nick"})
 		nick := k.Pretty()
 		if nickNode != nil {
-			nick = nickNode.(ir.String).Value
+			nick = nickNode.(xr.String).Value
 		}
 
-		msgs := v.Get(ir.String{Value: "msgs"})
-		mdict, ok := msgs.(ir.Dict)
+		msgs := v.Get(xr.String{Value: "msgs"})
+		mdict, ok := msgs.(xr.Dict)
 		if !ok {
+			// Optional sync error messages can be included here.
 			//printErr("sync error: dict of messages not stored inrecord")
 		}
 
 		// For all messages in peer
 		for _, pv := range mdict.Pairs {
-			ki := pv.Key.(ir.Int)
+			ki := pv.Key.(xr.Int)
 			i := ki.Int64()
 
 			// If message has a seqID below the one I keep, it means I haven't seen it
@@ -99,7 +100,7 @@ func (c *clientConfig) processSyncMessages(out *vm.RecordValue, outCh chan strin
 				// Add id as seqId to track and sync at the end
 				ids = append(ids, int(i))
 				// Append the message for update
-				syncMsgs[i] = append(syncMsgs[i], &syncUpdate{nick, pv.Value.(ir.String).Value})
+				syncMsgs[i] = append(syncMsgs[i], &syncUpdate{nick, pv.Value.(xr.String).Value})
 				// Update the max sequence number that I've seen so far
 				if i > tmpMax {
 					tmpMax = i

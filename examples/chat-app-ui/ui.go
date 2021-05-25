@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/libp2p/go-smart-record/ir"
 	"github.com/libp2p/go-smart-record/vm"
+	"github.com/libp2p/go-smart-record/xr"
 	"github.com/rivo/tview"
 )
 
@@ -119,8 +119,8 @@ func (ui *chatUI) sendNewMessage(text string) {
 
 // The chatUI orchestrates the handling of events from input and syncing messages.
 func (ui *chatUI) handleEvents() {
+	// defer msgSyncTicker.Stop()
 	msgSyncTicker := time.NewTicker(syncTime)
-	defer msgSyncTicker.Stop()
 	for {
 		select {
 		case input := <-ui.inputCh:
@@ -128,8 +128,10 @@ func (ui *chatUI) handleEvents() {
 			ui.sendNewMessage(input)
 
 		case <-msgSyncTicker.C:
-			// We periodically fetch the smrat-record to check if there are new messages.
+			msgSyncTicker.Stop()
+			// We periodically fetch the smart-record to check if there are new messages.
 			ui.syncMessages()
+			msgSyncTicker = time.NewTicker(syncTime)
 
 		case <-ui.env.ctx.Done():
 			return
@@ -171,21 +173,21 @@ func (ui *chatUI) processSyncMessages(out *vm.RecordValue) {
 		}
 
 		// Get peer's nick (if any)
-		nickNode := v.Get(ir.String{Value: "nick"})
+		nickNode := v.Get(xr.String{Value: "nick"})
 		nick := k.Pretty()
 		if nickNode != nil {
-			nick = nickNode.(ir.String).Value
+			nick = nickNode.(xr.String).Value
 		}
 
-		msgs := v.Get(ir.String{Value: "msgs"})
-		mdict, ok := msgs.(ir.Dict)
+		msgs := v.Get(xr.String{Value: "msgs"})
+		mdict, ok := msgs.(xr.Dict)
 		if !ok {
 			printErr("sync error: dict of messages not stored inrecord")
 		}
 
 		// For all messages in peer
 		for _, pv := range mdict.Pairs {
-			ki := pv.Key.(ir.Int)
+			ki := pv.Key.(xr.Int)
 			i := ki.Int64()
 
 			// If message has a seqID below the one I keep, it means I haven't seen it
@@ -193,7 +195,7 @@ func (ui *chatUI) processSyncMessages(out *vm.RecordValue) {
 				// Add id as seqId to track and sync at the end
 				ids = append(ids, int(i))
 				// Append the message for update
-				syncMsgs[i] = append(syncMsgs[i], &syncUpdate{nick, pv.Value.(ir.String).Value})
+				syncMsgs[i] = append(syncMsgs[i], &syncUpdate{nick, pv.Value.(xr.String).Value})
 				// Update the max sequence number that I've seen so far
 				if i > tmpMax {
 					tmpMax = i

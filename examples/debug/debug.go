@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
@@ -60,7 +61,11 @@ func main() {
 	fmt.Println("[*] Record:")
 	for k, v := range *out {
 		fmt.Println("Value for peer: ", k.String())
-		fmt.Println(v)
+		// Print result for convenience
+		var w bytes.Buffer
+		v.WritePretty(&w)
+		fmt.Println(w.String())
+		w.Reset()
 	}
 
 }

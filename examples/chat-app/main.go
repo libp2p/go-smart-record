@@ -29,6 +29,13 @@ import (
 // Timeout for requests to smart-record server
 const reqTimeout = 10 * time.Second
 
+// TTL for messages posted in smart-records
+// NOTE: We are currently not using a TTL, so messages are
+// set with a TTL=0, so records have a retention equal
+// to the garbage collection period set by the server VM.
+// The next version will include configurable TTLs.
+const msgTTL = 200
+
 // Sync new messages every second
 const syncTime = 1 * time.Second
 
@@ -184,11 +191,12 @@ func main() {
 		client.syncMessages(outCh)
 
 		// Periodically listen for new messages.
-		msgSyncTicker := time.NewTicker(syncTime)
-		defer msgSyncTicker.Stop()
 		for {
+			msgSyncTicker := time.NewTicker(syncTime)
 			select {
 			case <-msgSyncTicker.C:
+				// Stopping ticker while syncing
+				msgSyncTicker.Stop()
 				// We periodically fetch the smrat-record to check if there are new messages.
 				client.syncMessages(outCh)
 
