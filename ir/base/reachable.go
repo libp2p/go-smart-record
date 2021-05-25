@@ -97,29 +97,20 @@ func reachableDictAssemble(ctx ir.AssemblerContext, d xr.Dict, metadata ...ir.Me
 		return nil, fmt.Errorf("expecting tag reachable")
 	}
 
-	u := d.Copy()
-	u.Tag = ""
+	u := xr.Dict{}
 	r := xr.Dict{}
 	for _, p := range d.Pairs {
-		// Check if the value is of type string
-		s, ok := p.Value.(xr.String)
-		if !ok {
-			// If not continue
-			continue
-		}
-		// Check if multiaddr and extract addrinfo
-		info, err := peer.AddrInfoFromString(s.Value)
-		if err != nil {
-			// If not continue
+		info := isValidMultiAddrNode(p.Value)
+		// If not a multiaddr add to user set and continue
+		if info == nil {
+			// Add non-multiaddr to user-dict
+			u.Pairs = append(u.Pairs, p)
 			continue
 		}
 		// If reachable add pair with multiaddr to reachable
 		if reachable := checkIfReachable(ctx.Host, *info); reachable {
 			r.Pairs = append(r.Pairs, p)
 		}
-		// Remove multiaddr from user dict. Reachability already checked.
-		u.Remove(p.Key)
-
 	}
 	// Assemble reachable and user dicts.
 	asm := ir.DictAssembler{}
@@ -142,30 +133,20 @@ func reachableSetAssemble(ctx ir.AssemblerContext, d xr.Set, metadata ...ir.Meta
 		return nil, fmt.Errorf("expecting tag reachable")
 	}
 
-	u := d.Copy()
-	u.Tag = ""
+	u := xr.Set{}
 	r := xr.Set{}
-	removed := 0
-	for k, p := range d.Elements {
-		// Check if the value is of type string
-		s, ok := p.(xr.String)
-		if !ok {
-			// If not continue
-			continue
-		}
-		// Check if multiaddr and extract addrinfo
-		info, err := peer.AddrInfoFromString(s.Value)
-		if err != nil {
-			// If not continue
+	for _, p := range d.Elements {
+		info := isValidMultiAddrNode(p)
+		// If not a multiaddr add to user set and continue
+		if info == nil {
+			// Add non-multiaddr to user-set
+			u.Elements = append(u.Elements, p)
 			continue
 		}
 		// If reachable add pair with multiaddr to reachable
 		if reachable := checkIfReachable(ctx.Host, *info); reachable {
 			r.Elements = append(r.Elements, p)
 		}
-		// Remove multiaddr from user set. Reachability already checked.
-		u.Elements = append(u.Elements[:k-removed], u.Elements[k-removed+1:]...)
-		removed++
 	}
 	// Assemble reachable and user dicts.
 	asm := ir.SetAssembler{}
@@ -181,6 +162,22 @@ func reachableSetAssemble(ctx ir.AssemblerContext, d xr.Set, metadata ...ir.Meta
 		Reachable: rasm,
 		User:      uasm,
 	}, nil
+}
+
+// isValidMultiAddrNode checks if the node is of type multiaddr+
+// and returns its corresponding AddrInfo
+func isValidMultiAddrNode(n xr.Node) *peer.AddrInfo {
+	// Check if the value is of type string
+	s, ok := n.(xr.String)
+	if !ok {
+		return nil
+	}
+	// Check if multiaddr and extract addrinfo
+	info, err := peer.AddrInfoFromString(s.Value)
+	if err != nil {
+		return nil
+	}
+	return info
 }
 
 // CheckIfReachable Checks if peer reachable with 5s timeout.
