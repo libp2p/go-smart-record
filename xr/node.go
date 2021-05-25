@@ -1,11 +1,16 @@
-package ir
+package xr
 
-import "github.com/libp2p/go-smart-record/xr"
+import (
+	"io"
+
+	"github.com/ipld/go-ipld-prime"
+)
 
 type Node interface {
-	Disassemble() xr.Node // returns only syntactic nodes
-	UpdateWith(ctx UpdateContext, with Node) error
-	Metadata() MetadataInfo
+	WritePretty(w io.Writer) error   // Pretty writes the node
+	ToIPLD() (ipld.Node, error)      // Converts xr.Node into its corresponding IPLD Node type
+	toNode_IPLD() (ipld.Node, error) // Convert into IPLD Node of dynamic type NODE_IPLD
+
 }
 
 type Nodes []Node

@@ -2,46 +2,30 @@ package ir
 
 import (
 	"fmt"
-	"io"
+
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 // String is a node representing a string literal.
 type String struct {
-	Value string
+	Value       string
+	metadataCtx *metadataContext
 }
 
-func (s String) Disassemble() Node {
-	return s
+func (s *String) Disassemble() xr.Node {
+	return xr.String{Value: s.Value}
 }
 
-func (s String) WritePretty(w io.Writer) error {
-	_, err := fmt.Fprintf(w, "%q", s.Value)
-	return err
+func (s *String) Metadata() MetadataInfo {
+	return s.metadataCtx.getMetadata()
 }
 
-func IsEqualString(x, y String) bool {
-	return x.Value == y.Value
-}
-
-func (s String) EncodeJSON() (interface{}, error) {
-	return struct {
-		Type  marshalType `json:"type"`
-		Value string      `json:"value"`
-	}{Type: StringType, Value: s.Value}, nil
-}
-
-func decodeString(s map[string]interface{}) (Node, error) {
-	r, ok := s["value"].(string)
+func (s *String) UpdateWith(ctx UpdateContext, with Node) error {
+	w, ok := with.(*String)
 	if !ok {
-		return nil, fmt.Errorf("decoded value not String")
+		return fmt.Errorf("cannot update with a non-string")
 	}
-	return String{r}, nil
-}
-
-func (s String) UpdateWith(ctx UpdateContext, with Node) (Node, error) {
-	w, ok := with.(String)
-	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-string")
-	}
-	return w, nil
+	// Update metadata
+	s.metadataCtx.update(w.metadataCtx)
+	return nil
 }

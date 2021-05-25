@@ -2,54 +2,54 @@ package base
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-smart-record/ir"
+	"github.com/libp2p/go-smart-record/xr"
 )
 
 // Cid is a smart node, representing a valid CID.
+// NOTE: The current implementation of the CID node applies metadata
+// exclusively to the User Dict and not to the CID itself. This is a
+// consequence of the Cid field being cid.Cid instado of an ir.Node
 type Cid struct {
 	Cid cid.Cid
 
 	// User holds user fields.
-	User ir.Dict
+	User *ir.Dict
 }
 
-func (c Cid) EncodeJSON() (interface{}, error) {
-	return c.Disassemble().EncodeJSON()
+func (c *Cid) Disassemble() xr.Node {
+	return c.User.Disassemble().(xr.Dict).CopySetTag("cid",
+		xr.String{"cid"}, xr.String{c.Cid.String()})
 }
 
-func (c Cid) Disassemble() ir.Node {
-	return c.User.CopySetTag("cid", ir.String{"cid"}, ir.String{c.Cid.String()})
+func (c *Cid) Metadata() ir.MetadataInfo {
+	return c.User.Metadata()
 }
 
-func (c Cid) WritePretty(w io.Writer) error {
-	return c.Disassemble().WritePretty(w)
-}
-
-func (c Cid) UpdateWith(ctx ir.UpdateContext, with ir.Node) (ir.Node, error) {
-	w, ok := with.(Cid)
+func (c *Cid) UpdateWith(ctx ir.UpdateContext, with ir.Node) error {
+	_, ok := with.(*Cid)
 	if !ok {
-		return nil, fmt.Errorf("cannot update with a non-cid")
+		return fmt.Errorf("cannot update with a non-cid")
 	}
-	return w, nil
+	return nil
 }
 
 type CidAssembler struct{}
 
-func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode ir.Node) (ir.Node, error) {
-	d, ok := srcNode.(ir.Dict)
+func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata ...ir.Metadata) (ir.Node, error) {
+	d, ok := srcNode.(xr.Dict)
 	if !ok {
 		return nil, fmt.Errorf("expecting dict")
 	}
 	if d.Tag != "cid" {
 		return nil, fmt.Errorf("expecting tag cid")
 	}
-	if v := d.Get(ir.String{"cid"}); v == nil {
+	if v := d.Get(xr.String{"cid"}); v == nil {
 		return nil, fmt.Errorf("missing cid field")
 	} else {
-		s, ok := v.(ir.String)
+		s, ok := v.(xr.String)
 		if !ok {
 			return nil, fmt.Errorf("cid is not a string")
 		}
@@ -59,10 +59,15 @@ func (CidAssembler) Assemble(ctx ir.AssemblerContext, srcNode ir.Node) (ir.Node,
 		}
 		u := d.Copy()
 		u.Tag = ""
-		u.Remove(ir.String{"cid"})
-		return Cid{
+		u.Remove(xr.String{"cid"})
+
+		asm := ir.DictAssembler{}
+		// TODO: Simplify CID tag. Here we are just applying metadata
+		// to the user dict.
+		uasm, err := asm.Assemble(ctx, d, metadata...)
+		return &Cid{
 			Cid:  x,
-			User: u,
+			User: uasm.(*ir.Dict),
 		}, nil
 	}
 }
