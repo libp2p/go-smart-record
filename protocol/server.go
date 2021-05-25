@@ -46,6 +46,10 @@ func newSmartRecordServer(ctx context.Context, h host.Host, options ...ServerOpt
 		return nil, err
 	}
 	protocols := []protocol.ID{srProtocol}
+
+	// Add host to assemblerContext
+	cfg.assembler.Host = h
+
 	vm, err := vm.NewVM(ctx, cfg.updateContext, cfg.assembler)
 	if err != nil {
 		return nil, err
