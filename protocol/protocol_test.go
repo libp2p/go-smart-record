@@ -3,12 +3,19 @@ package protocol
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/libp2p/go-libp2p-core/host"
 	swarmt "github.com/libp2p/go-libp2p-swarm/testing"
 	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
 	"github.com/libp2p/go-smart-record/xr"
 )
+
+// TTL for updates in test cases
+var ttl = 2
+
+// Use small gcPeriod in server VM for tests
+var gcPeriod = 1 * time.Second
 
 var in1 = xr.Dict{
 	Pairs: xr.Pairs{
@@ -39,6 +46,7 @@ func setupServer(ctx context.Context, t *testing.T) *smartRecordServer {
 	s, err := newSmartRecordServer(
 		ctx,
 		bhost.New(swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport)),
+		[]ServerOption{VMGcPeriod(gcPeriod)}...,
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -73,7 +81,7 @@ func TestEmptyUpdate(t *testing.T) {
 	k := "234"
 
 	// Update record
-	err := c.Update(ctx, k, s.host.ID(), in1)
+	err := c.Update(ctx, k, s.host.ID(), in1, uint64(ttl))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,6 +94,16 @@ func TestEmptyUpdate(t *testing.T) {
 	d := (*out)[c.host.ID()]
 	if !xr.IsEqual(in1, *d) {
 		t.Fatal("end-to-end update in empty key failed", in1, *out)
+	}
+
+	// Check if TTL set successfully.
+	time.Sleep(3 * time.Second)
+	out, err = c.Get(ctx, k, s.host.ID())
+	if err != nil {
+		panic(err)
+	}
+	if len(*out) != 0 {
+		t.Fatal("TTL was not set successfully. The record didn't expire.", *out)
 	}
 
 }
@@ -102,11 +120,11 @@ func TestUpdateSameKeyDifferentPeers(t *testing.T) {
 	k := "234"
 
 	// Update record
-	err := c1.Update(ctx, k, s.host.ID(), in1)
+	err := c1.Update(ctx, k, s.host.ID(), in1, uint64(ttl))
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c2.Update(ctx, k, s.host.ID(), in2)
+	err = c2.Update(ctx, k, s.host.ID(), in2, uint64(ttl))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,11 +155,11 @@ func TestUpdateSameKeySamePeer(t *testing.T) {
 	k := "234"
 
 	// Update record
-	err := c.Update(ctx, k, s.host.ID(), in1)
+	err := c.Update(ctx, k, s.host.ID(), in1, uint64(ttl))
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c.Update(ctx, k, s.host.ID(), in2)
+	err = c.Update(ctx, k, s.host.ID(), in2, uint64(ttl))
 	if err != nil {
 		t.Fatal(err)
 	}

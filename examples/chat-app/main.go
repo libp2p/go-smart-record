@@ -30,10 +30,7 @@ import (
 const reqTimeout = 10 * time.Second
 
 // TTL for messages posted in smart-records
-// NOTE: We are currently not using a TTL, so messages are
-// set with a TTL=0, so records have a retention equal
-// to the garbage collection period set by the server VM.
-// The next version will include configurable TTLs.
+// Message retention desired by the client in messages.
 const msgTTL = 200
 
 // Sync new messages every second

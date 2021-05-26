@@ -57,7 +57,7 @@ func (c *clientConfig) sendMsg(text string) error {
 	msg := c.generateChatMessage(text)
 	ctx, cancel := context.WithTimeout(c.ctx, reqTimeout)
 	// Send message to record
-	err := c.client.Update(ctx, c.room, c.serverID, msg)
+	err := c.client.Update(ctx, c.room, c.serverID, msg, uint64(msgTTL))
 	cancel()
 	return err
 }

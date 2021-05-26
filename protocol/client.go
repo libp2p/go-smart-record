@@ -18,7 +18,7 @@ var log = logging.Logger("smart-records")
 // SmartRecordClient sends smart-record requesets to other peers.
 type SmartRecordClient interface {
 	Get(ctx context.Context, k string, p peer.ID) (*vm.RecordValue, error)
-	Update(ctx context.Context, k string, p peer.ID, rec xr.Dict) error
+	Update(ctx context.Context, k string, p peer.ID, rec xr.Dict, ttl uint64) error
 	// NOTE: we won't support queries until we figure out selectors
 	// Query(ctx context.Context, k string, p peer.ID, selector ir.Dict) (*ir.Dict, error)
 }
@@ -83,7 +83,7 @@ func (e *smartRecordClient) Get(ctx context.Context, k string, p peer.ID) (*vm.R
 
 }
 
-func (e *smartRecordClient) Update(ctx context.Context, k string, p peer.ID, rec xr.Dict) error {
+func (e *smartRecordClient) Update(ctx context.Context, k string, p peer.ID, rec xr.Dict, ttl uint64) error {
 	// Send a new request and wait for response
 	recB, err := xr.Marshal(rec)
 	if err != nil {
@@ -93,6 +93,7 @@ func (e *smartRecordClient) Update(ctx context.Context, k string, p peer.ID, rec
 		Type:  pb.Message_UPDATE,
 		Key:   []byte(k),
 		Value: recB,
+		TTL:   ttl,
 	}
 	resp, err := e.senderManager.SendRequest(ctx, p, req)
 	if err != nil {
