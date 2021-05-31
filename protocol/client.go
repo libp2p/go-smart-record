@@ -8,9 +8,9 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
+	xr "github.com/libp2p/go-routing-language/syntax"
 	pb "github.com/libp2p/go-smart-record/protocol/pb"
 	"github.com/libp2p/go-smart-record/vm"
-	"github.com/libp2p/go-smart-record/xr"
 )
 
 var log = logging.Logger("smart-records")
@@ -85,7 +85,7 @@ func (e *smartRecordClient) Get(ctx context.Context, k string, p peer.ID) (*vm.R
 
 func (e *smartRecordClient) Update(ctx context.Context, k string, p peer.ID, rec xr.Dict, ttl uint64) error {
 	// Send a new request and wait for response
-	recB, err := xr.Marshal(rec)
+	recB, err := xr.MarshalJSON(rec)
 	if err != nil {
 		return err
 	}

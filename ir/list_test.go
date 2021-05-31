@@ -4,13 +4,11 @@ import (
 	"testing"
 )
 
-func TestUpdateSetDiffTag(t *testing.T) {
-	s1 := &Set{
-		Tag:      "aaa",
+func TestUpdateListDiffTag(t *testing.T) {
+	s1 := &List{
 		Elements: Nodes{},
 	}
-	s2 := &Set{
-		Tag:      "bbb",
+	s2 := &List{
 		Elements: Nodes{},
 	}
 	mctx := DefaultUpdateContext{}
@@ -19,23 +17,20 @@ func TestUpdateSetDiffTag(t *testing.T) {
 	}
 }
 
-func TestUpdateSetSameTag(t *testing.T) {
-	s1 := &Set{
-		Tag: "aaa",
+func TestUpdateListSameTag(t *testing.T) {
+	s1 := &List{
 		Elements: Nodes{
 			&String{"x", nil},
 			&String{"z", nil},
 		},
 	}
-	s2 := &Set{
-		Tag: "aaa",
+	s2 := &List{
 		Elements: Nodes{
 			&String{"x", nil},
 			&String{"w", nil},
 		},
 	}
-	exp := &Set{
-		Tag: "aaa",
+	exp := &List{
 		Elements: Nodes{
 			&String{"x", nil},
 			&String{"z", nil},

@@ -46,8 +46,8 @@ func gcNode(n ir.Node) bool {
 	switch n1 := n.(type) {
 	case *ir.Dict:
 		return gcDict(n1)
-	case *ir.Set:
-		return gcSet(n1)
+	case *ir.List:
+		return gcList(n1)
 	default:
 		return isTTLExpired(n1)
 	}
@@ -70,7 +70,7 @@ func gcDict(d *ir.Dict) bool {
 	return gcFlag
 }
 
-func gcSet(s *ir.Set) bool {
+func gcList(s *ir.List) bool {
 	// Check if we can remove Dict if all children have expired.
 	gcFlag := isTTLExpired(s)
 	// For each element

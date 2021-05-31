@@ -6,9 +6,9 @@ import (
 	"time"
 
 	p2ptestutil "github.com/libp2p/go-libp2p-netutil"
+	xr "github.com/libp2p/go-routing-language/syntax"
 	"github.com/libp2p/go-smart-record/ir"
 	"github.com/libp2p/go-smart-record/ir/base"
-	"github.com/libp2p/go-smart-record/xr"
 )
 
 var k = "234"

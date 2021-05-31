@@ -9,10 +9,10 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
+	xr "github.com/libp2p/go-routing-language/syntax"
 	"github.com/libp2p/go-smart-record/ir"
 	pb "github.com/libp2p/go-smart-record/protocol/pb"
 	"github.com/libp2p/go-smart-record/vm"
-	"github.com/libp2p/go-smart-record/xr"
 )
 
 type SmartRecordServer interface {
@@ -130,7 +130,7 @@ func (e *smartRecordServer) handleUpdate(ctx context.Context, p peer.ID, msg *pb
 	ttl := msg.GetTTL()
 
 	// Unmarshal the record sent
-	smrec, err := xr.Unmarshal(v)
+	smrec, err := xr.UnmarshalJSON(v)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling record: %s", err)
 	}

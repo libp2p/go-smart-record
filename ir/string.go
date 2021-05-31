@@ -3,7 +3,7 @@ package ir
 import (
 	"fmt"
 
-	"github.com/libp2p/go-smart-record/xr"
+	xr "github.com/libp2p/go-routing-language/syntax"
 )
 
 // String is a node representing a string literal.

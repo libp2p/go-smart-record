@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/libp2p/go-smart-record/xr"
+	xr "github.com/libp2p/go-routing-language/syntax"
 )
 
 const sampleTTL = 123
@@ -12,7 +12,6 @@ const sampleTTL = 123
 func TestDictMetadata(t *testing.T) {
 
 	d := xr.Dict{
-		Tag: "aaa",
 		Pairs: xr.Pairs{
 			xr.Pair{Key: xr.String{Value: "x"}, Value: xr.NewInt64(1)},
 			xr.Pair{Key: xr.String{Value: "w"}, Value: xr.NewInt64(1)},
@@ -27,20 +26,19 @@ func TestDictMetadata(t *testing.T) {
 	now := time.Now().Unix()
 	m := ds.Metadata()
 	if m.ExpirationTime < uint64(now) {
-		t.Fatal("Expiration not set successfully in dict:", m.ExpirationTime, now)
+		t.Fatal("Expiration not List successfully in dict:", m.ExpirationTime, now)
 	}
 
 	elm := ds.(*Dict).Pairs[1].Key
 	if elm.Metadata().ExpirationTime < uint64(now) {
-		t.Fatal("Expiration not set successfully in dict element:", elm.Metadata().ExpirationTime, now)
+		t.Fatal("Expiration not List successfully in dict element:", elm.Metadata().ExpirationTime, now)
 	}
 
 }
 
-func TestSetMetadata(t *testing.T) {
+func TestListMetadata(t *testing.T) {
 
-	d := xr.Set{
-		Tag: "aaa",
+	d := xr.List{
 		Elements: xr.Nodes{
 			xr.String{Value: "x"},
 		},
@@ -54,25 +52,23 @@ func TestSetMetadata(t *testing.T) {
 	m := ds.Metadata()
 	now := time.Now().Unix()
 	if m.ExpirationTime < uint64(now) {
-		t.Fatal("Expiration not set successfully in set:", m.ExpirationTime, now)
+		t.Fatal("Expiration not List successfully in List:", m.ExpirationTime, now)
 	}
 
-	elm := ds.(*Set).Elements[0]
+	elm := ds.(*List).Elements[0]
 	if elm.Metadata().ExpirationTime < uint64(now) {
-		t.Fatal("Expiration not set successfully in set element:", elm.Metadata().ExpirationTime, now)
+		t.Fatal("Expiration not List successfully in List element:", elm.Metadata().ExpirationTime, now)
 	}
 }
 
 func TestDictMetadataUpdate(t *testing.T) {
 
 	d1 := xr.Dict{
-		Tag: "aaa",
 		Pairs: xr.Pairs{
 			xr.Pair{Key: xr.String{Value: "x"}, Value: xr.NewInt64(1)},
 		},
 	}
 	d2 := xr.Dict{
-		Tag: "aaa",
 		Pairs: xr.Pairs{
 			xr.Pair{Key: xr.String{Value: "w"}, Value: xr.NewInt64(1)},
 		},
@@ -108,7 +104,7 @@ func TestDictMetadataUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Update without ttl being set in updated node
+	// Update without ttl being List in updated node
 	ds2nottl, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2)
 	if err != nil {
 		t.Fatal(err)
@@ -154,7 +150,7 @@ func TestBasicMetadataUpdate(t *testing.T) {
 		t.Fatal("Expiration not updated successfully in node:", m.ExpirationTime, now)
 	}
 
-	// Update without ttl being set in updated node
+	// Update without ttl being List in updated node
 	ds1, err = SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
 	if err != nil {
 		t.Fatal(err)
@@ -173,16 +169,14 @@ func TestBasicMetadataUpdate(t *testing.T) {
 	}
 }
 
-func TestSetMetadataUpdate(t *testing.T) {
+func TestListMetadataUpdate(t *testing.T) {
 
-	d1 := xr.Set{
-		Tag: "aaa",
+	d1 := xr.List{
 		Elements: xr.Nodes{
 			xr.String{Value: "x"},
 		},
 	}
-	d2 := xr.Set{
-		Tag: "aaa",
+	d2 := xr.List{
 		Elements: xr.Nodes{
 			xr.String{Value: "w"},
 		},
@@ -213,7 +207,7 @@ func TestSetMetadataUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Update without ttl being set in updated node
+	// Update without ttl being List in updated node
 	ds2nottl, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2)
 	if err != nil {
 		t.Fatal(err)

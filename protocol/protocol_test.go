@@ -8,7 +8,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	swarmt "github.com/libp2p/go-libp2p-swarm/testing"
 	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
-	"github.com/libp2p/go-smart-record/xr"
+	xr "github.com/libp2p/go-routing-language/syntax"
 )
 
 // TTL for updates in test cases

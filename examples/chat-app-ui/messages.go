@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	peer "github.com/libp2p/go-libp2p-peer"
+	xr "github.com/libp2p/go-routing-language/syntax"
 	"github.com/libp2p/go-smart-record/protocol"
-	"github.com/libp2p/go-smart-record/xr"
 )
 
 type clientConfig struct {
