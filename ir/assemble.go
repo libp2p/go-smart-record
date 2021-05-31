@@ -58,6 +58,7 @@ var SyntacticGrammar = SequenceAssembler{
 	BytesAssembler{},
 	DictAssembler{},
 	ListAssembler{},
+	PredicateAssembler{},
 }
 
 type StringAssembler struct{}
@@ -202,4 +203,11 @@ func (asm ListAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 	d.metadataCtx = &m
 
 	return &d, nil
+}
+
+type PredicateAssembler struct{}
+
+func (asm PredicateAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
+	// TODO: Needs implementation
+	panic("predicate assembler not implemented")
 }

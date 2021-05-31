@@ -1,8 +1,6 @@
 package ir
 
 import (
-	"fmt"
-
 	xr "github.com/libp2p/go-routing-language/syntax"
 )
 
@@ -35,11 +33,6 @@ func (p *Predicate) Metadata() MetadataInfo {
 }
 
 func (p *Predicate) UpdateWith(ctx UpdateContext, with Node) error {
-	w, ok := with.(*Predicate)
-	if !ok {
-		return fmt.Errorf("cannot update with a non-predicate")
-	}
-	// Update metadata
-	p.metadataCtx.update(w.metadataCtx)
-	return nil
+	// TODO: Needs implementation
+	panic("predicate update not implemented")
 }
