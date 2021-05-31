@@ -10,8 +10,8 @@ import (
 	goprocessctx "github.com/jbenet/goprocess/context"
 
 	"github.com/libp2p/go-libp2p-core/peer"
+	xr "github.com/libp2p/go-routing-language/syntax"
 	"github.com/libp2p/go-smart-record/ir"
-	"github.com/libp2p/go-smart-record/xr"
 )
 
 // RecordEntry determines the structure of data stored in a record.

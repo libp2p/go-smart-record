@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
+	xr "github.com/libp2p/go-routing-language/syntax"
 	"github.com/libp2p/go-smart-record/vm"
-	"github.com/libp2p/go-smart-record/xr"
 	"github.com/rivo/tview"
 )
 
