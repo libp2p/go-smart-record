@@ -6,10 +6,11 @@ import (
 	"io"
 	"time"
 
+	xr "github.com/libp2p/go-routing-language/syntax"
+
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-smart-record/ir"
-	"github.com/libp2p/go-smart-record/xr"
 )
 
 // Reachable is a smart node. It detects if there are multiaddrs in the node.
@@ -25,16 +26,20 @@ type Reachable struct {
 	isConn bool
 }
 
+// NOTE: This may need to be re-designed once we decide how will smart-tags behave
+// with the new routing-language. For now the tag returns the curated list of
+// "connected" or "dialable" peers. Optionally, we could return a predicate a
+// tag to specify the type of list being returned ("connected" or "dialable"), but
+// I can't find a strong argument in favor of this for now.
 func (r Reachable) Disassemble() xr.Node {
 	_, dok := r.Reachable.(*ir.Dict)
-	tag := "dialable"
-	// Check the type of Reachable: "dialable" or "connected"
-	if r.isConn {
-		tag = "connected"
-	}
+	// tag := "dialable"
+	// // Check the type of Reachable: "dialable" or "connected"
+	// if r.isConn {
+	//         tag = "connected"
+	// }
 	if dok {
 		return (&ir.Dict{
-			Tag: tag,
 			Pairs: ir.MergePairs(
 				r.Reachable.(*ir.Dict).Pairs, // List of reachable multiaddresses
 				r.User.(*ir.Dict).Pairs,      // The rest of pairs which don't have multiaddrs.
@@ -42,11 +47,10 @@ func (r Reachable) Disassemble() xr.Node {
 		}).Disassemble()
 	} else {
 
-		return (&ir.Set{
-			Tag: tag,
+		return (&ir.List{
 			Elements: ir.MergeElements(
-				r.Reachable.(*ir.Set).Elements, // List of reachable multiaddresses
-				r.User.(*ir.Set).Elements,      // The rest of pairs which don't have multiaddrs.
+				r.Reachable.(*ir.List).Elements, // List of reachable multiaddresses
+				r.User.(*ir.List).Elements,      // The rest of pairs which don't have multiaddrs.
 			),
 		}).Disassemble()
 	}
@@ -83,31 +87,42 @@ func (r *Reachable) UpdateWith(ctx ir.UpdateContext, with ir.Node) error {
 type ReachableAssembler struct{}
 
 func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata ...ir.Metadata) (ir.Node, error) {
-	// Check if host set in context
+	// Check if host List in context
 	if ctx.Host == nil {
 		return nil, fmt.Errorf("can't assemble reachable node without host in assembler context")
 	}
-	// Reachable can receive a Dict or Set as input.
-	d, dok := srcNode.(xr.Dict)
-	s, sok := srcNode.(xr.Set)
+	// Reachable receives a predicate
+	p, ok := srcNode.(xr.Predicate)
+	if !ok {
+		return nil, fmt.Errorf("smart-tags must be predicates")
+	}
+
+	// Reachable can receive a Dict or List as positional input 0.
+	// NOTE: The current implementation is not complete. This currently
+	// takes the first positional argument. Needs to be extended to apply
+	// to all arguments of predicate.
+	d, dok := p.Positional[0].(xr.Dict)
+	s, sok := p.Positional[0].(xr.List)
 	if !dok && !sok {
-		return nil, fmt.Errorf("expecting dict or set")
+		return nil, fmt.Errorf("expecting dict or list")
 	}
+	// Get tag from predicate
+	tag := p.Tag
 	if dok {
-		return reachableDictAssemble(ctx, d, metadata...)
+		return reachableDictAssemble(ctx, tag, d, metadata...)
 	}
-	return reachableSetAssemble(ctx, s, metadata...)
+	return reachableListAssemble(ctx, tag, s, metadata...)
 
 }
 
-func reachableDictAssemble(ctx ir.AssemblerContext, d xr.Dict, metadata ...ir.Metadata) (ir.Node, error) {
+func reachableDictAssemble(ctx ir.AssemblerContext, tag string, d xr.Dict, metadata ...ir.Metadata) (ir.Node, error) {
 
 	isConn := false
-	if d.Tag != "connected" && d.Tag != "dialable" {
+	if tag != "connected" && tag != "dialable" {
 		return nil, fmt.Errorf("expecting tag 'connected' or 'dialable'")
 	}
-	// If the node is of type connected set flag
-	if d.Tag == "connected" {
+	// If the node is of type connected List flag
+	if tag == "connected" {
 		isConn = true
 	}
 
@@ -115,7 +130,7 @@ func reachableDictAssemble(ctx ir.AssemblerContext, d xr.Dict, metadata ...ir.Me
 	r := xr.Dict{}
 	for _, p := range d.Pairs {
 		info := isValidMultiAddrNode(p.Value)
-		// If not a multiaddr add to user set and continue
+		// If not a multiaddr add to user List and continue
 		if info == nil {
 			// Add non-multiaddr to user-dict
 			u.Pairs = append(u.Pairs, p)
@@ -151,23 +166,23 @@ func reachableDictAssemble(ctx ir.AssemblerContext, d xr.Dict, metadata ...ir.Me
 	}, nil
 }
 
-func reachableSetAssemble(ctx ir.AssemblerContext, d xr.Set, metadata ...ir.Metadata) (ir.Node, error) {
+func reachableListAssemble(ctx ir.AssemblerContext, tag string, d xr.List, metadata ...ir.Metadata) (ir.Node, error) {
 	isConn := false
-	if d.Tag != "connected" && d.Tag != "dialable" {
+	if tag != "connected" && tag != "dialable" {
 		return nil, fmt.Errorf("expecting tag 'connected' or 'dialable'")
 	}
-	// If the node is of type connected set flag
-	if d.Tag == "connected" {
+	// If the node is of type connected List flag
+	if tag == "connected" {
 		isConn = true
 	}
 
-	u := xr.Set{}
-	r := xr.Set{}
+	u := xr.List{}
+	r := xr.List{}
 	for _, p := range d.Elements {
 		info := isValidMultiAddrNode(p)
-		// If not a multiaddr add to user set and continue
+		// If not a multiaddr add to user List and continue
 		if info == nil {
-			// Add non-multiaddr to user-set
+			// Add non-multiaddr to user-List
 			u.Elements = append(u.Elements, p)
 			continue
 		}
@@ -185,7 +200,7 @@ func reachableSetAssemble(ctx ir.AssemblerContext, d xr.Set, metadata ...ir.Meta
 		}
 	}
 	// Assemble reachable and user dicts.
-	asm := ir.SetAssembler{}
+	asm := ir.ListAssembler{}
 	uasm, err := asm.Assemble(ctx, u, metadata...)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't assemble user dict: %s", err)

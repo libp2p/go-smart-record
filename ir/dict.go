@@ -3,7 +3,7 @@ package ir
 import (
 	"fmt"
 
-	"github.com/libp2p/go-smart-record/xr"
+	xr "github.com/libp2p/go-routing-language/syntax"
 )
 
 // Pair holds a key/value pair.
@@ -41,13 +41,12 @@ func MergePairs(x, y Pairs) Pairs {
 
 // Dict is a set of uniquely-keyed values.
 type Dict struct {
-	Tag         string
 	Pairs       Pairs // keys must be unique wrt IsEqual
 	metadataCtx *metadataContext
 }
 
 func (d *Dict) Disassemble() xr.Node {
-	x := xr.Dict{Tag: d.Tag, Pairs: make(xr.Pairs, len(d.Pairs))}
+	x := xr.Dict{Pairs: make(xr.Pairs, len(d.Pairs))}
 	for i, p := range d.Pairs {
 		x.Pairs[i] = xr.Pair{Key: p.Key.Disassemble(), Value: p.Value.Disassemble()}
 	}
@@ -99,7 +98,6 @@ func (d *Dict) UpdateWith(ctx UpdateContext, with Node) error {
 	if !ok {
 		return fmt.Errorf("cannot update with a non-dict")
 	}
-	d.Tag = wd.Tag
 	for _, p := range wd.Pairs {
 		if i := d.Pairs.IndexOf(p.Key); i < 0 {
 			d.Pairs = append(d.Pairs, p)

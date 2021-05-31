@@ -1,6 +1,6 @@
 package ir
 
-import "github.com/libp2p/go-smart-record/xr"
+import xr "github.com/libp2p/go-routing-language/syntax"
 
 type Node interface {
 	Disassemble() xr.Node // returns only syntactic nodes

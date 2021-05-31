@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-smart-record/xr"
+	xr "github.com/libp2p/go-routing-language/syntax"
 )
 
 // AssemblerContext holds general contextual data for the stage of the assembly process.
@@ -55,9 +55,9 @@ var SyntacticGrammar = SequenceAssembler{
 	IntAssembler{},
 	FloatAssembler{},
 	BoolAssembler{},
-	BlobAssembler{},
+	BytesAssembler{},
 	DictAssembler{},
-	SetAssembler{},
+	ListAssembler{},
 }
 
 type StringAssembler struct{}
@@ -127,12 +127,12 @@ func (asm BoolAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 	return &Bool{Value: s.Value, metadataCtx: &m}, nil
 }
 
-type BlobAssembler struct{}
+type BytesAssembler struct{}
 
-func (asm BlobAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
-	s, ok := src.(xr.Blob)
+func (asm BytesAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
+	s, ok := src.(xr.Bytes)
 	if !ok {
-		return nil, fmt.Errorf("not a blob")
+		return nil, fmt.Errorf("not bytes type")
 	}
 
 	// Assemble metadata provided and update assemblyTime
@@ -141,7 +141,7 @@ func (asm BlobAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 		return nil, err
 	}
 
-	return &Blob{Bytes: s.Bytes, metadataCtx: &m}, nil
+	return &Bytes{Bytes: s.Bytes, metadataCtx: &m}, nil
 }
 
 type DictAssembler struct{}
@@ -152,7 +152,6 @@ func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 		return nil, fmt.Errorf("not a dict")
 	}
 	d := Dict{
-		Tag:   s.Tag,
 		Pairs: make(Pairs, len(s.Pairs)),
 	}
 	for i, p := range s.Pairs {
@@ -177,15 +176,14 @@ func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 	return &d, nil
 }
 
-type SetAssembler struct{}
+type ListAssembler struct{}
 
-func (asm SetAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
-	s, ok := src.(xr.Set)
+func (asm ListAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
+	s, ok := src.(xr.List)
 	if !ok {
-		return nil, fmt.Errorf("not a set")
+		return nil, fmt.Errorf("not a List")
 	}
-	d := Set{
-		Tag:      s.Tag,
+	d := List{
 		Elements: make(Nodes, len(s.Elements)),
 	}
 	for i, e := range s.Elements {
