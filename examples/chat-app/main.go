@@ -31,7 +31,7 @@ const reqTimeout = 10 * time.Second
 
 // TTL for messages posted in smart-records
 // Message retention desired by the client in messages.
-const msgTTL = 200
+const msgTTL = 200 * time.Second
 
 // Sync new messages every second
 const syncTime = 1 * time.Second

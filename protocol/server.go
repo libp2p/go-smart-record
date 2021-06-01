@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -144,7 +145,7 @@ func (e *smartRecordServer) handleUpdate(ctx context.Context, p peer.ID, msg *pb
 		Key:  k,
 	}
 	// Update in VM
-	err = e.vm.Update(p, string(k), rdict, []ir.Metadata{ir.TTL(ttl)}...)
+	err = e.vm.Update(p, string(k), rdict, []ir.Metadata{ir.TTL(time.Duration(ttl) * time.Second)}...)
 	if err != nil {
 		return nil, fmt.Errorf("failed updating dict: %s", err)
 	}

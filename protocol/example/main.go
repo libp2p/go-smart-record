@@ -61,14 +61,14 @@ func main() {
 	k := "234"
 
 	// Update record with 60 seconds of TTL
-	err = smClient.Update(ctx, k, h1.ID(), in1, uint64(60))
+	err = smClient.Update(ctx, k, h1.ID(), in1, 60*time.Second)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("[*] Update 1 successful")
 
 	// Update record with 60 seconds of TTL
-	err = smClient.Update(ctx, k, h1.ID(), in2, uint64(60))
+	err = smClient.Update(ctx, k, h1.ID(), in2, 60*time.Second)
 	if err != nil {
 		panic(err)
 	}

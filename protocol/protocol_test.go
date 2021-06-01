@@ -12,7 +12,7 @@ import (
 )
 
 // TTL for updates in test cases
-var ttl = 2
+var ttl = 2 * time.Second
 
 // Use small gcPeriod in server VM for tests
 var gcPeriod = 1 * time.Second
@@ -81,7 +81,7 @@ func TestEmptyUpdate(t *testing.T) {
 	k := "234"
 
 	// Update record
-	err := c.Update(ctx, k, s.host.ID(), in1, uint64(ttl))
+	err := c.Update(ctx, k, s.host.ID(), in1, ttl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,11 +120,11 @@ func TestUpdateSameKeyDifferentPeers(t *testing.T) {
 	k := "234"
 
 	// Update record
-	err := c1.Update(ctx, k, s.host.ID(), in1, uint64(ttl))
+	err := c1.Update(ctx, k, s.host.ID(), in1, ttl)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c2.Update(ctx, k, s.host.ID(), in2, uint64(ttl))
+	err = c2.Update(ctx, k, s.host.ID(), in2, ttl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,11 +155,11 @@ func TestUpdateSameKeySamePeer(t *testing.T) {
 	k := "234"
 
 	// Update record
-	err := c.Update(ctx, k, s.host.ID(), in1, uint64(ttl))
+	err := c.Update(ctx, k, s.host.ID(), in1, ttl)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = c.Update(ctx, k, s.host.ID(), in2, uint64(ttl))
+	err = c.Update(ctx, k, s.host.ID(), in2, ttl)
 	if err != nil {
 		t.Fatal(err)
 	}

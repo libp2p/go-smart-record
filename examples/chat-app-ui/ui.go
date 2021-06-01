@@ -108,7 +108,7 @@ func (ui *chatUI) sendNewMessage(text string) {
 	msg := ui.env.generateChatMessage(text)
 	ctx, cancel := context.WithTimeout(ui.env.ctx, reqTimeout)
 	// Send message to record. Set TTL to messages
-	err := ui.env.client.Update(ctx, ui.env.room, ui.env.serverID, msg, uint64(msgTTL))
+	err := ui.env.client.Update(ctx, ui.env.room, ui.env.serverID, msg, msgTTL)
 	cancel()
 	if err != nil {
 		printErr("publish error: %s", err)
