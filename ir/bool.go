@@ -4,19 +4,20 @@ import (
 	"fmt"
 
 	xr "github.com/libp2p/go-routing-language/syntax"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 type Bool struct {
 	Value       bool
-	metadataCtx *metadataContext
+	metadataCtx *meta.Meta
 }
 
 func (b *Bool) Disassemble() xr.Node {
 	return xr.Bool{Value: b.Value}
 }
 
-func (b *Bool) Metadata() MetadataInfo {
-	return b.metadataCtx.getMetadata()
+func (b *Bool) Metadata() meta.MetadataInfo {
+	return b.metadataCtx.GetMeta()
 }
 
 func (b *Bool) UpdateWith(ctx UpdateContext, with Node) error {
@@ -25,6 +26,6 @@ func (b *Bool) UpdateWith(ctx UpdateContext, with Node) error {
 		return fmt.Errorf("cannot update with a non-bool")
 	}
 	// Update metadata
-	b.metadataCtx.update(w.metadataCtx)
+	b.metadataCtx.Update(w.metadataCtx)
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	xr "github.com/libp2p/go-routing-language/syntax"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 const sampleTTL = 123
@@ -18,8 +19,8 @@ func TestDictMetadata(t *testing.T) {
 		},
 	}
 
-	ttl := TTL(uint64(sampleTTL))
-	ds, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d, []Metadata{ttl}...)
+	ttl := meta.TTL(uint64(sampleTTL))
+	ds, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d, []meta.Metadata{ttl}...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,8 +45,8 @@ func TestListMetadata(t *testing.T) {
 		},
 	}
 
-	ttl := TTL(uint64(sampleTTL))
-	ds, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d, []Metadata{ttl}...)
+	ttl := meta.TTL(uint64(sampleTTL))
+	ds, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d, []meta.Metadata{ttl}...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,16 +75,16 @@ func TestDictMetadataUpdate(t *testing.T) {
 		},
 	}
 
-	ttl1 := TTL(uint64(sampleTTL))
+	ttl1 := meta.TTL(uint64(sampleTTL))
 	ttlval2 := sampleTTL + 3
-	ttl2 := TTL(uint64(ttlval2))
+	ttl2 := meta.TTL(uint64(ttlval2))
 	// Assemble first
-	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
+	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []meta.Metadata{ttl1}...)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Assemble second
-	ds2, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2, []Metadata{ttl2}...)
+	ds2, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2, []meta.Metadata{ttl2}...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,7 +101,7 @@ func TestDictMetadataUpdate(t *testing.T) {
 		t.Fatal("Expiration not updated successfully in node:", m.ExpirationTime, now)
 	}
 
-	ds1, err = SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
+	ds1, err = SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []meta.Metadata{ttl1}...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,16 +126,16 @@ func TestBasicMetadataUpdate(t *testing.T) {
 	d1 := xr.String{Value: "test"}
 	d2 := xr.String{Value: "test2"}
 
-	ttl1 := TTL(uint64(sampleTTL))
+	ttl1 := meta.TTL(uint64(sampleTTL))
 	ttlval2 := sampleTTL + 3
-	ttl2 := TTL(uint64(ttlval2))
+	ttl2 := meta.TTL(uint64(ttlval2))
 	// Assemble first
-	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
+	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []meta.Metadata{ttl1}...)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Assemble second
-	ds2, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2, []Metadata{ttl2}...)
+	ds2, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2, []meta.Metadata{ttl2}...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +152,7 @@ func TestBasicMetadataUpdate(t *testing.T) {
 	}
 
 	// Update without ttl being List in updated node
-	ds1, err = SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
+	ds1, err = SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []meta.Metadata{ttl1}...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,16 +182,16 @@ func TestListMetadataUpdate(t *testing.T) {
 			xr.String{Value: "w"},
 		},
 	}
-	ttl1 := TTL(uint64(sampleTTL))
+	ttl1 := meta.TTL(uint64(sampleTTL))
 	ttlval2 := sampleTTL + 3
-	ttl2 := TTL(uint64(ttlval2))
+	ttl2 := meta.TTL(uint64(ttlval2))
 	// Assemble first
-	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
+	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []meta.Metadata{ttl1}...)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Assemble second
-	ds2, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2, []Metadata{ttl2}...)
+	ds2, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d2, []meta.Metadata{ttl2}...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,7 +204,7 @@ func TestListMetadataUpdate(t *testing.T) {
 		t.Fatal("Expiration not updated successfully in node:", m.ExpirationTime, now)
 	}
 
-	ds1, err = SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
+	ds1, err = SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []meta.Metadata{ttl1}...)
 	if err != nil {
 		t.Fatal(err)
 	}

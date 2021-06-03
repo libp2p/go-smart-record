@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	xr "github.com/libp2p/go-routing-language/syntax"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 type Number interface {
@@ -13,24 +14,24 @@ type Number interface {
 
 type Int struct {
 	*big.Int
-	metadataCtx *metadataContext
+	metadataCtx *meta.Meta
 }
 
-func NewInt64(v int64, metadata ...Metadata) *Int {
+func NewInt64(v int64, metadata ...meta.Metadata) *Int {
 	// Assemble metadata provided and update assemblyTime
-	var m metadataContext
-	if err := m.apply(metadata...); err != nil {
-		return &Int{big.NewInt(v), nil}
+	m := meta.NewMeta()
+	if err := m.Apply(metadata...); err != nil {
+		return &Int{big.NewInt(v), m}
 	}
-	return &Int{big.NewInt(v), &m}
+	return &Int{big.NewInt(v), m}
 }
 
 func (n *Int) Disassemble() xr.Node {
 	return xr.Int{Int: n.Int}
 }
 
-func (n *Int) Metadata() MetadataInfo {
-	return n.metadataCtx.getMetadata()
+func (n *Int) Metadata() meta.MetadataInfo {
+	return n.metadataCtx.GetMeta()
 }
 
 func (n *Int) TypeIsNumber() {}
@@ -41,21 +42,21 @@ func (n *Int) UpdateWith(ctx UpdateContext, with Node) error {
 		return fmt.Errorf("cannot update with different primitive type")
 	}
 	// Update metadata
-	n.metadataCtx.update(wn.metadataCtx)
+	n.metadataCtx.Update(wn.metadataCtx)
 	return nil
 }
 
 type Float struct {
 	*big.Float
-	metadataCtx *metadataContext
+	metadataCtx *meta.Meta
 }
 
 func (n *Float) Disassemble() xr.Node {
 	return xr.Float{Float: n.Float}
 }
 
-func (n *Float) Metadata() MetadataInfo {
-	return n.metadataCtx.getMetadata()
+func (n *Float) Metadata() meta.MetadataInfo {
+	return n.metadataCtx.GetMeta()
 }
 
 func (n *Float) TypeIsNumber() {}
@@ -66,7 +67,7 @@ func (n *Float) UpdateWith(ctx UpdateContext, with Node) error {
 		return fmt.Errorf("cannot update with different primitive type")
 	}
 	// Update metadata
-	n.metadataCtx.update(wn.metadataCtx)
+	n.metadataCtx.Update(wn.metadataCtx)
 	return nil
 }
 

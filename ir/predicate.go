@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	xr "github.com/libp2p/go-routing-language/syntax"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 // Predicate models a function invocation with named and positional arguments, corresponding to the syntax:
@@ -12,7 +13,7 @@ type Predicate struct {
 	Tag         string
 	Positional  Nodes
 	Named       Pairs // the keys in each pair must be unique wrt IsEqual
-	metadataCtx *metadataContext
+	metadataCtx *meta.Meta
 }
 
 func (p *Predicate) Disassemble() xr.Node {
@@ -30,8 +31,8 @@ func (p *Predicate) Disassemble() xr.Node {
 	return x
 }
 
-func (p *Predicate) Metadata() MetadataInfo {
-	return p.metadataCtx.getMetadata()
+func (p *Predicate) Metadata() meta.MetadataInfo {
+	return p.metadataCtx.GetMeta()
 }
 
 func (p *Predicate) GetNamed(key Node) Node {
@@ -73,6 +74,6 @@ func (p *Predicate) UpdateWith(ctx UpdateContext, with Node) error {
 	}
 
 	// Update metadata
-	p.metadataCtx.update(wp.metadataCtx)
+	p.metadataCtx.Update(wp.metadataCtx)
 	return nil
 }

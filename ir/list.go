@@ -4,12 +4,13 @@ import (
 	"fmt"
 
 	xr "github.com/libp2p/go-routing-language/syntax"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 // List is a List of (uniquely) elements.
 type List struct {
 	Elements    Nodes
-	metadataCtx *metadataContext
+	metadataCtx *meta.Meta
 }
 
 func (s *List) Disassemble() xr.Node {
@@ -20,8 +21,8 @@ func (s *List) Disassemble() xr.Node {
 	return x
 }
 
-func (s *List) Metadata() MetadataInfo {
-	return s.metadataCtx.getMetadata()
+func (s *List) Metadata() meta.MetadataInfo {
+	return s.metadataCtx.GetMeta()
 }
 
 // MergeElements returns the union of the two Lists
@@ -40,7 +41,7 @@ func (s List) Copy() List {
 	e := make(Nodes, len(s.Elements))
 	copy(e, s.Elements)
 	// Also copy metadata if it exists
-	m := s.metadataCtx.copy()
+	m := s.metadataCtx.Copy()
 	return List{
 		Elements:    e,
 		metadataCtx: &m,
@@ -62,6 +63,6 @@ func (s *List) UpdateWith(ctx UpdateContext, with Node) error {
 		}
 	}
 	// Update metadata
-	s.metadataCtx.update(ws.metadataCtx)
+	s.metadataCtx.Update(ws.metadataCtx)
 	return nil
 }
