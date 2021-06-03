@@ -19,7 +19,7 @@ type Int struct {
 
 func NewInt64(v int64, metadata ...meta.Metadata) *Int {
 	// Assemble metadata provided and update assemblyTime
-	m := meta.NewMeta()
+	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return &Int{big.NewInt(v), m}
 	}

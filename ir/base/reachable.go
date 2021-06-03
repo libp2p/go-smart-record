@@ -142,7 +142,7 @@ func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, met
 	}
 
 	// Assemble metadata provided and update assemblyTime
-	m := meta.NewMeta()
+	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
 	}

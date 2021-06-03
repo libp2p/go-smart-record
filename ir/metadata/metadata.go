@@ -42,7 +42,7 @@ func (m *metadataContext) apply(items ...Metadata) error {
 	return nil
 }
 
-func NewMeta() *Meta {
+func New() *Meta {
 	return &Meta{&metadataContext{}}
 
 }

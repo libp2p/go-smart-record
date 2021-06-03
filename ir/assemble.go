@@ -72,7 +72,7 @@ func (asm StringAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata 
 	}
 
 	// Assemble metadata provided and update assemblyTime
-	m := meta.NewMeta()
+	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (asm IntAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...
 	}
 
 	// Assemble metadata provided and update assemblyTime
-	m := meta.NewMeta()
+	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (asm FloatAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata .
 	}
 
 	// Assemble metadata provided and update assemblyTime
-	m := meta.NewMeta()
+	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (asm BoolAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 	}
 
 	// Assemble metadata provided and update assemblyTime
-	m := meta.NewMeta()
+	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func (asm BytesAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata .
 	}
 
 	// Assemble metadata provided and update assemblyTime
-	m := meta.NewMeta()
+	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 	}
 
 	// Assemble metadata provided and update assemblyTime
-	m := meta.NewMeta()
+	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func (asm ListAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 	}
 
 	// Assemble metadata provided and update assemblyTime
-	m := meta.NewMeta()
+	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func (asm PredicateAssembler) Assemble(ctx AssemblerContext, src xr.Node, metada
 	}
 
 	// Assemble metadata provided and update assemblyTime
-	m := meta.NewMeta()
+	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
 	}
