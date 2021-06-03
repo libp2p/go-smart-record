@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	xr "github.com/libp2p/go-routing-language/syntax"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 // Pair holds a key/value pair.
@@ -42,7 +43,7 @@ func MergePairs(x, y Pairs) Pairs {
 // Dict is a set of uniquely-keyed values.
 type Dict struct {
 	Pairs       Pairs // keys must be unique wrt IsEqual
-	metadataCtx *metadataContext
+	metadataCtx *meta.Meta
 }
 
 func (d *Dict) Disassemble() xr.Node {
@@ -53,8 +54,8 @@ func (d *Dict) Disassemble() xr.Node {
 	return x
 }
 
-func (d *Dict) Metadata() MetadataInfo {
-	return d.metadataCtx.getMetadata()
+func (d *Dict) Metadata() meta.MetadataInfo {
+	return d.metadataCtx.GetMeta()
 }
 
 func (d Dict) Len() int {
@@ -67,7 +68,7 @@ func (d Dict) Copy() Dict {
 	copy(p, c.Pairs)
 	c.Pairs = p
 	// Also copy metadata if it exists
-	m := d.metadataCtx.copy()
+	m := d.metadataCtx.Copy()
 	c.metadataCtx = &m
 	return c
 }
@@ -108,6 +109,6 @@ func (d *Dict) UpdateWith(ctx UpdateContext, with Node) error {
 		}
 	}
 	// Update metadata
-	d.metadataCtx.update(wd.metadataCtx)
+	d.metadataCtx.Update(wd.metadataCtx)
 	return nil
 }

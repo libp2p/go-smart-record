@@ -8,12 +8,13 @@ import (
 
 	"github.com/jbenet/goprocess"
 	goprocessctx "github.com/jbenet/goprocess/context"
-
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	xr "github.com/libp2p/go-routing-language/syntax"
+
 	"github.com/libp2p/go-smart-record/ir"
 	"github.com/libp2p/go-smart-record/ir/base"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 // RecordEntry determines the structure of data stored in a record.
@@ -26,8 +27,8 @@ type RecordValue map[peer.ID]*xr.Dict
 
 // Machine captures the public interface of a smart record virtual machine.
 type Machine interface {
-	Update(writer peer.ID, k string, update xr.Dict, metadata ...ir.Metadata) error // Updates the dictionary in the writer's private space.
-	Get(k string) RecordValue                                                       // Get the full Record in a key
+	Update(writer peer.ID, k string, update xr.Dict, metadata ...meta.Metadata) error // Updates the dictionary in the writer's private space.
+	Get(k string) RecordValue                                                         // Get the full Record in a key
 	// NOTE: No query operation will be supported until we figure out selectors
 	// Query(key string, selector Selector) (RecordValue, error)
 }
@@ -108,7 +109,7 @@ func (v *vm) Get(k string) RecordValue {
 // NOTE: We currently store an assembled version of the record.
 // We may need to disassemble and serialize before storage
 // if we choose to use a datastore for persistance.
-func (v *vm) Update(writer peer.ID, k string, update xr.Dict, metadata ...ir.Metadata) error {
+func (v *vm) Update(writer peer.ID, k string, update xr.Dict, metadata ...meta.Metadata) error {
 	v.lk.Lock()
 	defer v.lk.Unlock()
 

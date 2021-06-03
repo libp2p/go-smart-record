@@ -56,3 +56,29 @@ func TestUpdateDictOverlappingPairs(t *testing.T) {
 		t.Errorf("expecting %v, got %v", exp, d1)
 	}
 }
+
+func TestUpdate(t *testing.T) {
+	d1 := &Dict{
+		Pairs: Pairs{
+			{NewInt64(1), NewInt64(1)},
+		},
+	}
+	d2 := &Dict{
+		Pairs: Pairs{
+			{NewInt64(1), NewInt64(1)},
+		},
+	}
+	exp := &Dict{
+		Pairs: Pairs{
+			{NewInt64(1), NewInt64(1)},
+		},
+	}
+	mctx := DefaultUpdateContext{}
+	err := Update(mctx, d1, d2)
+	if err != nil {
+		t.Errorf("expecting no merge conflict, got %v", err)
+	}
+	if !IsEqual(d1, exp) {
+		t.Errorf("expecting %v, got %v", exp, d1)
+	}
+}

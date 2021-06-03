@@ -13,6 +13,7 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 
 	"github.com/libp2p/go-smart-record/ir"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 // Reachable is a smart node. It detects if the multiaddrs is
@@ -26,6 +27,8 @@ type Reachable struct {
 	// Has something been verified already?
 	verifiedConn bool
 	verifiedDial bool
+
+	metadataCtx *meta.Meta
 }
 
 // Reachable disassembles to reachable xr.Predicate of the form
@@ -64,9 +67,8 @@ func (r Reachable) Disassemble() xr.Node {
 	return p
 }
 
-// NOTE: smart tags don't include metadata?
-func (r *Reachable) Metadata() ir.MetadataInfo {
-	return ir.MetadataInfo{}
+func (r *Reachable) Metadata() meta.MetadataInfo {
+	return r.metadataCtx.GetMeta()
 }
 
 func (r *Reachable) WritePretty(w io.Writer) error {
@@ -103,7 +105,7 @@ func getNamed(p xr.Predicate, key xr.Node) xr.Node {
 type ReachableAssembler struct{}
 
 // Reachable assemble expects a predicate of the form reachable(how=["dialable", "connected"], address=MULTIADDRESS)
-func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata ...ir.Metadata) (ir.Node, error) {
+func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata ...meta.Metadata) (ir.Node, error) {
 	// Reachable receives a predicate
 	p, ok := srcNode.(xr.Predicate)
 	if !ok {
@@ -139,16 +141,17 @@ func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, met
 		return nil, fmt.Errorf("no valid multiaddr provided")
 	}
 
-	// TODO: Set metadata here.
-	// var m ir.StMeta
-	// if err := m.Apply(metadata...); err != nil {
-	//         return nil, err
-	// }
+	// Assemble metadata provided and update assemblyTime
+	m := meta.NewMeta()
+	if err := m.Apply(metadata...); err != nil {
+		return nil, err
+	}
 
 	return &Reachable{
-		addr:       maddr,
-		verifyConn: conn >= 0,
-		verifyDial: dial >= 0,
+		addr:        maddr,
+		verifyConn:  conn >= 0,
+		verifyDial:  dial >= 0,
+		metadataCtx: m,
 	}, nil
 }
 

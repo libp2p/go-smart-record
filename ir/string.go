@@ -4,20 +4,21 @@ import (
 	"fmt"
 
 	xr "github.com/libp2p/go-routing-language/syntax"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 // String is a node representing a string literal.
 type String struct {
 	Value       string
-	metadataCtx *metadataContext
+	metadataCtx *meta.Meta
 }
 
 func (s *String) Disassemble() xr.Node {
 	return xr.String{Value: s.Value}
 }
 
-func (s *String) Metadata() MetadataInfo {
-	return s.metadataCtx.getMetadata()
+func (s *String) Metadata() meta.MetadataInfo {
+	return s.metadataCtx.GetMeta()
 }
 
 func (s *String) UpdateWith(ctx UpdateContext, with Node) error {
@@ -26,6 +27,6 @@ func (s *String) UpdateWith(ctx UpdateContext, with Node) error {
 		return fmt.Errorf("cannot update with a non-string")
 	}
 	// Update metadata
-	s.metadataCtx.update(w.metadataCtx)
+	s.metadataCtx.Update(w.metadataCtx)
 	return nil
 }

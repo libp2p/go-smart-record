@@ -4,19 +4,20 @@ import (
 	"fmt"
 
 	xr "github.com/libp2p/go-routing-language/syntax"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 type Bytes struct {
 	Bytes       []byte
-	metadataCtx *metadataContext
+	metadataCtx *meta.Meta
 }
 
 func (b *Bytes) Disassemble() xr.Node {
 	return xr.Bytes{Bytes: b.Bytes}
 }
 
-func (b *Bytes) Metadata() MetadataInfo {
-	return b.metadataCtx.getMetadata()
+func (b *Bytes) Metadata() meta.MetadataInfo {
+	return b.metadataCtx.GetMeta()
 }
 
 func (b *Bytes) UpdateWith(ctx UpdateContext, with Node) error {
@@ -25,6 +26,6 @@ func (b *Bytes) UpdateWith(ctx UpdateContext, with Node) error {
 		return fmt.Errorf("cannot update with a non-Bytes")
 	}
 	// Update metadata
-	b.metadataCtx.update(w.metadataCtx)
+	b.metadataCtx.Update(w.metadataCtx)
 	return nil
 }
