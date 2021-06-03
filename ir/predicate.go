@@ -32,7 +32,7 @@ func (p *Predicate) Disassemble() xr.Node {
 }
 
 func (p *Predicate) Metadata() meta.MetadataInfo {
-	return p.metadataCtx.GetMeta()
+	return p.metadataCtx.Get()
 }
 
 func (p *Predicate) GetNamed(key Node) Node {

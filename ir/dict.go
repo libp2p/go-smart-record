@@ -55,7 +55,7 @@ func (d *Dict) Disassemble() xr.Node {
 }
 
 func (d *Dict) Metadata() meta.MetadataInfo {
-	return d.metadataCtx.GetMeta()
+	return d.metadataCtx.Get()
 }
 
 func (d Dict) Len() int {

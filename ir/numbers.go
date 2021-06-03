@@ -31,7 +31,7 @@ func (n *Int) Disassemble() xr.Node {
 }
 
 func (n *Int) Metadata() meta.MetadataInfo {
-	return n.metadataCtx.GetMeta()
+	return n.metadataCtx.Get()
 }
 
 func (n *Int) TypeIsNumber() {}
@@ -56,7 +56,7 @@ func (n *Float) Disassemble() xr.Node {
 }
 
 func (n *Float) Metadata() meta.MetadataInfo {
-	return n.metadataCtx.GetMeta()
+	return n.metadataCtx.Get()
 }
 
 func (n *Float) TypeIsNumber() {}

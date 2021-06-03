@@ -17,7 +17,7 @@ func (b *Bytes) Disassemble() xr.Node {
 }
 
 func (b *Bytes) Metadata() meta.MetadataInfo {
-	return b.metadataCtx.GetMeta()
+	return b.metadataCtx.Get()
 }
 
 func (b *Bytes) UpdateWith(ctx UpdateContext, with Node) error {

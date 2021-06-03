@@ -63,7 +63,7 @@ func (M *Meta) Update(with *Meta) {
 }
 
 // Get public metadata attributes
-func (M *Meta) GetMeta(items ...Metadata) MetadataInfo {
+func (M *Meta) Get(items ...Metadata) MetadataInfo {
 	return M.m.getMetadata()
 }
 

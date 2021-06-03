@@ -37,7 +37,7 @@ type Reachable struct {
 // was checked by the smart record server.
 // NOTE: Setting both ops ("connected" and "dialable") at the same time is quite redundant.
 // We check dialability by connecting to the node. We should maybe consider making the
-// how field and ir.String, and allow just one or the other.
+// how field an ir.String, and allow just one or the other.
 func (r Reachable) Disassemble() xr.Node {
 	how := xr.List{}
 	p := xr.Predicate{
@@ -68,7 +68,7 @@ func (r Reachable) Disassemble() xr.Node {
 }
 
 func (r *Reachable) Metadata() meta.MetadataInfo {
-	return r.metadataCtx.GetMeta()
+	return r.metadataCtx.Get()
 }
 
 func (r *Reachable) WritePretty(w io.Writer) error {
@@ -199,11 +199,6 @@ func verifyList(s *ir.List, h host.Host) {
 	}
 	// If all elements of the list removed we keep an empty list
 	// no need to return anything.
-
-	// Signal that list can be removed if all elements removed
-	// if len(s.Elements) == 0 {
-	//         return false
-	// }
 }
 
 // trigger the verification of reachable

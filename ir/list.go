@@ -22,7 +22,7 @@ func (s *List) Disassemble() xr.Node {
 }
 
 func (s *List) Metadata() meta.MetadataInfo {
-	return s.metadataCtx.GetMeta()
+	return s.metadataCtx.Get()
 }
 
 // MergeElements returns the union of the two Lists
