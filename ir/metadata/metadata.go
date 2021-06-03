@@ -42,14 +42,18 @@ func (m *metadataContext) apply(items ...Metadata) error {
 	return nil
 }
 
+// New creates new metadata structure
 func New() *Meta {
 	return &Meta{&metadataContext{}}
 
 }
+
+// Apply applies Metadata updates over context
 func (M *Meta) Apply(items ...Metadata) error {
 	return M.m.apply(items...)
 }
 
+// Update metadata
 func (M *Meta) Update(with *Meta) {
 	// If any of the nodes doesn't have metadata -> return
 	if M == nil || with == nil {
@@ -58,10 +62,12 @@ func (M *Meta) Update(with *Meta) {
 	M.m.update(with.m)
 }
 
+// Get public metadata attributes
 func (M *Meta) GetMeta(items ...Metadata) MetadataInfo {
 	return M.m.getMetadata()
 }
 
+// Copy metadata
 func (M *Meta) Copy() Meta {
 	if M == nil {
 		return Meta{&metadataContext{}}
