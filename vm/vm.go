@@ -9,9 +9,11 @@ import (
 	"github.com/jbenet/goprocess"
 	goprocessctx "github.com/jbenet/goprocess/context"
 
+	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	xr "github.com/libp2p/go-routing-language/syntax"
 	"github.com/libp2p/go-smart-record/ir"
+	"github.com/libp2p/go-smart-record/ir/base"
 )
 
 // RecordEntry determines the structure of data stored in a record.
@@ -35,6 +37,7 @@ type vm struct {
 	ctx  context.Context
 	proc goprocess.Process
 	lk   sync.RWMutex // Lock to enable multiple access
+	host host.Host
 
 	updateCtx ir.UpdateContext // UpdateContext the VM uses to resolve conflicts
 	//ds  ds.Datastore    // TODO: Add a datastore instead of using map[string] for the VM state
@@ -50,18 +53,19 @@ type vm struct {
 }
 
 // NewVM creates a new smart record Machine
-func NewVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.AssemblerContext, options ...VMOption) (Machine, error) {
-	return newVM(ctx, updateCtx, asm, options...)
+func NewVM(ctx context.Context, h host.Host, updateCtx ir.UpdateContext, asm ir.AssemblerContext, options ...VMOption) (Machine, error) {
+	return newVM(ctx, h, updateCtx, asm, options...)
 }
 
 //newVM instantiates a new VM with an updateContext and an assembler
-func newVM(ctx context.Context, updateCtx ir.UpdateContext, asm ir.AssemblerContext, options ...VMOption) (*vm, error) {
+func newVM(ctx context.Context, h host.Host, updateCtx ir.UpdateContext, asm ir.AssemblerContext, options ...VMOption) (*vm, error) {
 	var cfg vmConfig
 	if err := cfg.apply(append([]VMOption{defaults}, options...)...); err != nil {
 		return nil, err
 	}
 	v := &vm{
 		ctx:       ctx,
+		host:      h,
 		updateCtx: updateCtx,
 		keys:      make(map[string]*recordEntry),
 		asm:       asm,
@@ -103,7 +107,7 @@ func (v *vm) Get(k string) RecordValue {
 // Update the dictionary in the writer's private space
 // NOTE: We currently store an assembled version of the record.
 // We may need to disassemble and serialize before storage
-// if we choose to use a datastore.
+// if we choose to use a datastore for persistance.
 func (v *vm) Update(writer peer.ID, k string, update xr.Dict, metadata ...ir.Metadata) error {
 	v.lk.Lock()
 	defer v.lk.Unlock()
@@ -119,6 +123,12 @@ func (v *vm) Update(writer peer.ID, k string, update xr.Dict, metadata ...ir.Met
 	if !ok {
 		return fmt.Errorf("assembler didn't generate a dict")
 	}
+
+	// Trigger reachibility verifications.
+	// NOTE: What about considering once we have more than one smart tag
+	// a general method to define the lifecycle of smart tags
+	// and when to trigger them?
+	base.TriggerReachable(d, v.host)
 
 	// Directly store d if there is nothing in the key
 	if v.keys[k] == nil {

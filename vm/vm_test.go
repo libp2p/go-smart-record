@@ -5,7 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/libp2p/go-libp2p-core/host"
 	p2ptestutil "github.com/libp2p/go-libp2p-netutil"
+	swarmt "github.com/libp2p/go-libp2p-swarm/testing"
+	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
 	xr "github.com/libp2p/go-routing-language/syntax"
 	"github.com/libp2p/go-smart-record/ir"
 	"github.com/libp2p/go-smart-record/ir/base"
@@ -14,10 +17,15 @@ import (
 var k = "234"
 var gcPeriodOpt = GCPeriod(1 * time.Second)
 
+func setupHost(ctx context.Context, t *testing.T) host.Host {
+	return bhost.New(swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport))
+}
+
 func TestEmptyUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
-	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
+	h := setupHost(context.Background(), t)
+	vm, _ := NewVM(context.Background(), h, ctx, asmCtx, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in := xr.Dict{
@@ -45,7 +53,8 @@ func TestEmptyUpdate(t *testing.T) {
 func TestExistingUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
-	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
+	h := setupHost(context.Background(), t)
+	vm, _ := NewVM(context.Background(), h, ctx, asmCtx, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in1 := xr.Dict{
@@ -82,7 +91,8 @@ func TestExistingUpdate(t *testing.T) {
 func TestSeveralPeers(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
-	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
+	h := setupHost(context.Background(), t)
+	vm, _ := NewVM(context.Background(), h, ctx, asmCtx, gcPeriodOpt)
 	p1, _ := p2ptestutil.RandTestBogusIdentity()
 	p2, _ := p2ptestutil.RandTestBogusIdentity()
 
@@ -128,7 +138,8 @@ func TestSeveralPeers(t *testing.T) {
 func TestGcProcess(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
-	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
+	h := setupHost(context.Background(), t)
+	vm, _ := NewVM(context.Background(), h, ctx, asmCtx, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 	p2, _ := p2ptestutil.RandTestBogusIdentity()
 

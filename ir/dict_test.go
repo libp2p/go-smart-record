@@ -4,19 +4,6 @@ import (
 	"testing"
 )
 
-func TestUpdateDictDiffTag(t *testing.T) {
-	d1 := &Dict{
-		Pairs: Pairs{},
-	}
-	d2 := &Dict{
-		Pairs: Pairs{},
-	}
-	mctx := DefaultUpdateContext{}
-	if err := Update(mctx, d1, d2); err != nil {
-		t.Errorf("update (%v)", err)
-	}
-}
-
 func TestUpdateDictDisjointPairs(t *testing.T) {
 	d1 := &Dict{
 		Pairs: Pairs{{&String{"x", nil}, NewInt64(1)}},

@@ -208,6 +208,42 @@ func (asm ListAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 type PredicateAssembler struct{}
 
 func (asm PredicateAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...Metadata) (Node, error) {
-	// TODO: Needs implementation
-	panic("predicate assembler not implemented")
+	s, ok := src.(xr.Predicate)
+	if !ok {
+		return nil, fmt.Errorf("not a predicate")
+	}
+	d := Predicate{
+		Positional: make(Nodes, len(s.Positional)),
+		Named:      make(Pairs, len(s.Named)),
+	}
+	// Assemble positional
+	for i, e := range s.Positional {
+		ae, err := ctx.Assemble(e, metadata...)
+		if err != nil {
+			return nil, fmt.Errorf("positional assembly (%v)", err)
+		}
+		d.Positional[i] = ae
+	}
+
+	// Assemble named
+	for i, p := range s.Named {
+		k, err := ctx.Assemble(p.Key, metadata...)
+		if err != nil {
+			return nil, fmt.Errorf("key assembly (%v)", err)
+		}
+		v, err := ctx.Assemble(p.Value, metadata...)
+		if err != nil {
+			return nil, fmt.Errorf("value assembly (%v)", err)
+		}
+		d.Named[i] = Pair{Key: k, Value: v}
+	}
+
+	// Assemble metadata provided and update assemblyTime
+	var m metadataContext
+	if err := m.apply(metadata...); err != nil {
+		return nil, err
+	}
+	d.metadataCtx = &m
+
+	return &d, nil
 }

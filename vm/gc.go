@@ -75,10 +75,10 @@ func gcList(s *ir.List) bool {
 	gcFlag := isTTLExpired(s)
 	// For each element
 	for k := len(s.Elements) - 1; k >= 0; k-- {
-		// Check if element gas expired
+		// Check if element has expired
 		gcP := gcNode(s.Elements[k])
 		if gcP {
-			// Remove pair if both expired
+			// Remove element if expired
 			s.Elements = append(s.Elements[:k], s.Elements[k+1:]...)
 		}
 		// Accummulate the result for the child in set

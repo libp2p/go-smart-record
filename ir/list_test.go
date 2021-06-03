@@ -4,19 +4,6 @@ import (
 	"testing"
 )
 
-func TestUpdateListDiffTag(t *testing.T) {
-	s1 := &List{
-		Elements: Nodes{},
-	}
-	s2 := &List{
-		Elements: Nodes{},
-	}
-	mctx := DefaultUpdateContext{}
-	if err := Update(mctx, s1, s2); err != nil {
-		t.Errorf("update (%v)", err)
-	}
-}
-
 func TestUpdateListSameTag(t *testing.T) {
 	s1 := &List{
 		Elements: Nodes{
