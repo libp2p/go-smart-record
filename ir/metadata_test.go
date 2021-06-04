@@ -7,7 +7,7 @@ import (
 	xr "github.com/libp2p/go-routing-language/syntax"
 )
 
-const sampleTTL = 123
+const sampleTTL = 123 * time.Second
 
 func TestDictMetadata(t *testing.T) {
 
@@ -18,7 +18,7 @@ func TestDictMetadata(t *testing.T) {
 		},
 	}
 
-	ttl := TTL(uint64(sampleTTL))
+	ttl := TTL(sampleTTL)
 	ds, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d, []Metadata{ttl}...)
 	if err != nil {
 		t.Fatal(err)
@@ -44,7 +44,7 @@ func TestListMetadata(t *testing.T) {
 		},
 	}
 
-	ttl := TTL(uint64(sampleTTL))
+	ttl := TTL(sampleTTL)
 	ds, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d, []Metadata{ttl}...)
 	if err != nil {
 		t.Fatal(err)
@@ -74,9 +74,9 @@ func TestDictMetadataUpdate(t *testing.T) {
 		},
 	}
 
-	ttl1 := TTL(uint64(sampleTTL))
+	ttl1 := TTL(sampleTTL)
 	ttlval2 := sampleTTL + 3
-	ttl2 := TTL(uint64(ttlval2))
+	ttl2 := TTL(ttlval2)
 	// Assemble first
 	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
 	if err != nil {
@@ -125,9 +125,9 @@ func TestBasicMetadataUpdate(t *testing.T) {
 	d1 := xr.String{Value: "test"}
 	d2 := xr.String{Value: "test2"}
 
-	ttl1 := TTL(uint64(sampleTTL))
+	ttl1 := TTL(sampleTTL)
 	ttlval2 := sampleTTL + 3
-	ttl2 := TTL(uint64(ttlval2))
+	ttl2 := TTL(ttlval2)
 	// Assemble first
 	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
 	if err != nil {
@@ -181,9 +181,9 @@ func TestListMetadataUpdate(t *testing.T) {
 			xr.String{Value: "w"},
 		},
 	}
-	ttl1 := TTL(uint64(sampleTTL))
+	ttl1 := TTL(sampleTTL)
 	ttlval2 := sampleTTL + 3
-	ttl2 := TTL(uint64(ttlval2))
+	ttl2 := TTL(ttlval2)
 	// Assemble first
 	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []Metadata{ttl1}...)
 	if err != nil {
