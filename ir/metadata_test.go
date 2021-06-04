@@ -8,7 +8,7 @@ import (
 	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
-const sampleTTL = 123
+const sampleTTL = 123 * time.Second
 
 func TestDictMetadata(t *testing.T) {
 
@@ -19,7 +19,7 @@ func TestDictMetadata(t *testing.T) {
 		},
 	}
 
-	ttl := meta.TTL(uint64(sampleTTL))
+	ttl := meta.TTL(sampleTTL)
 	ds, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d, []meta.Metadata{ttl}...)
 	if err != nil {
 		t.Fatal(err)
@@ -45,7 +45,7 @@ func TestListMetadata(t *testing.T) {
 		},
 	}
 
-	ttl := meta.TTL(uint64(sampleTTL))
+	ttl := meta.TTL(sampleTTL)
 	ds, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d, []meta.Metadata{ttl}...)
 	if err != nil {
 		t.Fatal(err)
@@ -75,9 +75,9 @@ func TestDictMetadataUpdate(t *testing.T) {
 		},
 	}
 
-	ttl1 := meta.TTL(uint64(sampleTTL))
+	ttl1 := meta.TTL(sampleTTL)
 	ttlval2 := sampleTTL + 3
-	ttl2 := meta.TTL(uint64(ttlval2))
+	ttl2 := meta.TTL(ttlval2)
 	// Assemble first
 	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []meta.Metadata{ttl1}...)
 	if err != nil {
@@ -126,9 +126,9 @@ func TestBasicMetadataUpdate(t *testing.T) {
 	d1 := xr.String{Value: "test"}
 	d2 := xr.String{Value: "test2"}
 
-	ttl1 := meta.TTL(uint64(sampleTTL))
+	ttl1 := meta.TTL(sampleTTL)
 	ttlval2 := sampleTTL + 3
-	ttl2 := meta.TTL(uint64(ttlval2))
+	ttl2 := meta.TTL(ttlval2)
 	// Assemble first
 	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []meta.Metadata{ttl1}...)
 	if err != nil {
@@ -182,9 +182,9 @@ func TestListMetadataUpdate(t *testing.T) {
 			xr.String{Value: "w"},
 		},
 	}
-	ttl1 := meta.TTL(uint64(sampleTTL))
+	ttl1 := meta.TTL(sampleTTL)
 	ttlval2 := sampleTTL + 3
-	ttl2 := meta.TTL(uint64(ttlval2))
+	ttl2 := meta.TTL(ttlval2)
 	// Assemble first
 	ds1, err := SyntacticGrammar.Assemble(AssemblerContext{Grammar: SyntacticGrammar}, d1, []meta.Metadata{ttl1}...)
 	if err != nil {
@@ -199,6 +199,9 @@ func TestListMetadataUpdate(t *testing.T) {
 	now := time.Now().Unix()
 	// Update
 	err = ds1.UpdateWith(DefaultUpdateContext{}, ds2)
+	if err != nil {
+		t.Fatal(err)
+	}
 	m := ds1.Metadata()
 	if ds2.Metadata().ExpirationTime != m.ExpirationTime {
 		t.Fatal("Expiration not updated successfully in node:", m.ExpirationTime, now)

@@ -22,5 +22,6 @@ message Message {
         bytes key = 2;
         // The actual value this record is storing
         bytes value = 3;
-
+        // TTL metadata to use for the sr update
+        uint64 TTL = 4;
 }

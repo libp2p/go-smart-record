@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/libp2p/go-smart-record/ir"
@@ -18,8 +19,7 @@ type serverConfig struct {
 	//datastore          ds.Batching
 	updateContext ir.UpdateContext
 	assembler     ir.AssemblerContext
-	// NOTE: Add option for VM garbage collection if needed
-	// gcPeriod      time.Duration
+	gcPeriod      time.Duration
 }
 
 // Option type for smart records
@@ -56,6 +56,14 @@ func Assembler(asm ir.AssemblerContext) ServerOption {
 func UpdateContext(uc ir.UpdateContext) ServerOption {
 	return func(c *serverConfig) error {
 		c.updateContext = uc
+		return nil
+	}
+}
+
+// VMGcPeriod configures the garbage collection granularity in the server VM.
+func VMGcPeriod(gcP time.Duration) ServerOption {
+	return func(c *serverConfig) error {
+		c.gcPeriod = gcP
 		return nil
 	}
 }

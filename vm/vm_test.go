@@ -156,17 +156,17 @@ func TestGcProcess(t *testing.T) {
 	}
 
 	// Small expiration for in1
-	err := vm.Update(p.ID(), k, in1, []meta.Metadata{meta.TTL(1)}...)
+	err := vm.Update(p.ID(), k, in1, []meta.Metadata{meta.TTL(1 * time.Second)}...)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Add it also in other peer
-	err = vm.Update(p2.ID(), k, in1, []meta.Metadata{meta.TTL(1)}...)
+	err = vm.Update(p2.ID(), k, in1, []meta.Metadata{meta.TTL(1 * time.Second)}...)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Large expiration for in2
-	err = vm.Update(p.ID(), k, in2, []meta.Metadata{meta.TTL(3000)}...)
+	err = vm.Update(p.ID(), k, in2, []meta.Metadata{meta.TTL(3000 * time.Second)}...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -191,7 +191,7 @@ func TestGcFullDict(t *testing.T) {
 		},
 	}
 
-	ttl := meta.TTL(1)
+	ttl := meta.TTL(1 * time.Second)
 	ds, err := ir.SyntacticGrammar.Assemble(ir.AssemblerContext{Grammar: ir.SyntacticGrammar},
 		d, []meta.Metadata{ttl}...)
 	if err != nil {
@@ -216,13 +216,13 @@ func TestGcPartialDict(t *testing.T) {
 	}
 	// Small TTL
 	ds1, err := ir.SyntacticGrammar.Assemble(ir.AssemblerContext{Grammar: ir.SyntacticGrammar},
-		in1, []meta.Metadata{meta.TTL(1)}...)
+		in1, []meta.Metadata{meta.TTL(1 * time.Second)}...)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Large TTL
 	ds2, err := ir.SyntacticGrammar.Assemble(ir.AssemblerContext{Grammar: ir.SyntacticGrammar},
-		in2, []meta.Metadata{meta.TTL(3000)}...)
+		in2, []meta.Metadata{meta.TTL(3000 * time.Second)}...)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -12,11 +12,12 @@ type expirationTime struct {
 	value uint64
 }
 
-// TTL sets a TTL in seconds to the node in metadata. It triggers a change
+// TTL sets a TTL duratioin to the node in metadata. It triggers a change
 // to the node's expirationTime
-func TTL(value uint64) Metadata {
+func TTL(value time.Duration) Metadata {
 	return func(m *metadataContext) error {
-		m.expirationTime.value = uint64(time.Now().Unix()) + value
+		delta := value.Seconds()
+		m.expirationTime.value = uint64(time.Now().Unix()) + uint64(delta)
 		return nil
 	}
 }

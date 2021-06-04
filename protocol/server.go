@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	xr "github.com/libp2p/go-routing-language/syntax"
+
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 	pb "github.com/libp2p/go-smart-record/protocol/pb"
 	"github.com/libp2p/go-smart-record/vm"
 )
@@ -50,7 +53,13 @@ func newSmartRecordServer(ctx context.Context, h host.Host, options ...ServerOpt
 	// Add host to assemblerContext
 	cfg.assembler.Host = h
 
-	vm, err := vm.NewVM(ctx, h, cfg.updateContext, cfg.assembler)
+	vmOptions := []vm.VMOption{}
+	// Set gcPeriod in VM if it exists.
+	if cfg.gcPeriod != 0 {
+		vmOptions = append(vmOptions, vm.GCPeriod(cfg.gcPeriod))
+	}
+
+	vm, err := vm.NewVM(ctx, h, cfg.updateContext, cfg.assembler, vmOptions...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,6 +129,7 @@ func (e *smartRecordServer) handleUpdate(ctx context.Context, p peer.ID, msg *pb
 	if len(k) == 0 {
 		return nil, errors.New("handleUpdate: no value was provided")
 	}
+	ttl := msg.GetTTL()
 
 	// Unmarshal the record sent
 	smrec, err := xr.UnmarshalJSON(v)
@@ -136,7 +146,7 @@ func (e *smartRecordServer) handleUpdate(ctx context.Context, p peer.ID, msg *pb
 		Key:  k,
 	}
 	// Update in VM
-	err = e.vm.Update(p, string(k), rdict)
+	err = e.vm.Update(p, string(k), rdict, []meta.Metadata{meta.TTL(time.Duration(ttl) * time.Second)}...)
 	if err != nil {
 		return nil, fmt.Errorf("failed updating dict: %s", err)
 	}
