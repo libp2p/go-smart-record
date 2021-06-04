@@ -19,33 +19,28 @@ func setupHost(ctx context.Context, t *testing.T) host.Host {
 	return bhost.New(swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport))
 }
 
-func reachableNode(addr string, conn bool, dial bool) xr.Node {
+func reachableNode(addr string, conn bool) xr.Node {
+	var tag string
 	maddr1 := xr.Predicate{
 		Tag:        "multiaddr",
 		Positional: xr.Nodes{xr.String{addr}},
 	}
-	ops := xr.Nodes{}
 	if conn {
-		ops = append(ops, xr.String{"connected"})
-	}
-	if dial {
-		ops = append(ops, xr.String{"dialable"})
+		tag = "connectivity"
+	} else {
+		tag = "dialable"
 	}
 
 	return xr.Predicate{
-		Tag: "reachable",
+		Tag: tag,
 		Named: xr.Pairs{
 			xr.Pair{Key: xr.String{"address"}, Value: maddr1},
-			xr.Pair{Key: xr.String{"how"}, Value: xr.List{
-				Elements: ops,
-			},
-			},
 		},
 	}
 }
 
 func TestAssembly(t *testing.T) {
-	p := reachableNode(unreachableAddr, true, true)
+	p := reachableNode(unreachableAddr, true)
 	n, err := BaseGrammar.Assemble(ir.AssemblerContext{}, p)
 	if err != nil {
 		t.Errorf("assemble error: (%v)", err)
@@ -54,7 +49,20 @@ func TestAssembly(t *testing.T) {
 	if !ok {
 		t.Errorf("nodes assembled to something different from reachable")
 	}
-	if !(po.verifyConn && po.verifyDial) {
+	if !po.verifyConn {
+		t.Errorf("verify flags not set correctly")
+	}
+
+	p = reachableNode(unreachableAddr, false)
+	n, err = BaseGrammar.Assemble(ir.AssemblerContext{}, p)
+	if err != nil {
+		t.Errorf("assemble error: (%v)", err)
+	}
+	po, ok = n.(*Reachable)
+	if !ok {
+		t.Errorf("nodes assembled to something different from reachable")
+	}
+	if !po.verifyDial {
 		t.Errorf("verify flags not set correctly")
 	}
 }
@@ -67,8 +75,8 @@ func TestTriggerReachableDial(t *testing.T) {
 	reachable := fmt.Sprintf("%s/p2p/%s", s.Addrs()[0].String(), s.ID().Pretty())
 
 	// Getting data ready
-	p1 := reachableNode(reachable, false, true)
-	p2 := reachableNode(unreachableAddr, false, true)
+	p1 := reachableNode(reachable, false)
+	p2 := reachableNode(unreachableAddr, false)
 	in := xr.Dict{
 		Pairs: xr.Pairs{
 			xr.Pair{Key: xr.String{Value: "unreachable"}, Value: xr.List{xr.Nodes{p2}}},
@@ -99,14 +107,17 @@ func TestTriggerReachableDial(t *testing.T) {
 	if r == nil {
 		t.Fatal("dialable node was removed")
 	}
-	// verifyDial was set
-	if !r.(*Reachable).verifyDial || r.(*Reachable).verifyConn {
+	if !r.(*Reachable).verifiedDial || r.(*Reachable).verifiedConn {
 		t.Errorf("dialable node not verified successfully")
 	}
-	// List of unreachable was removed
+	// List of unreachable failed
 	l := do.Get(&ir.String{Value: "list"}).(*ir.Dict).Get(&ir.String{Value: "unreachable"}).(*ir.List)
-	if len(l.Elements) != 0 {
-		t.Errorf("list with single unreachable node not removed")
+	el, ok := (*l).Elements[0].(*Reachable)
+	if !ok {
+		t.Fatal("list element not of type reachable")
+	}
+	if !el.verifiedFail {
+		t.Errorf("list with single unreachable flags not set correctly")
 	}
 }
 
@@ -125,9 +136,9 @@ func TestTriggerReachableConnect(t *testing.T) {
 	}
 
 	// Getting data ready
-	p1 := reachableNode(conn, true, false)
-	p2 := reachableNode(unreachableAddr, true, false)
-	p3 := reachableNode(nonConn, true, false)
+	p1 := reachableNode(conn, true)
+	p2 := reachableNode(unreachableAddr, true)
+	p3 := reachableNode(nonConn, true)
 	d := xr.Dict{
 		Pairs: xr.Pairs{
 			xr.Pair{Key: xr.String{Value: "reachable"}, Value: p1},
@@ -151,18 +162,78 @@ func TestTriggerReachableConnect(t *testing.T) {
 
 	// Verifications
 	r := do.Get(&ir.String{Value: "reachable"})
-	if r == nil {
-		t.Fatal("dialable node was removed")
-	}
 	// verifyConn was set
 	if !r.(*Reachable).verifyConn || r.(*Reachable).verifyDial {
-		t.Errorf("dialable node not verified successfully")
+		t.Errorf("connected node not verified successfully")
 	}
+
+	// Verify unreachable and not connected.
 	r2 := do.Get(&ir.String{Value: "not connected"})
-	if r2 != nil {
-		t.Errorf("not connected node was not removed")
+	if !r2.(*Reachable).verifiedFailConn || r2.(*Reachable).verifiedConn {
+		t.Errorf("not connected flags not set correctly")
 	}
-	if len(do.Pairs) != 1 {
-		t.Errorf("failed removing all pairs that didn't pass verification")
+	r2 = do.Pairs[1].Key
+	if !r2.(*Reachable).verifiedFailConn {
+		t.Errorf("unreachable flags not set correctly")
 	}
+}
+
+func TestTriggerDisassemble(t *testing.T) {
+	c := setupHost(context.Background(), t)
+	// Connectivity
+	r := &Reachable{
+		addr:       c.Addrs()[0],
+		verifyConn: true,
+	}
+	d := r.Disassemble()
+	do, ok := d.(xr.Predicate)
+	if !ok {
+		t.Fatal("reachable didn't disassemble to predicate", do)
+	}
+	if do.Tag != "connectivity" {
+		t.Errorf("connectivity predicate didn't disassemble correctly")
+	}
+
+	// dialable
+	r = &Reachable{
+		addr:       c.Addrs()[0],
+		verifyDial: true,
+	}
+	d = r.Disassemble()
+	do, ok = d.(xr.Predicate)
+	if !ok {
+		t.Fatal("reachable didn't disassemble to predicate", do)
+	}
+	if do.Tag != "dialable" {
+		t.Errorf("dialable predicate didn't disassemble correctly")
+	}
+
+	// dialed
+	r = &Reachable{
+		addr:         c.Addrs()[0],
+		verifiedDial: true,
+	}
+	d = r.Disassemble()
+	do, ok = d.(xr.Predicate)
+	if !ok {
+		t.Fatal("reachable didn't disassemble to predicate", do)
+	}
+	if do.Tag != "dialed" {
+		t.Errorf("dialed predicate didn't disassemble correctly")
+	}
+
+	// not connected
+	r = &Reachable{
+		addr:             c.Addrs()[0],
+		verifiedFailConn: true,
+	}
+	d = r.Disassemble()
+	do, ok = d.(xr.Predicate)
+	if !ok {
+		t.Fatal("reachable didn't disassemble to predicate", do)
+	}
+	if do.Tag != "notConnected" {
+		t.Errorf("notConnected predicate didn't disassemble correctly")
+	}
+
 }

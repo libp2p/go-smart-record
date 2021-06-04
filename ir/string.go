@@ -26,6 +26,8 @@ func (s *String) UpdateWith(ctx UpdateContext, with Node) error {
 	if !ok {
 		return fmt.Errorf("cannot update with a non-string")
 	}
+	// Update value
+	*s = *w
 	// Update metadata
 	s.metadataCtx.Update(w.metadataCtx)
 	return nil

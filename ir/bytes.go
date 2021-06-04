@@ -25,6 +25,8 @@ func (b *Bytes) UpdateWith(ctx UpdateContext, with Node) error {
 	if !ok {
 		return fmt.Errorf("cannot update with a non-Bytes")
 	}
+	// Update value
+	*b = *w
 	// Update metadata
 	b.metadataCtx.Update(w.metadataCtx)
 	return nil

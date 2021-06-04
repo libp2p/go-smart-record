@@ -41,6 +41,8 @@ func (n *Int) UpdateWith(ctx UpdateContext, with Node) error {
 	if !ok {
 		return fmt.Errorf("cannot update with different primitive type")
 	}
+	// Update value
+	*n = *wn
 	// Update metadata
 	n.metadataCtx.Update(wn.metadataCtx)
 	return nil
@@ -66,6 +68,8 @@ func (n *Float) UpdateWith(ctx UpdateContext, with Node) error {
 	if !ok {
 		return fmt.Errorf("cannot update with different primitive type")
 	}
+	// Update value
+	*n = *wn
 	// Update metadata
 	n.metadataCtx.Update(wn.metadataCtx)
 	return nil
