@@ -71,7 +71,7 @@ func (asm StringAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata 
 		return nil, fmt.Errorf("not a string")
 	}
 
-	// Assemble metadata provided and update assemblyTime
+	// Assemble metadata
 	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (asm IntAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ...
 		return nil, fmt.Errorf("not an int")
 	}
 
-	// Assemble metadata provided and update assemblyTime
+	// Assemble metadata
 	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (asm FloatAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata .
 		return nil, fmt.Errorf("not a float")
 	}
 
-	// Assemble metadata provided and update assemblyTime
+	// Assemble metadata
 	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func (asm BoolAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 		return nil, fmt.Errorf("not a bool")
 	}
 
-	// Assemble metadata provided and update assemblyTime
+	// Assemble metadata
 	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (asm BytesAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata .
 		return nil, fmt.Errorf("not bytes type")
 	}
 
-	// Assemble metadata provided and update assemblyTime
+	// Assemble metadata
 	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
@@ -169,7 +169,7 @@ func (asm DictAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 		d.Pairs[i] = Pair{Key: k, Value: v}
 	}
 
-	// Assemble metadata provided and update assemblyTime
+	// Assemble metadata
 	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
@@ -197,7 +197,7 @@ func (asm ListAssembler) Assemble(ctx AssemblerContext, src xr.Node, metadata ..
 		d.Elements[i] = ae
 	}
 
-	// Assemble metadata provided and update assemblyTime
+	// Assemble metadata
 	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
@@ -240,7 +240,7 @@ func (asm PredicateAssembler) Assemble(ctx AssemblerContext, src xr.Node, metada
 		d.Named[i] = Pair{Key: k, Value: v}
 	}
 
-	// Assemble metadata provided and update assemblyTime
+	// Assemble metadata
 	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err

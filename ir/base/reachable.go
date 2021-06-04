@@ -132,7 +132,7 @@ func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, met
 		return nil, fmt.Errorf("no valid multiaddr provided")
 	}
 
-	// Assemble metadata provided and update assemblyTime
+	// Assemble metadata
 	m := meta.New()
 	if err := m.Apply(metadata...); err != nil {
 		return nil, err
