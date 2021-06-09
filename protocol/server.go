@@ -18,6 +18,7 @@ import (
 
 type SmartRecordServer interface {
 	setProtocolHandler(network.StreamHandler)
+	UpdateLocal(k string, p peer.ID, rec xr.Dict, ttl time.Duration) error
 }
 
 // SmartRecordServer handles smart-record requests
@@ -161,4 +162,9 @@ func (e *smartRecordServer) handleUpdate(ctx context.Context, p peer.ID, msg *pb
 func (e *smartRecordServer) handleQuery(ctx context.Context, p peer.ID, msg *pb.Message) (_ *pb.Message, err error) {
 	// TODO: For now query is the same as get. We don't understand selectors yet.
 	return e.handleGet(ctx, p, msg)
+}
+
+func (e *smartRecordServer) UpdateLocal(k string, p peer.ID, rec xr.Dict, ttl time.Duration) error {
+	// Update in VM
+	return e.vm.Update(p, k, rec, []ir.Metadata{ir.TTL(ttl)}...)
 }

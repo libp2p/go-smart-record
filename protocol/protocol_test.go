@@ -108,6 +108,31 @@ func TestEmptyUpdate(t *testing.T) {
 
 }
 
+func TestLocalEmptyUpdate(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s := setupServer(ctx, t)
+
+	k := "234"
+
+	// Put local
+	err := s.UpdateLocal(k, s.host.ID(), in1, ttl)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Get record
+	out := s.vm.Get(k)
+	if err != nil {
+		panic(err)
+	}
+	d := out[s.host.ID()]
+	if !xr.IsEqual(in1, *d) {
+		t.Fatal("local update in empty key failed", in1, out)
+	}
+
+}
+
 func TestUpdateSameKeyDifferentPeers(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
