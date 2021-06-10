@@ -122,7 +122,7 @@ func TestLocalEmptyUpdate(t *testing.T) {
 	}
 
 	// Get record
-	out := s.vm.Get(k)
+	out := s.GetLocal(k)
 	if err != nil {
 		panic(err)
 	}
