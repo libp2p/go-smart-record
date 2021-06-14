@@ -11,15 +11,17 @@ import (
 
 // Protocol ID
 const (
-	srProtocol protocol.ID = "/smart-record/0.0.1"
+	srid          protocol.ID = "/smart-record/0.0.1"
+	DefaultPrefix protocol.ID = "/ipfs"
 )
 
 // Options is a structure containing all the options that can be used when constructing the smart records env
 type serverConfig struct {
 	//datastore          ds.Batching
-	updateContext ir.UpdateContext
-	assembler     ir.AssemblerContext
-	gcPeriod      time.Duration
+	updateContext  ir.UpdateContext
+	assembler      ir.AssemblerContext
+	gcPeriod       time.Duration
+	protocolPrefix protocol.ID
 }
 
 // Option type for smart records
@@ -30,6 +32,7 @@ type ServerOption func(*serverConfig) error
 var serverDefaults = func(o *serverConfig) error {
 	o.updateContext = ir.DefaultUpdateContext{}
 	o.assembler = ir.AssemblerContext{Grammar: base.BaseGrammar}
+	o.protocolPrefix = DefaultPrefix
 
 	return nil
 }
@@ -42,6 +45,22 @@ func (c *serverConfig) apply(opts ...ServerOption) error {
 		}
 	}
 	return nil
+}
+
+// ClientProtocolPrefix configures the smart-record client protocol ID prefix.
+func ClientProtocolPrefix(p protocol.ID) ClientOption {
+	return func(c *clientConfig) error {
+		c.protocolPrefix = p
+		return nil
+	}
+}
+
+// ServerProtocolPrefix configures the smart-record client protocol ID prefix.
+func ServerProtocolPrefix(p protocol.ID) ServerOption {
+	return func(c *serverConfig) error {
+		c.protocolPrefix = p
+		return nil
+	}
 }
 
 // Assembler  configures the assembler to use in the smart record VM
@@ -68,9 +87,9 @@ func VMGcPeriod(gcP time.Duration) ServerOption {
 	}
 }
 
-//NOTE: No options available for clients at this moment. Leaving this here as a placeholder.
 // Options is a structure containing all the options that can be used when constructing the smart records env
 type clientConfig struct {
+	protocolPrefix protocol.ID
 }
 
 // Option type for smart records
@@ -87,5 +106,6 @@ func (c *clientConfig) apply(opts ...ClientOption) error {
 }
 
 var clientDefaults = func(o *clientConfig) error {
+	o.protocolPrefix = DefaultPrefix
 	return nil
 }

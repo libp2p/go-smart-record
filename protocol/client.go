@@ -45,7 +45,7 @@ func newSmartRecordClient(ctx context.Context, h host.Host, options ...ClientOpt
 	if err := cfg.apply(append([]ClientOption{clientDefaults}, options...)...); err != nil {
 		return nil, err
 	}
-	protocols := []protocol.ID{srProtocol}
+	protocols := []protocol.ID{cfg.protocolPrefix + srid}
 
 	// Start a smartRecordClient
 	e := &smartRecordClient{

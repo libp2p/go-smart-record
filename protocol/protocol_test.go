@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/protocol"
 	swarmt "github.com/libp2p/go-libp2p-swarm/testing"
 	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
 	xr "github.com/libp2p/go-routing-language/syntax"
@@ -16,6 +17,9 @@ var ttl = 2 * time.Second
 
 // Use small gcPeriod in server VM for tests
 var gcPeriod = 1 * time.Second
+
+// Use test prefix for protocol
+var prefix protocol.ID = "/test"
 
 var in1 = xr.Dict{
 	Pairs: xr.Pairs{
@@ -46,7 +50,7 @@ func setupServer(ctx context.Context, t *testing.T) *smartRecordServer {
 	s, err := newSmartRecordServer(
 		ctx,
 		bhost.New(swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport)),
-		[]ServerOption{VMGcPeriod(gcPeriod)}...,
+		[]ServerOption{VMGcPeriod(gcPeriod), ServerProtocolPrefix(prefix)}...,
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -59,6 +63,7 @@ func setupClient(ctx context.Context, t *testing.T) *smartRecordClient {
 	c, err := newSmartRecordClient(
 		ctx,
 		bhost.New(swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport)),
+		[]ClientOption{ClientProtocolPrefix(prefix)}...,
 	)
 	if err != nil {
 		t.Fatal(err)
