@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path"
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/host"
@@ -50,7 +51,9 @@ func newSmartRecordServer(ctx context.Context, h host.Host, options ...ServerOpt
 	if err := cfg.apply(append([]ServerOption{serverDefaults}, options...)...); err != nil {
 		return nil, err
 	}
-	protocols := []protocol.ID{srProtocol}
+
+	// protocols := []protocol.ID{cfg.protocolPrefix + srid}
+	protocols := protocol.ConvertFromStrings([]string{path.Join(string(cfg.protocolPrefix) + string(srid))})
 
 	// Add host to assemblerContext
 	cfg.assembler.Host = h
