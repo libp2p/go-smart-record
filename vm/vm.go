@@ -31,6 +31,7 @@ type Machine interface {
 	Get(k string) RecordValue                                                         // Get the full Record in a key
 	// NOTE: No query operation will be supported until we figure out selectors
 	// Query(key string, selector Selector) (RecordValue, error)
+	Close() error
 }
 
 // VM implements the Machine interface and keeps the map of records in its state.
