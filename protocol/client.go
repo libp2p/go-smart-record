@@ -3,6 +3,7 @@ package protocol
 import (
 	"context"
 	"fmt"
+	"path"
 	"time"
 
 	logging "github.com/ipfs/go-log"
@@ -45,7 +46,9 @@ func newSmartRecordClient(ctx context.Context, h host.Host, options ...ClientOpt
 	if err := cfg.apply(append([]ClientOption{clientDefaults}, options...)...); err != nil {
 		return nil, err
 	}
-	protocols := []protocol.ID{cfg.protocolPrefix + srid}
+
+	// protocols := []protocol.ID{cfg.protocolPrefix + srid}
+	protocols := protocol.ConvertFromStrings([]string{path.Join(string(cfg.protocolPrefix) + string(srid))})
 
 	// Start a smartRecordClient
 	e := &smartRecordClient{
