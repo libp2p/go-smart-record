@@ -150,9 +150,9 @@ func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, met
 // over a dict and adds the appropiate flag to Nodes that don't pass the verification.
 func TriggerReachable(d *ir.Dict, h host.Host) {
 	// For each pair.
-	for k := len(d.Pairs) - 1; k >= 0; k-- {
-		triggerReachable(d.Pairs[k].Key, h)
-		triggerReachable(d.Pairs[k].Value, h)
+	for _, p := range d.Pairs {
+		triggerReachable(p.Key, h)
+		triggerReachable(p.Value, h)
 	}
 }
 
@@ -170,8 +170,8 @@ func triggerReachable(n ir.Node, h host.Host) {
 
 func verifyList(s *ir.List, h host.Host) {
 	// For each element
-	for k := len(s.Elements) - 1; k >= 0; k-- {
-		triggerReachable(s.Elements[k], h)
+	for _, e := range s.Elements {
+		triggerReachable(e, h)
 	}
 }
 
