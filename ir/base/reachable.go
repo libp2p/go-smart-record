@@ -6,59 +6,73 @@ import (
 	"io"
 	"time"
 
-	xr "github.com/libp2p/go-routing-language/syntax"
-
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-routing-language/parse"
+	xr "github.com/libp2p/go-routing-language/syntax"
+	ma "github.com/multiformats/go-multiaddr"
+
 	"github.com/libp2p/go-smart-record/ir"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
-// Reachable is a smart node. It detects if there are multiaddrs in the node.
-// If there are, it checks if they are dialable, and it only keeps those
-// that are reachable, discarding the unreachable.
+// Reachable is a smart node. It detects if the multiaddrs is
+// connected or dialable.
 type Reachable struct {
-	// Reachable only keeps multiaddrss that are reachable in Node.
-	Reachable ir.Node
-	// User holds user fields which are not multiaddrs.
-	User ir.Node
-	// Flag to discern if the Reachable node is of type "connected".
-	// If this flag is not set it means is of type "dialable".
-	isConn bool
+	// Multiaddr checked
+	addr ma.Multiaddr
+	// What do we need to verify?
+	verifyConn bool
+	verifyDial bool
+	// Has it been verified?
+	verifiedConn     bool
+	verifiedDial     bool
+	verifiedFail     bool
+	verifiedFailConn bool
+
+	metadataCtx *meta.Meta
 }
 
-// NOTE: This may need to be re-designed once we decide how will smart-tags behave
-// with the new routing-language. For now the tag returns the curated list of
-// "connected" or "dialable" peers. Optionally, we could return a predicate a
-// tag to specify the type of list being returned ("connected" or "dialable"), but
-// I can't find a strong argument in favor of this for now.
+// Reachable disassembles to reachable xr.Predicate of the form
+// dialed(address=MULTIADDRESS:STRING) if dial checks
+// connected(address=MULTIADDRESS:STRING) if connected checks.
+// notConnected(address=MULTIADDRESS:STRING) if connected fails.
+// notDialable(address=MULTIADDRESS:STRING) if dial fails.
 func (r Reachable) Disassemble() xr.Node {
-	_, dok := r.Reachable.(*ir.Dict)
-	// tag := "dialable"
-	// // Check the type of Reachable: "dialable" or "connected"
-	// if r.isConn {
-	//         tag = "connected"
-	// }
-	if dok {
-		return (&ir.Dict{
-			Pairs: ir.MergePairs(
-				r.Reachable.(*ir.Dict).Pairs, // List of reachable multiaddresses
-				r.User.(*ir.Dict).Pairs,      // The rest of pairs which don't have multiaddrs.
-			),
-		}).Disassemble()
-	} else {
+	var tag string
 
-		return (&ir.List{
-			Elements: ir.MergeElements(
-				r.Reachable.(*ir.List).Elements, // List of reachable multiaddresses
-				r.User.(*ir.List).Elements,      // The rest of pairs which don't have multiaddrs.
-			),
-		}).Disassemble()
+	// Set right tag for predicate
+	if r.verifiedConn {
+		tag = "connected"
+	} else if r.verifiedDial {
+		tag = "dialed"
+	} else if r.verifiedFail {
+		tag = "notDialable"
+	} else if r.verifiedFailConn {
+		tag = "notConnected"
+	} else {
+		// This means that nothing has been verified
+		// Disassemble the predicate as-is
+		if r.verifyConn {
+			tag = "connectivity"
+
+		} else if r.verifyDial {
+			tag = "dialable"
+		}
 	}
 
+	return xr.Predicate{
+		Tag: tag,
+		Named: xr.Pairs{
+			xr.Pair{
+				xr.String{"address"}, xr.String{r.addr.String()},
+			},
+		},
+	}
 }
 
-func (r *Reachable) Metadata() ir.MetadataInfo {
-	return r.User.Metadata()
+func (r *Reachable) Metadata() meta.MetadataInfo {
+	return r.metadataCtx.Get()
 }
 
 func (r *Reachable) WritePretty(w io.Writer) error {
@@ -70,166 +84,128 @@ func (r *Reachable) UpdateWith(ctx ir.UpdateContext, with ir.Node) error {
 	if !ok {
 		return fmt.Errorf("cannot update with a non-reachable node")
 	}
-	// Update each of the dicts for reachable and user straightaway
-	var err error
-	err = r.User.UpdateWith(ctx, w)
-	if err != nil {
-		return fmt.Errorf("Error updating user node: %s", err)
-	}
-	err = r.Reachable.UpdateWith(ctx, w)
-	if err != nil {
-		return fmt.Errorf("Error updating user node: %s", err)
-	}
 
+	// Update value
+	*r = *w
+	// Update metadata
+	r.metadataCtx.Update(w.metadataCtx)
+
+	return nil
+}
+
+// getNamed returns the xr.Node in a key.
+// NOTE: Consider adding this as a function of xr.Predicates
+// in the routing-language, and remove it from here.
+func getNamed(p xr.Predicate, key xr.Node) xr.Node {
+	for _, ps := range p.Named {
+		if xr.IsEqual(ps.Key, key) {
+			return ps.Value
+		}
+	}
 	return nil
 }
 
 type ReachableAssembler struct{}
 
-func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata ...ir.Metadata) (ir.Node, error) {
-	// Check if host List in context
-	if ctx.Host == nil {
-		return nil, fmt.Errorf("can't assemble reachable node without host in assembler context")
-	}
+// Reachable assemble expects a predicate of the form:
+// connectivity(address=MULTIADDRESS) or
+// dialable(address=MULTIADDRESS)
+// See Disassemble() for more info on the resulting predicates after check.
+func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, metadata ...meta.Metadata) (ir.Node, error) {
 	// Reachable receives a predicate
 	p, ok := srcNode.(xr.Predicate)
 	if !ok {
 		return nil, fmt.Errorf("smart-tags must be predicates")
 	}
 
-	// Reachable can receive a Dict or List as positional input 0.
-	// NOTE: The current implementation is not complete. This currently
-	// takes the first positional argument. Needs to be extended to apply
-	// to all arguments of predicate.
-	d, dok := p.Positional[0].(xr.Dict)
-	s, sok := p.Positional[0].(xr.List)
-	if !dok && !sok {
-		return nil, fmt.Errorf("expecting dict or list")
-	}
-	// Get tag from predicate
+	// Get tag and positional arguments.
 	tag := p.Tag
-	if dok {
-		return reachableDictAssemble(ctx, tag, d, metadata...)
+	addr := getNamed(p, xr.String{"address"})
+	// Check tag
+	if tag != "connectivity" && tag != "dialable" {
+		return nil, fmt.Errorf("not a reachable smart tag")
 	}
-	return reachableListAssemble(ctx, tag, s, metadata...)
 
+	// Check multiaddress
+	maddr, err := parse.ParseMultiaddr(&parse.ParseCtx{}, addr)
+	if err != nil {
+		return nil, fmt.Errorf("no valid multiaddr provided")
+	}
+
+	// Assemble metadata
+	m := meta.New()
+	if err := m.Apply(metadata...); err != nil {
+		return nil, err
+	}
+
+	return &Reachable{
+		addr:        maddr,
+		verifyConn:  tag == "connectivity",
+		verifyDial:  tag == "dialable",
+		metadataCtx: m,
+	}, nil
 }
 
-func reachableDictAssemble(ctx ir.AssemblerContext, tag string, d xr.Dict, metadata ...ir.Metadata) (ir.Node, error) {
-
-	isConn := false
-	if tag != "connected" && tag != "dialable" {
-		return nil, fmt.Errorf("expecting tag 'connected' or 'dialable'")
-	}
-	// If the node is of type connected List flag
-	if tag == "connected" {
-		isConn = true
-	}
-
-	u := xr.Dict{}
-	r := xr.Dict{}
+// TriggerReachable triggers the execution of Reachable verifications
+// over a dict and adds the appropiate flag to Nodes that don't pass the verification.
+func TriggerReachable(d *ir.Dict, h host.Host) {
+	// For each pair.
 	for _, p := range d.Pairs {
-		info := isValidMultiAddrNode(p.Value)
-		// If not a multiaddr add to user List and continue
-		if info == nil {
-			// Add non-multiaddr to user-dict
-			u.Pairs = append(u.Pairs, p)
-			continue
-		}
-		// According to if connected or dialable
-		if isConn {
-			// If connected add pair with multiaddr to reachable
-			if conn := checkIfConnected(ctx.Host, *info); conn {
-				r.Pairs = append(r.Pairs, p)
-			}
-		} else {
-			// If dialable add pair with multiaddr to reachable
-			if dialable := checkIfDialable(ctx.Host, *info); dialable {
-				r.Pairs = append(r.Pairs, p)
-			}
-		}
+		triggerReachable(p.Key, h)
+		triggerReachable(p.Value, h)
 	}
-	// Assemble reachable and user dicts.
-	asm := ir.DictAssembler{}
-	uasm, err := asm.Assemble(ctx, u, metadata...)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't assemble user dict: %s", err)
-	}
-	rasm, err := asm.Assemble(ctx, r, metadata...)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't assemble reachable dict: %s", err)
-	}
-	return &Reachable{
-		Reachable: rasm,
-		User:      uasm,
-		isConn:    isConn,
-	}, nil
 }
 
-func reachableListAssemble(ctx ir.AssemblerContext, tag string, d xr.List, metadata ...ir.Metadata) (ir.Node, error) {
-	isConn := false
-	if tag != "connected" && tag != "dialable" {
-		return nil, fmt.Errorf("expecting tag 'connected' or 'dialable'")
-	}
-	// If the node is of type connected List flag
-	if tag == "connected" {
-		isConn = true
+func triggerReachable(n ir.Node, h host.Host) {
+	switch n1 := n.(type) {
+	case *Reachable:
+		n1.verify(h)
+	case *ir.Dict:
+		TriggerReachable(n1, h)
+	case *ir.List:
+		verifyList(n1, h)
 	}
 
-	u := xr.List{}
-	r := xr.List{}
-	for _, p := range d.Elements {
-		info := isValidMultiAddrNode(p)
-		// If not a multiaddr add to user List and continue
-		if info == nil {
-			// Add non-multiaddr to user-List
-			u.Elements = append(u.Elements, p)
-			continue
-		}
-		// According to if connected or dialable
-		if isConn {
-			// If connected add pair with multiaddr to reachable
-			if conn := checkIfConnected(ctx.Host, *info); conn {
-				r.Elements = append(r.Elements, p)
-			}
-		} else {
-			// If dialable add pair with multiaddr to reachable
-			if dialable := checkIfDialable(ctx.Host, *info); dialable {
-				r.Elements = append(r.Elements, p)
-			}
-		}
-	}
-	// Assemble reachable and user dicts.
-	asm := ir.ListAssembler{}
-	uasm, err := asm.Assemble(ctx, u, metadata...)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't assemble user dict: %s", err)
-	}
-	rasm, err := asm.Assemble(ctx, r, metadata...)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't assemble reachable dict: %s", err)
-	}
-	return &Reachable{
-		Reachable: rasm,
-		User:      uasm,
-		isConn:    isConn,
-	}, nil
 }
 
-// isValidMultiAddrNode checks if the node is of type multiaddr+
-// and returns its corresponding AddrInfo
-func isValidMultiAddrNode(n xr.Node) *peer.AddrInfo {
-	// Check if the value is of type string
-	s, ok := n.(xr.String)
-	if !ok {
-		return nil
+func verifyList(s *ir.List, h host.Host) {
+	// For each element
+	for _, e := range s.Elements {
+		triggerReachable(e, h)
 	}
-	// Check if multiaddr and extract addrinfo
-	info, err := peer.AddrInfoFromString(s.Value)
+}
+
+// trigger the verification of reachable
+// updates flags according to the verification result
+func (r *Reachable) verify(h host.Host) {
+	info, err := peer.AddrInfoFromP2pAddr(r.addr)
+	// If there is an error, the verification is not successful.
 	if err != nil {
-		return nil
+		r.verifiedFail = true
+		return
 	}
-	return info
+
+	// If dialable verification enabled and not checked.
+	if r.verifyDial && !r.verifiedDial {
+		// Set verifyFail if the verification failed.
+		if c := checkIfDialable(h, *info); !c {
+			r.verifiedFail = true
+			return
+		}
+		// Set verified flag
+		r.verifiedDial = true
+	}
+
+	// If connected verification enabled and not checked.
+	if r.verifyConn && !r.verifiedConn {
+		// Set verifyFail if the verification failed.
+		if c := checkIfConnected(h, *info); !c {
+			r.verifiedFailConn = true
+			return
+		}
+		// Set verified flag
+		r.verifiedConn = true
+	}
 }
 
 // CheckIfdialable Checks if peer reachable with 5s timeout.

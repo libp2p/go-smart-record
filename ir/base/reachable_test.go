@@ -1,7 +1,6 @@
 package base
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"testing"
@@ -20,226 +19,221 @@ func setupHost(ctx context.Context, t *testing.T) host.Host {
 	return bhost.New(swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport))
 }
 
-func TestDialableDict(t *testing.T) {
+func reachableNode(addr string, conn bool) xr.Node {
+	var tag string
+	maddr1 := xr.Predicate{
+		Tag:        "multiaddr",
+		Positional: xr.Nodes{xr.String{addr}},
+	}
+	if conn {
+		tag = "connectivity"
+	} else {
+		tag = "dialable"
+	}
+
+	return xr.Predicate{
+		Tag: tag,
+		Named: xr.Pairs{
+			xr.Pair{Key: xr.String{"address"}, Value: maddr1},
+		},
+	}
+}
+
+func TestAssembly(t *testing.T) {
+	p := reachableNode(unreachableAddr, true)
+	n, err := BaseGrammar.Assemble(ir.AssemblerContext{}, p)
+	if err != nil {
+		t.Errorf("assemble error: (%v)", err)
+	}
+	po, ok := n.(*Reachable)
+	if !ok {
+		t.Errorf("nodes assembled to something different from reachable")
+	}
+	if !po.verifyConn {
+		t.Errorf("verify flags not set correctly")
+	}
+
+	p = reachableNode(unreachableAddr, false)
+	n, err = BaseGrammar.Assemble(ir.AssemblerContext{}, p)
+	if err != nil {
+		t.Errorf("assemble error: (%v)", err)
+	}
+	po, ok = n.(*Reachable)
+	if !ok {
+		t.Errorf("nodes assembled to something different from reachable")
+	}
+	if !po.verifyDial {
+		t.Errorf("verify flags not set correctly")
+	}
+}
+
+func TestTriggerReachableDial(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	c := setupHost(ctx, t)
 	s := setupHost(ctx, t)
 	reachable := fmt.Sprintf("%s/p2p/%s", s.Addrs()[0].String(), s.ID().Pretty())
-	asm := ReachableAssembler{}
-	du := xr.Dict{
+
+	// Getting data ready
+	p1 := reachableNode(reachable, false)
+	p2 := reachableNode(unreachableAddr, false)
+	in := xr.Dict{
 		Pairs: xr.Pairs{
-			xr.Pair{Key: xr.String{Value: "key"}, Value: xr.String{Value: "234"}},
-			xr.Pair{Key: xr.String{Value: "NotAddr1"}, Value: xr.String{Value: "/ip4/multiaddr1"}},
-			xr.Pair{Key: xr.String{Value: "NotAddr2"}, Value: xr.String{Value: "/ip4/multiaddr2"}},
-			xr.Pair{Key: xr.String{Value: "reachable"}, Value: xr.String{Value: reachable}},
-			xr.Pair{Key: xr.String{Value: "unreachable"}, Value: xr.String{Value: unreachableAddr}},
+			xr.Pair{Key: xr.String{Value: "unreachable"}, Value: xr.List{xr.Nodes{p2}}},
 		},
 	}
-	d := xr.Predicate{
-		Tag:        "dialable",
-		Positional: xr.Nodes{du},
+	d := xr.Dict{
+		Pairs: xr.Pairs{
+			xr.Pair{Key: xr.String{Value: "reachable"}, Value: p1},
+			xr.Pair{Key: xr.String{Value: "list"}, Value: in},
+		},
 	}
 
-	ds, err := asm.Assemble(ir.AssemblerContext{Grammar: BaseGrammar, Host: c}, d)
+	// Assemble data structure
+	n, err := BaseGrammar.Assemble(ir.AssemblerContext{Grammar: BaseGrammar}, d)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("assemble error: (%v)", err)
+	}
+	do, ok := n.(*ir.Dict)
+	if !ok {
+		t.Errorf("nodes assembled to something different from a dict")
 	}
 
-	// Verify reachable list.
-	r := ds.(*Reachable).Reachable.(*ir.Dict).Get(&ir.String{Value: "reachable"})
-	if len(ds.(*Reachable).Reachable.(*ir.Dict).Pairs) != 1 && r == nil {
-		t.Fatal("Reachable entry not added correctly to reachable dict")
-	}
-	// Verify discarded unreachable from user dict
-	if ds.(*Reachable).User.(*ir.Dict).Get(&ir.String{Value: "unreachable"}) != nil {
-		t.Fatal("Unreachable entry was not removed from user pairs")
-	}
-	// Verify right number of entries after disassembling
-	dsa := ds.Disassemble()
-	if len(dsa.(xr.Dict).Pairs) != len(du.Pairs)-1 {
-		t.Fatal("Disassembly of reachable dict was not correct")
-	}
+	// Trigger reachable.
+	TriggerReachable(do, c)
 
-	// Print result for convenience
-	var w bytes.Buffer
-	dsa.WritePretty(&w)
-	fmt.Println(w.String())
+	// Verifications
+	r := do.Get(&ir.String{Value: "reachable"})
+	if r == nil {
+		t.Fatal("dialable node was removed")
+	}
+	if !r.(*Reachable).verifiedDial || r.(*Reachable).verifiedConn {
+		t.Errorf("dialable node not verified successfully")
+	}
+	// List of unreachable failed
+	l := do.Get(&ir.String{Value: "list"}).(*ir.Dict).Get(&ir.String{Value: "unreachable"}).(*ir.List)
+	el, ok := (*l).Elements[0].(*Reachable)
+	if !ok {
+		t.Fatal("list element not of type reachable")
+	}
+	if !el.verifiedFail {
+		t.Errorf("list with single unreachable flags not set correctly")
+	}
 }
 
-func TestDialableList(t *testing.T) {
+func TestTriggerReachableConnect(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	c := setupHost(ctx, t)
 	s := setupHost(ctx, t)
-	reachable := fmt.Sprintf("%s/p2p/%s", s.Addrs()[0].String(), s.ID().Pretty())
-	asm := ReachableAssembler{}
-	du := xr.List{
-		Elements: xr.Nodes{
-			xr.String{Value: "234"},
-			xr.String{Value: "/ip4/multiaddr1"},
-			xr.String{Value: "/ip4/multiaddr2"},
-			xr.String{Value: reachable},
-			xr.String{Value: unreachableAddr},
-		},
-	}
-	d := xr.Predicate{
-		Tag:        "dialable",
-		Positional: xr.Nodes{du},
-	}
-	ds, err := asm.Assemble(ir.AssemblerContext{Grammar: BaseGrammar, Host: c}, d)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Verify reachable list.
-	r := ds.(*Reachable).Reachable.(*ir.List).Elements.IndexOf(&ir.String{Value: reachable})
-	if len(ds.(*Reachable).Reachable.(*ir.List).Elements) != 1 && r < 0 {
-		t.Fatal("Reachable entry not added correctly to reachable List")
-	}
-
-	// Verify discarded unreachable from user List
-	if ds.(*Reachable).User.(*ir.List).Elements.IndexOf(&ir.String{Value: unreachableAddr}) >= 0 {
-		t.Fatal("Unreachable entry was not removed from user List")
-	}
-
-	// Verify right number of entries after disassembling
-	dsa := ds.Disassemble()
-	if len(dsa.(xr.List).Elements) != len(du.Elements)-1 {
-		t.Fatal("Disassembly of reachable dict was not correct")
-	}
-
-	// Print result for convenience
-	var w bytes.Buffer
-	dsa.WritePretty(&w)
-	fmt.Println(w.String())
-}
-
-func TestConnDict(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	c := setupHost(ctx, t)
-	s := setupHost(ctx, t)
-	n := setupHost(ctx, t)
-
-	reachable := fmt.Sprintf("%s/p2p/%s", s.Addrs()[0].String(), s.ID().Pretty())
-	notConn := fmt.Sprintf("%s/p2p/%s", s.Addrs()[0].String(), n.ID().Pretty())
+	w := setupHost(ctx, t)
+	conn := fmt.Sprintf("%s/p2p/%s", s.Addrs()[0].String(), s.ID().Pretty())
+	nonConn := fmt.Sprintf("%s/p2p/%s", w.Addrs()[0].String(), w.ID().Pretty())
 
 	// Connect c-s
 	if err := c.Connect(ctx, *host.InfoFromHost(s)); err != nil {
 		t.Fatal(err)
 	}
 
-	asm := ReachableAssembler{}
-	du := xr.Dict{
+	// Getting data ready
+	p1 := reachableNode(conn, true)
+	p2 := reachableNode(unreachableAddr, true)
+	p3 := reachableNode(nonConn, true)
+	d := xr.Dict{
 		Pairs: xr.Pairs{
-			xr.Pair{Key: xr.String{Value: "key"}, Value: xr.String{Value: "234"}},
-			xr.Pair{Key: xr.String{Value: "NotAddr1"}, Value: xr.String{Value: "/ip4/multiaddr1"}},
-			xr.Pair{Key: xr.String{Value: "NotAddr2"}, Value: xr.String{Value: "/ip4/multiaddr2"}},
-			xr.Pair{Key: xr.String{Value: "connected"}, Value: xr.String{Value: reachable}},
-			xr.Pair{Key: xr.String{Value: "notConnected"}, Value: xr.String{Value: notConn}},
+			xr.Pair{Key: xr.String{Value: "reachable"}, Value: p1},
+			xr.Pair{Key: p2, Value: xr.String{Value: "unreachable"}},
+			xr.Pair{Key: xr.String{Value: "not connected"}, Value: p3},
 		},
 	}
-	d := xr.Predicate{
-		Tag:        "connected",
-		Positional: xr.Nodes{du},
-	}
-	ds, err := asm.Assemble(ir.AssemblerContext{Grammar: BaseGrammar, Host: c}, d)
+
+	// Assemble data structure
+	n, err := BaseGrammar.Assemble(ir.AssemblerContext{Grammar: BaseGrammar}, d)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("assemble error: (%v)", err)
+	}
+	do, ok := n.(*ir.Dict)
+	if !ok {
+		t.Errorf("nodes assembled to something different from a dict")
 	}
 
-	// Verify reachable list.
-	r := ds.(*Reachable).Reachable.(*ir.Dict).Get(&ir.String{Value: "connected"})
-	if len(ds.(*Reachable).Reachable.(*ir.Dict).Pairs) != 1 && r == nil {
-		t.Fatal("Connected entry not added correctly to reachable dict")
-	}
-	// Verify discarded unreachable from user dict
-	if ds.(*Reachable).User.(*ir.Dict).Get(&ir.String{Value: "notConnected"}) != nil {
-		t.Fatal("Not connected entry was not removed from user pairs")
+	// Trigger reachable.
+	TriggerReachable(do, c)
+
+	// Verifications
+	r := do.Get(&ir.String{Value: "reachable"})
+	// verifyConn was set
+	if !r.(*Reachable).verifyConn || r.(*Reachable).verifyDial {
+		t.Errorf("connected node not verified successfully")
 	}
 
-	// Verify flag set correctly
-	if !ds.(*Reachable).isConn {
-		t.Fatal("Connected flag not set correctly in node", ds.(*Reachable).isConn)
+	// Verify unreachable and not connected.
+	r2 := do.Get(&ir.String{Value: "not connected"})
+	if !r2.(*Reachable).verifiedFailConn || r2.(*Reachable).verifiedConn {
+		t.Errorf("not connected flags not set correctly")
 	}
-
-	// Verify right number of entries after disassembling
-	dsa := ds.Disassemble()
-	if len(dsa.(xr.Dict).Pairs) != len(du.Pairs)-1 {
-		t.Fatal("Disassembly of connected dict was not correct")
+	r2 = do.Pairs[1].Key
+	if !r2.(*Reachable).verifiedFailConn {
+		t.Errorf("unreachable flags not set correctly")
 	}
-
-	// Print result for convenience
-	var w bytes.Buffer
-	dsa.WritePretty(&w)
-	fmt.Println(w.String())
 }
 
-func TestConnSet(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	c := setupHost(ctx, t)
-	s := setupHost(ctx, t)
-	n := setupHost(ctx, t)
-
-	reachable := fmt.Sprintf("%s/p2p/%s", s.Addrs()[0].String(), s.ID().Pretty())
-	notConn := fmt.Sprintf("%s/p2p/%s", s.Addrs()[0].String(), n.ID().Pretty())
-
-	// Connect c-s
-	if err := c.Connect(ctx, *host.InfoFromHost(s)); err != nil {
-		t.Fatal(err)
+func TestTriggerDisassemble(t *testing.T) {
+	c := setupHost(context.Background(), t)
+	// Connectivity
+	r := &Reachable{
+		addr:       c.Addrs()[0],
+		verifyConn: true,
+	}
+	d := r.Disassemble()
+	do, ok := d.(xr.Predicate)
+	if !ok {
+		t.Fatal("reachable didn't disassemble to predicate", do)
+	}
+	if do.Tag != "connectivity" {
+		t.Errorf("connectivity predicate didn't disassemble correctly")
 	}
 
-	asm := ReachableAssembler{}
-	du := xr.List{
-		Elements: xr.Nodes{
-			xr.String{Value: "234"},
-			xr.String{Value: "/ip4/multiaddr1"},
-			xr.String{Value: "/ip4/multiaddr2"},
-			xr.String{Value: reachable},
-			xr.String{Value: unreachableAddr},
-			xr.String{Value: notConn},
-		},
+	// dialable
+	r = &Reachable{
+		addr:       c.Addrs()[0],
+		verifyDial: true,
 	}
-	d := xr.Predicate{
-		Tag:        "connected",
-		Positional: xr.Nodes{du},
+	d = r.Disassemble()
+	do, ok = d.(xr.Predicate)
+	if !ok {
+		t.Fatal("reachable didn't disassemble to predicate", do)
 	}
-	ds, err := asm.Assemble(ir.AssemblerContext{Grammar: BaseGrammar, Host: c}, d)
-	if err != nil {
-		t.Fatal(err)
+	if do.Tag != "dialable" {
+		t.Errorf("dialable predicate didn't disassemble correctly")
 	}
 
-	// Verify reachable list.
-	r := ds.(*Reachable).Reachable.(*ir.List).Elements.IndexOf(&ir.String{Value: reachable})
-	if len(ds.(*Reachable).Reachable.(*ir.List).Elements) != 1 && r < 0 {
-		t.Fatal("Connected entry not added correctly to reachable List")
+	// dialed
+	r = &Reachable{
+		addr:         c.Addrs()[0],
+		verifiedDial: true,
+	}
+	d = r.Disassemble()
+	do, ok = d.(xr.Predicate)
+	if !ok {
+		t.Fatal("reachable didn't disassemble to predicate", do)
+	}
+	if do.Tag != "dialed" {
+		t.Errorf("dialed predicate didn't disassemble correctly")
 	}
 
-	// Verify discarded unreachable from user List
-	if ds.(*Reachable).User.(*ir.List).Elements.IndexOf(&ir.String{Value: unreachableAddr}) >= 0 {
-		t.Fatal("Unreachable entry was not removed from user List")
+	// not connected
+	r = &Reachable{
+		addr:             c.Addrs()[0],
+		verifiedFailConn: true,
+	}
+	d = r.Disassemble()
+	do, ok = d.(xr.Predicate)
+	if !ok {
+		t.Fatal("reachable didn't disassemble to predicate", do)
+	}
+	if do.Tag != "notConnected" {
+		t.Errorf("notConnected predicate didn't disassemble correctly")
 	}
 
-	// Verify discarded not connected from user List
-	if ds.(*Reachable).User.(*ir.List).Elements.IndexOf(&ir.String{Value: notConn}) >= 0 {
-		t.Fatal("Unconnected entry was not removed from user List")
-	}
-
-	// Verify flag List correctly
-	if !ds.(*Reachable).isConn {
-		t.Fatal("Connected flag not List correctly in node", ds.(*Reachable).isConn)
-	}
-
-	// Verify right number of entries after disassembling
-	dsa := ds.Disassemble()
-	if len(dsa.(xr.List).Elements) != len(du.Elements)-2 {
-		t.Fatal("Disassembly of connected List was not correct")
-	}
-
-	// Print result for convenience
-	var w bytes.Buffer
-	dsa.WritePretty(&w)
-	fmt.Println(w.String())
 }

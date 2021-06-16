@@ -1,11 +1,15 @@
 package ir
 
-import xr "github.com/libp2p/go-routing-language/syntax"
+import (
+	xr "github.com/libp2p/go-routing-language/syntax"
+
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
+)
 
 type Node interface {
 	Disassemble() xr.Node // returns only syntactic nodes
 	UpdateWith(ctx UpdateContext, with Node) error
-	Metadata() MetadataInfo
+	Metadata() meta.MetadataInfo
 }
 
 type Nodes []Node

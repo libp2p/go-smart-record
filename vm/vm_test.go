@@ -5,19 +5,28 @@ import (
 	"testing"
 	"time"
 
+	"github.com/libp2p/go-libp2p-core/host"
 	p2ptestutil "github.com/libp2p/go-libp2p-netutil"
+	swarmt "github.com/libp2p/go-libp2p-swarm/testing"
+	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
 	xr "github.com/libp2p/go-routing-language/syntax"
 	"github.com/libp2p/go-smart-record/ir"
 	"github.com/libp2p/go-smart-record/ir/base"
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 )
 
 var k = "234"
 var gcPeriodOpt = GCPeriod(1 * time.Second)
 
+func setupHost(ctx context.Context, t *testing.T) host.Host {
+	return bhost.New(swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport))
+}
+
 func TestEmptyUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
-	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
+	h := setupHost(context.Background(), t)
+	vm, _ := NewVM(context.Background(), h, ctx, asmCtx, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in := xr.Dict{
@@ -45,7 +54,8 @@ func TestEmptyUpdate(t *testing.T) {
 func TestExistingUpdate(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
-	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
+	h := setupHost(context.Background(), t)
+	vm, _ := NewVM(context.Background(), h, ctx, asmCtx, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 
 	in1 := xr.Dict{
@@ -82,7 +92,8 @@ func TestExistingUpdate(t *testing.T) {
 func TestSeveralPeers(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
-	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
+	h := setupHost(context.Background(), t)
+	vm, _ := NewVM(context.Background(), h, ctx, asmCtx, gcPeriodOpt)
 	p1, _ := p2ptestutil.RandTestBogusIdentity()
 	p2, _ := p2ptestutil.RandTestBogusIdentity()
 
@@ -128,7 +139,8 @@ func TestSeveralPeers(t *testing.T) {
 func TestGcProcess(t *testing.T) {
 	ctx := ir.DefaultUpdateContext{}
 	asmCtx := ir.AssemblerContext{Grammar: base.BaseGrammar}
-	vm, _ := NewVM(context.Background(), ctx, asmCtx, gcPeriodOpt)
+	h := setupHost(context.Background(), t)
+	vm, _ := NewVM(context.Background(), h, ctx, asmCtx, gcPeriodOpt)
 	p, _ := p2ptestutil.RandTestBogusIdentity()
 	p2, _ := p2ptestutil.RandTestBogusIdentity()
 
@@ -144,17 +156,17 @@ func TestGcProcess(t *testing.T) {
 	}
 
 	// Small expiration for in1
-	err := vm.Update(p.ID(), k, in1, []ir.Metadata{ir.TTL(1 * time.Second)}...)
+	err := vm.Update(p.ID(), k, in1, []meta.Metadata{meta.TTL(1 * time.Second)}...)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Add it also in other peer
-	err = vm.Update(p2.ID(), k, in1, []ir.Metadata{ir.TTL(1 * time.Second)}...)
+	err = vm.Update(p2.ID(), k, in1, []meta.Metadata{meta.TTL(1 * time.Second)}...)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Large expiration for in2
-	err = vm.Update(p.ID(), k, in2, []ir.Metadata{ir.TTL(3000 * time.Second)}...)
+	err = vm.Update(p.ID(), k, in2, []meta.Metadata{meta.TTL(3000 * time.Second)}...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,9 +191,9 @@ func TestGcFullDict(t *testing.T) {
 		},
 	}
 
-	ttl := ir.TTL(1 * time.Second)
+	ttl := meta.TTL(1 * time.Second)
 	ds, err := ir.SyntacticGrammar.Assemble(ir.AssemblerContext{Grammar: ir.SyntacticGrammar},
-		d, []ir.Metadata{ttl}...)
+		d, []meta.Metadata{ttl}...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,13 +216,13 @@ func TestGcPartialDict(t *testing.T) {
 	}
 	// Small TTL
 	ds1, err := ir.SyntacticGrammar.Assemble(ir.AssemblerContext{Grammar: ir.SyntacticGrammar},
-		in1, []ir.Metadata{ir.TTL(1 * time.Second)}...)
+		in1, []meta.Metadata{meta.TTL(1 * time.Second)}...)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Large TTL
 	ds2, err := ir.SyntacticGrammar.Assemble(ir.AssemblerContext{Grammar: ir.SyntacticGrammar},
-		in2, []ir.Metadata{ir.TTL(3000 * time.Second)}...)
+		in2, []meta.Metadata{meta.TTL(3000 * time.Second)}...)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,8 +1,12 @@
-package ir
+package metadata
 
 import (
 	"fmt"
 )
+
+type Meta struct {
+	m *metadataContext
+}
 
 // metadataContext includes all the metadata fields supported by semantic nodes.
 // This context is attached to semantic nodes. The context supports private and
@@ -38,6 +42,39 @@ func (m *metadataContext) apply(items ...Metadata) error {
 	return nil
 }
 
+// New creates new metadata structure
+func New() *Meta {
+	return &Meta{&metadataContext{}}
+
+}
+
+// Apply applies Metadata updates over context
+func (M *Meta) Apply(items ...Metadata) error {
+	return M.m.apply(items...)
+}
+
+// Update metadata
+func (M *Meta) Update(with *Meta) {
+	// If any of the nodes doesn't have metadata -> return
+	if M == nil || with == nil {
+		return
+	}
+	M.m.update(with.m)
+}
+
+// Get public metadata attributes
+func (M *Meta) Get(items ...Metadata) MetadataInfo {
+	return M.m.getMetadata()
+}
+
+// Copy metadata
+func (M *Meta) Copy() Meta {
+	if M == nil {
+		return Meta{&metadataContext{}}
+	}
+	return *M
+}
+
 // getMetadata returns public metadata in a context as MetadataInfo
 func (m *metadataContext) getMetadata() MetadataInfo {
 	if m == nil {
@@ -51,16 +88,5 @@ func (m *metadataContext) getMetadata() MetadataInfo {
 
 // update the metadata of a node conveniently when it receives an update.
 func (m *metadataContext) update(with *metadataContext) {
-	// If any of the nodes doesn't have metadata -> return
-	if m == nil || with == nil {
-		return
-	}
 	m.expirationTime = m.expirationTime.update(with.expirationTime).(expirationTime)
-}
-
-func (m *metadataContext) copy() metadataContext {
-	if m == nil {
-		return metadataContext{}
-	}
-	return *m
 }

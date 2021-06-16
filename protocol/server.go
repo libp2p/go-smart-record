@@ -11,7 +11,8 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	xr "github.com/libp2p/go-routing-language/syntax"
-	"github.com/libp2p/go-smart-record/ir"
+
+	meta "github.com/libp2p/go-smart-record/ir/metadata"
 	pb "github.com/libp2p/go-smart-record/protocol/pb"
 	"github.com/libp2p/go-smart-record/vm"
 )
@@ -60,7 +61,7 @@ func newSmartRecordServer(ctx context.Context, h host.Host, options ...ServerOpt
 		vmOptions = append(vmOptions, vm.GCPeriod(cfg.gcPeriod))
 	}
 
-	vm, err := vm.NewVM(ctx, cfg.updateContext, cfg.assembler, vmOptions...)
+	vm, err := vm.NewVM(ctx, h, cfg.updateContext, cfg.assembler, vmOptions...)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +148,7 @@ func (e *smartRecordServer) handleUpdate(ctx context.Context, p peer.ID, msg *pb
 		Key:  k,
 	}
 	// Update in VM
-	err = e.vm.Update(p, string(k), rdict, []ir.Metadata{ir.TTL(time.Duration(ttl) * time.Second)}...)
+	err = e.vm.Update(p, string(k), rdict, []meta.Metadata{meta.TTL(time.Duration(ttl) * time.Second)}...)
 	if err != nil {
 		return nil, fmt.Errorf("failed updating dict: %s", err)
 	}
