@@ -1,4 +1,4 @@
-// Package ir defines the Intermediate Representation (informally, in-memory representation) of smart records.
+// Package ir defines the Semantic Representation of smart records.
 package ir
 
 /*
@@ -18,6 +18,7 @@ The vocabulary consists of two types of nodes: syntactic and smart.
 	Smart nodes, by their Go type:
 		Cid
 		Multiaddress
+		Reachable
 		Peer
 		Record
 		Sign, Signed
@@ -25,13 +26,13 @@ The vocabulary consists of two types of nodes: syntactic and smart.
 
 We use the following nomenclature:
 
-	"Syntactic IR", or "syntactic documents", refers to documents comprising only syntactic nodes.
-	"Semantic IR", or "semantic documents", refers to documents comprising syntactic and smart nodes.
+	"Syntactic IR (XR)", or "syntactic documents", refers to documents comprising only syntactic nodes.
+	"Semantic IR (IR)", or "semantic documents", refers to documents comprising syntactic and smart nodes.
 
 Users generally manipulate semantic documents (or just "documents", for short),
 consisting of both syntactic and smart nodes.
 Syntactic nodes represent generic structured data types (and support generic merge logic).
-Smart nodes represent higher concepts (with custom merge logics) that have a syntactic representation.
+Smart nodes represent higher concepts (with custom update logics and smart behavior) that have a syntactic representation.
 
 SERIALIZATION
 
@@ -54,10 +55,10 @@ We use JSON as a running example. Serialization to JSON is also provided
 by this library out-of-the-box.
 
 Serialization:
-	JSON <--(marshal)-- Syntactic IR <--(disassemble)-- Semantic IR
+	JSON <--(marshal)-- IPLD <-- Syntactic IR <--(disassemble)-- Semantic IR
 
 Deserialization:
-	JSON --(unmarshal)--> Syntactic IR --(assemble)--> Semantic IR
+	JSON --(unmarshal)--> IPLD --> Syntactic IR --(assemble)--> Semantic IR
 
 
 */
