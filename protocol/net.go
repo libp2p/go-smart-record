@@ -74,10 +74,7 @@ func (e *smartRecordServer) handleNewMessages(s network.Stream) bool {
 		msgbytes, err := r.ReadMsg()
 		if err != nil {
 			r.ReleaseMsg(msgbytes)
-			if err == io.EOF {
-				return true
-			}
-			return false
+			return err == io.EOF
 		}
 		err = req.Unmarshal(msgbytes)
 		r.ReleaseMsg(msgbytes)

@@ -88,8 +88,5 @@ func gcList(s *ir.List) bool {
 }
 
 func isTTLExpired(n ir.Node) bool {
-	if uint64(time.Now().Unix()) > n.Metadata().ExpirationTime {
-		return true
-	}
-	return false
+	return uint64(time.Now().Unix()) > n.Metadata().ExpirationTime
 }
