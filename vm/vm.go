@@ -42,7 +42,7 @@ type vm struct {
 	host host.Host
 
 	updateCtx ir.UpdateContext // UpdateContext the VM uses to resolve conflicts
-	//ds  ds.Datastore    // TODO: Add a datastore instead of using map[string] for the VM state
+	// ds  ds.Datastore    // TODO: Add a datastore instead of using map[string] for the VM state
 	keys map[string]*recordEntry // State of the VM storing the map of records.
 	asm  ir.AssemblerContext     // Assemble to use in the VM.
 
@@ -59,7 +59,7 @@ func NewVM(ctx context.Context, h host.Host, updateCtx ir.UpdateContext, asm ir.
 	return newVM(ctx, h, updateCtx, asm, options...)
 }
 
-//newVM instantiates a new VM with an updateContext and an assembler
+// newVM instantiates a new VM with an updateContext and an assembler
 func newVM(ctx context.Context, h host.Host, updateCtx ir.UpdateContext, asm ir.AssemblerContext, options ...VMOption) (*vm, error) {
 	var cfg vmConfig
 	if err := cfg.apply(append([]VMOption{defaults}, options...)...); err != nil {
@@ -92,7 +92,7 @@ func (v *vm) Get(k string) RecordValue {
 	}
 
 	// Disassembles all nodes in record
-	out := make(map[peer.ID]*xr.Dict, 0)
+	out := make(map[peer.ID]*xr.Dict)
 	for pk, v := range *v.keys[k] {
 		d := v.Disassemble()
 		do, ok := d.(xr.Dict)
@@ -103,7 +103,6 @@ func (v *vm) Get(k string) RecordValue {
 		}
 	}
 	return out
-
 }
 
 // Update the dictionary in the writer's private space

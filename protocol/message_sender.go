@@ -28,7 +28,6 @@ type messageSenderImpl struct {
 
 // SendRequest sends out a request
 func (m *messageSenderImpl) SendRequest(ctx context.Context, p peer.ID, pmes *pb.Message) (*pb.Message, error) {
-
 	ms, err := m.messageSenderForPeer(ctx, p)
 	if err != nil {
 		log.Debugw("request failed to open message sender", "error", err, "to", p)
@@ -45,7 +44,6 @@ func (m *messageSenderImpl) SendRequest(ctx context.Context, p peer.ID, pmes *pb
 
 // SendMessage sends out a message
 func (m *messageSenderImpl) SendMessage(ctx context.Context, p peer.ID, pmes *pb.Message) error {
-
 	ms, err := m.messageSenderForPeer(ctx, p)
 	if err != nil {
 		log.Debugw("message failed to open message sender", "error", err, "to", p)
@@ -100,8 +98,7 @@ type peerMessageSender struct {
 	p  peer.ID
 	m  *messageSenderImpl
 
-	invalid   bool
-	singleMes int
+	invalid bool
 }
 
 // invalidate is called before this peerMessageSender is removed from the strmap.

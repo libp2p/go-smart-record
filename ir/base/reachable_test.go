@@ -23,7 +23,7 @@ func reachableNode(addr string, conn bool) xr.Node {
 	var tag string
 	maddr1 := xr.Predicate{
 		Tag:        "multiaddr",
-		Positional: xr.Nodes{xr.String{addr}},
+		Positional: xr.Nodes{xr.String{Value: addr}},
 	}
 	if conn {
 		tag = "connectivity"
@@ -34,7 +34,7 @@ func reachableNode(addr string, conn bool) xr.Node {
 	return xr.Predicate{
 		Tag: tag,
 		Named: xr.Pairs{
-			xr.Pair{Key: xr.String{"address"}, Value: maddr1},
+			xr.Pair{Key: xr.String{Value: "address"}, Value: maddr1},
 		},
 	}
 }
@@ -79,7 +79,7 @@ func TestTriggerReachableDial(t *testing.T) {
 	p2 := reachableNode(unreachableAddr, false)
 	in := xr.Dict{
 		Pairs: xr.Pairs{
-			xr.Pair{Key: xr.String{Value: "unreachable"}, Value: xr.List{xr.Nodes{p2}}},
+			xr.Pair{Key: xr.String{Value: "unreachable"}, Value: xr.List{Elements: xr.Nodes{p2}}},
 		},
 	}
 	d := xr.Dict{
@@ -235,5 +235,4 @@ func TestTriggerDisassemble(t *testing.T) {
 	if do.Tag != "notConnected" {
 		t.Errorf("notConnected predicate didn't disassemble correctly")
 	}
-
 }

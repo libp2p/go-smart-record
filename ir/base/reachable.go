@@ -55,7 +55,6 @@ func (r Reachable) Disassemble() xr.Node {
 		// Disassemble the predicate as-is
 		if r.verifyConn {
 			tag = "connectivity"
-
 		} else if r.verifyDial {
 			tag = "dialable"
 		}
@@ -65,7 +64,8 @@ func (r Reachable) Disassemble() xr.Node {
 		Tag: tag,
 		Named: xr.Pairs{
 			xr.Pair{
-				xr.String{"address"}, xr.String{r.addr.String()},
+				Key:   xr.String{Value: "address"},
+				Value: xr.String{Value: r.addr.String()},
 			},
 		},
 	}
@@ -120,7 +120,7 @@ func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, met
 
 	// Get tag and positional arguments.
 	tag := p.Tag
-	addr := getNamed(p, xr.String{"address"})
+	addr := getNamed(p, xr.String{Value: "address"})
 	// Check tag
 	if tag != "connectivity" && tag != "dialable" {
 		return nil, fmt.Errorf("not a reachable smart tag")
@@ -165,7 +165,6 @@ func triggerReachable(n ir.Node, h host.Host) {
 	case *ir.List:
 		verifyList(n1, h)
 	}
-
 }
 
 func verifyList(s *ir.List, h host.Host) {
