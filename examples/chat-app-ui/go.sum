@@ -405,8 +405,8 @@ github.com/libp2p/go-reuseport-transport v0.0.2/go.mod h1:YkbSDrvjUVDL6b8XqriyA2
 github.com/libp2p/go-reuseport-transport v0.0.3/go.mod h1:Spv+MPft1exxARzP2Sruj2Wb5JSyHNncjf1Oi2dEbzM=
 github.com/libp2p/go-reuseport-transport v0.0.4 h1:OZGz0RB620QDGpv300n1zaOcKGGAoGVf8h9txtt/1uM=
 github.com/libp2p/go-reuseport-transport v0.0.4/go.mod h1:trPa7r/7TJK/d+0hdBLOCGvpQQVOU74OXbNCIMkufGw=
-github.com/libp2p/go-routing-language v0.0.0-20210526172636-c5ae98fb671d h1:sm93+A0jPYqQ6M8CNySW8zTApf5lBsE/VYcWyJlgttk=
-github.com/libp2p/go-routing-language v0.0.0-20210526172636-c5ae98fb671d/go.mod h1:aW+0lSQhkBXrlmgtDLSe8ZTRxxwZln7UbbJfhXWYIp0=
+github.com/libp2p/go-routing-language v0.0.0-20210531170722-12dc033e88ac h1:29F3WXzTpjbF4PirsGeKO9Tfm86kWXhIlxa3VHUyJcU=
+github.com/libp2p/go-routing-language v0.0.0-20210531170722-12dc033e88ac/go.mod h1:8JPlnsICJIRTHhnwUogIRlhrRscEUj5eolabjUQFDtg=
 github.com/libp2p/go-sockaddr v0.0.2/go.mod h1:syPvOmNs24S3dFVGJA1/mrqdeijPxLV2Le3BRLKd68k=
 github.com/libp2p/go-sockaddr v0.1.0 h1:Y4s3/jNoryVRKEBrkJ576F17CPOaMIzUeCsg7dlTDj0=
 github.com/libp2p/go-sockaddr v0.1.0/go.mod h1:syPvOmNs24S3dFVGJA1/mrqdeijPxLV2Le3BRLKd68k=
