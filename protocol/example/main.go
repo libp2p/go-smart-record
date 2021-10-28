@@ -92,7 +92,7 @@ func main() {
 // DialOtherPeers connects to a set of peers in the experiment.
 func DialOtherPeer(ctx context.Context, self host.Host, ai peer.AddrInfo) error {
 	if err := self.Connect(ctx, ai); err != nil {
-		return fmt.Errorf("Error while dialing peer %v: %w", ai.Addrs, err)
+		return fmt.Errorf("error while dialing peer %v: %w", ai.Addrs, err)
 	}
 	return nil
 }
