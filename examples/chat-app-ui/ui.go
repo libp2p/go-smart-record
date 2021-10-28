@@ -158,7 +158,7 @@ func (ui *chatUI) syncMessages() {
 
 func (ui *chatUI) processSyncMessages(out *vm.RecordValue) {
 	//  TODO: Check that type casts are correct throughout all the method. If not throw error
-	syncMsgs := make(map[int64][]*syncUpdate, 0) //seqID - nick - msg
+	syncMsgs := make(map[int64][]*syncUpdate) //seqID - nick - msg
 	ids := make([]int, 0)
 	var tmpMax int64 = -1
 	update := false

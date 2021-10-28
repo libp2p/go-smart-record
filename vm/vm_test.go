@@ -19,7 +19,11 @@ var k = "234"
 var gcPeriodOpt = GCPeriod(1 * time.Second)
 
 func setupHost(ctx context.Context, t *testing.T) host.Host {
-	return bhost.New(swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport))
+	h, err := bhost.NewHost(ctx, swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport), nil)
+	if err != nil {
+		panic(err)
+	}
+	return h
 }
 
 func TestEmptyUpdate(t *testing.T) {
