@@ -64,7 +64,7 @@ func (c *clientConfig) sendMsg(text string) error {
 
 func (c *clientConfig) processSyncMessages(out *vm.RecordValue, outCh chan string) {
 	//  TODO: Check that type casts are correct throughout all the method. If not throw error
-	syncMsgs := make(map[int64][]*syncUpdate, 0) //seqID - nick - msg
+	syncMsgs := make(map[int64][]*syncUpdate) //seqID - nick - msg
 	ids := make([]int, 0)
 	var tmpMax int64 = -1
 	update := false
@@ -84,11 +84,7 @@ func (c *clientConfig) processSyncMessages(out *vm.RecordValue, outCh chan strin
 		}
 
 		msgs := v.Get(xr.String{Value: "msgs"})
-		mdict, ok := msgs.(xr.Dict)
-		if !ok {
-			// Optional sync error messages can be included here.
-			//printErr("sync error: dict of messages not stored inrecord")
-		}
+		mdict, _ := msgs.(xr.Dict)
 
 		// For all messages in peer
 		for _, pv := range mdict.Pairs {

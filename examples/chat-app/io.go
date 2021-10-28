@@ -37,12 +37,9 @@ func (c *clientConfig) readInput(outCh chan string) {
 func (c *clientConfig) writeOutput(outCh chan string) {
 	fmt.Println("[*] Ready! You can start typing your messages :) ")
 	w := bufio.NewWriter(os.Stdout)
-	for {
-		select {
-		case input := <-outCh:
-			w.WriteString(input)
-			w.Flush()
-		}
+	for input := range outCh {
+		w.WriteString(input)
+		w.Flush()
 	}
 }
 
