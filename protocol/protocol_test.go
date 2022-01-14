@@ -112,7 +112,7 @@ func TestEmptyUpdate(t *testing.T) {
 	}
 
 	// Check if TTL set successfully.
-	time.Sleep(3 * time.Second)
+	time.Sleep(3 * ttl)
 	out, err = c.Get(ctx, k, s.host.ID())
 	if err != nil {
 		panic(err)
