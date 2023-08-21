@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/libp2p/go-libp2p/core/host"
 	p2ptestutil "github.com/libp2p/go-libp2p-testing/netutil"
+	"github.com/libp2p/go-libp2p/core/host"
 	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
 	swarmt "github.com/libp2p/go-libp2p/p2p/net/swarm/testing"
 	xr "github.com/libp2p/go-routing-language/syntax"
