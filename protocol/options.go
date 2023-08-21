@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/libp2p/go-libp2p-core/protocol"
+	"github.com/libp2p/go-libp2p/core/protocol"
 	"github.com/libp2p/go-smart-record/ir"
 	"github.com/libp2p/go-smart-record/ir/base"
 )

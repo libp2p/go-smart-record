@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/libp2p/go-libp2p-core/host"
-	swarmt "github.com/libp2p/go-libp2p-swarm/testing"
+	"github.com/libp2p/go-libp2p/core/host"
 	bhost "github.com/libp2p/go-libp2p/p2p/host/basic"
+	swarmt "github.com/libp2p/go-libp2p/p2p/net/swarm/testing"
 	xr "github.com/libp2p/go-routing-language/syntax"
 
 	"github.com/libp2p/go-smart-record/ir"

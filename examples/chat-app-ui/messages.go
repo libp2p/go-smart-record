@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"sync"
 
-	peer "github.com/libp2p/go-libp2p-core/peer"
+	peer "github.com/libp2p/go-libp2p/core/peer"
 	xr "github.com/libp2p/go-routing-language/syntax"
 	"github.com/libp2p/go-smart-record/protocol"
 )

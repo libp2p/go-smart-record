@@ -3,7 +3,7 @@ package ir
 import (
 	"fmt"
 
-	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p/core/host"
 	xr "github.com/libp2p/go-routing-language/syntax"
 
 	meta "github.com/libp2p/go-smart-record/ir/metadata"

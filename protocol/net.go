@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/libp2p/go-libp2p-core/network"
+	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-msgio"
 	"github.com/libp2p/go-msgio/protoio"
 	pb "github.com/libp2p/go-smart-record/protocol/pb"
