@@ -8,6 +8,7 @@ import (
 
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-routing-language/patterns"
 	"github.com/libp2p/go-routing-language/parse"
 	xr "github.com/libp2p/go-routing-language/syntax"
 	ma "github.com/multiformats/go-multiaddr"
@@ -127,7 +128,7 @@ func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, met
 	}
 
 	// Check multiaddress
-	maddr, err := parse.ParseMultiaddr(&parse.ParseCtx{}, addr)
+	maddr, err := patterns.ParseMultiaddr(&parse.ParseCtx{}, addr)
 	if err != nil {
 		return nil, fmt.Errorf("no valid multiaddr provided")
 	}
