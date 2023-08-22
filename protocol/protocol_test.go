@@ -47,7 +47,7 @@ var in = xr.Dict{
 
 func setupServer(ctx context.Context, t *testing.T) *smartRecordServer {
 
-	h, err := bhost.NewHost(ctx, swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport), nil)
+	h, err := bhost.NewHost(swarmt.GenSwarm(t, swarmt.OptDisableReuseport), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -65,7 +65,7 @@ func setupServer(ctx context.Context, t *testing.T) *smartRecordServer {
 
 func setupClient(ctx context.Context, t *testing.T) *smartRecordClient {
 
-	h, err := bhost.NewHost(ctx, swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport), nil)
+	h, err := bhost.NewHost(swarmt.GenSwarm(t, swarmt.OptDisableReuseport), nil)
 	if err != nil {
 		panic(err)
 	}

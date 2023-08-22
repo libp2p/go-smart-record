@@ -28,7 +28,7 @@ func main() {
 	fmt.Println("[*] Starting hosts")
 
 	// Instantiating hosts
-	h2, err := libp2p.New(ctx)
+	h2, err := libp2p.New()
 	if err != nil {
 		panic(err)
 	}

@@ -16,7 +16,7 @@ import (
 var unreachableAddr = "/ip4/127.0.0.1/tcp/44783/p2p/12D3KooWKRyzVWW6ChFjQjK4miCty85Niy48tpPV95XdKu1BcvMA"
 
 func setupHost(ctx context.Context, t *testing.T) host.Host {
-	h, err := bhost.NewHost(ctx, swarmt.GenSwarm(t, ctx, swarmt.OptDisableReuseport), nil)
+	h, err := bhost.NewHost(swarmt.GenSwarm(t, swarmt.OptDisableReuseport), nil)
 	if err != nil {
 		panic(err)
 	}

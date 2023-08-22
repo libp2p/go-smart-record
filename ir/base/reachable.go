@@ -140,7 +140,7 @@ func (ReachableAssembler) Assemble(ctx ir.AssemblerContext, srcNode xr.Node, met
 	}
 
 	return &Reachable{
-		addr:        maddr,
+		addr:        maddr.Multiaddr,
 		verifyConn:  tag == "connectivity",
 		verifyDial:  tag == "dialable",
 		metadataCtx: m,
