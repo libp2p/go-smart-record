@@ -18,11 +18,11 @@ func main() {
 	fmt.Println("[*] Starting hosts")
 
 	// Instantiating hosts
-	h1, err := libp2p.New(ctx)
+	h1, err := libp2p.New()
 	if err != nil {
 		panic(err)
 	}
-	h2, err := libp2p.New(ctx)
+	h2, err := libp2p.New()
 	if err != nil {
 		panic(err)
 	}
