@@ -94,7 +94,6 @@ func main() {
 	// libp2p.New constructs a new libp2p Host.
 	// Other options can be added here.
 	host, err := libp2p.New(
-		ctx,
 		libp2p.ListenAddrs(sourceMultiAddr),
 		libp2p.Identity(priv),
 	)
