@@ -8,8 +8,8 @@ import (
 
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
-	"github.com/libp2p/go-routing-language/patterns"
 	"github.com/libp2p/go-routing-language/parse"
+	"github.com/libp2p/go-routing-language/patterns"
 	xr "github.com/libp2p/go-routing-language/syntax"
 	ma "github.com/multiformats/go-multiaddr"
 
