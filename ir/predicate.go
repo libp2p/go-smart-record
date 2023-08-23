@@ -8,7 +8,8 @@ import (
 )
 
 // Predicate models a function invocation with named and positional arguments, corresponding to the syntax:
-//   tag(a1, a2, ...; n1=v1, n2=v2, ...)
+//
+//	tag(a1, a2, ...; n1=v1, n2=v2, ...)
 type Predicate struct {
 	Tag         string
 	Positional  Nodes
