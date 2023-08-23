@@ -1,8 +1,9 @@
 /*
-	This tutorial is inspired on this two go-libp2p example:
-		- https://github.com/libp2p/go-libp2p-examples/blob/master/chat/chat.go
-		- https://github.com/libp2p/go-libp2p-examples/tree/master/pubsub/chat
-	This tutorial builds a chat using smart-records instead of direct communication or PubSub to broadcast messages.
+This tutorial is inspired on this two go-libp2p example:
+  - https://github.com/libp2p/go-libp2p-examples/blob/master/chat/chat.go
+  - https://github.com/libp2p/go-libp2p-examples/tree/master/pubsub/chat
+
+This tutorial builds a chat using smart-records instead of direct communication or PubSub to broadcast messages.
 */
 package main
 
