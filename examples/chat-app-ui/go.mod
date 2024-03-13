@@ -1,6 +1,6 @@
 module github.com/libp2p/go-smart-record/examples/chat-app
 
-go 1.20
+go 1.21
 
 require (
 	github.com/gdamore/tcell/v2 v2.2.1
