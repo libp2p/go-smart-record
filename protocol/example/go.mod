@@ -1,6 +1,6 @@
 module github.com/libp2p/go-smart-record/protocol/example
 
-go 1.20
+go 1.21
 
 require (
 	github.com/libp2p/go-libp2p v0.15.1
