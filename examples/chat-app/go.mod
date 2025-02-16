@@ -1,6 +1,6 @@
 module github.com/libp2p/go-smart-record/examples/chat-app
 
-go 1.22
+go 1.23
 
 require (
 	github.com/libp2p/go-libp2p v0.15.1
