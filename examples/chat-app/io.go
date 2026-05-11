@@ -16,7 +16,7 @@ func (c *clientConfig) readInput(outCh chan string) {
 		// ReadString will block until the delimiter is entered
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("An error occured while reading input. Please try again", err)
+			fmt.Println("An error occurred while reading input. Please try again", err)
 			return
 		}
 
